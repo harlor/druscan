@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Performance Analysis</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-primary-dark: #0029CC;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .score-circle {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: white;
+      margin: 0 auto;
+    }
+
+    .score-good { background-color: var(--droptica-success); }
+    .score-average { background-color: var(--droptica-warning); }
+    .score-poor { background-color: var(--droptica-danger); }
+
+    .metric-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: var(--droptica-primary);
+    }
+
+    .metric-label {
+      font-size: 0.9rem;
+      color: #6c757d;
+      text-transform: uppercase;
+    }
+
+    .device-icon {
+      font-size: 2rem;
+      color: var(--droptica-primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4">
+      <div class="card-body p-4">
+        <h2 class="mb-4"><i class="bi bi-speedometer2 me-2"></i>Performance Analysis</h2>
+        <p>Website performance analysis using Google Lighthouse. Results show mobile and desktop performance metrics.</p>
+
+        <div id="performance-url-info" class="alert alert-info border-start border-4 border-info mb-4">
+          <i class="bi bi-globe me-2"></i>
+          <strong>Tested URL:</strong> <span id="tested-url">Loading...</span>
+        </div>
+
+        <div class="alert alert-info border-start border-4 border-info">
+          <i class="bi bi-info-circle-fill me-2"></i>
+          <strong>About Lighthouse:</strong> Industry-standard tool developed by Google for measuring web performance, accessibility, and best practices.
+        </div>
+
+        <div id="performance-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading performance analysis...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Safe placeholder handling
+    let PERFORMANCE_DATA;
+    try {
+      PERFORMANCE_DATA = __PERFORMANCE_JSON_PLACEHOLDER__;
+    } catch (e) {
+      PERFORMANCE_DATA = null;
+    }
+
+    function getScoreClass(score) {
+      if (score >= 90) return 'score-good';
+      if (score >= 50) return 'score-average';
+      return 'score-poor';
+    }
+
+    function getScoreLabel(score) {
+      if (score >= 90) return 'Good';
+      if (score >= 50) return 'Needs Improvement';
+      return 'Poor';
+    }
+
+    function formatMetric(value, unit = 's') {
+      return value + unit;
+    }
+
+    function renderDeviceResults(data, deviceName, iconClass) {
+      if (!data || data.error) {
+        return `
+          <div class="col-md-6">
+            <div class="card border-danger">
+              <div class="card-body text-center py-5">
+                <i class="bi ${iconClass} device-icon mb-3"></i>
+                <h3>${deviceName}</h3>
+                <div class="alert alert-danger mt-3">
+                  ${data?.error || 'No data available'}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      const score = data.performance_score || 0;
+      const metrics = data.metrics || {};
+      const opportunities = data.opportunities || [];
+      const diagnostics = data.diagnostics || [];
+
+      let html = `
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <div class="text-center mb-4">
+                <i class="bi ${iconClass} device-icon mb-3"></i>
+                <h3>${deviceName}</h3>
+                <div class="score-circle ${getScoreClass(score)} my-3">
+                  ${score}
+                </div>
+                <p class="text-muted">${getScoreLabel(score)}</p>
+              </div>
+
+              <h4 class="h5 mb-3">Key Metrics</h4>
+              <div class="row g-3 mb-4">
+                <div class="col-6">
+                  <div class="card bg-light">
+                    <div class="card-body text-center p-3">
+                      <div class="metric-value">${formatMetric(metrics.first_contentful_paint || 0)}</div>
+                      <div class="metric-label">First Contentful Paint</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="card bg-light">
+                    <div class="card-body text-center p-3">
+                      <div class="metric-value">${formatMetric(metrics.speed_index || 0)}</div>
+                      <div class="metric-label">Speed Index</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="card bg-light">
+                    <div class="card-body text-center p-3">
+                      <div class="metric-value">${formatMetric(metrics.largest_contentful_paint || 0)}</div>
+                      <div class="metric-label">Largest Contentful Paint</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="card bg-light">
+                    <div class="card-body text-center p-3">
+                      <div class="metric-value">${formatMetric(metrics.time_to_interactive || 0)}</div>
+                      <div class="metric-label">Time to Interactive</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="card bg-light">
+                    <div class="card-body text-center p-3">
+                      <div class="metric-value">${formatMetric(metrics.total_blocking_time || 0, 'ms')}</div>
+                      <div class="metric-label">Total Blocking Time</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="card bg-light">
+                    <div class="card-body text-center p-3">
+                      <div class="metric-value">${metrics.cumulative_layout_shift || 0}</div>
+                      <div class="metric-label">Cumulative Layout Shift</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+      `;
+
+      // Top Opportunities
+      if (opportunities.length > 0) {
+        html += `
+          <h4 class="h6 mb-3">Top Opportunities</h4>
+          <div class="list-group mb-4">
+        `;
+        opportunities.forEach(opp => {
+          html += `
+            <div class="list-group-item">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <strong>${opp.title}</strong>
+                  <p class="mb-0 small text-muted">${opp.description}</p>
+                </div>
+                <span class="badge bg-warning">${opp.savings_ms}ms</span>
+              </div>
+            </div>
+          `;
+        });
+        html += '</div>';
+      }
+
+      // Diagnostics
+      if (diagnostics.length > 0) {
+        html += `
+          <h4 class="h6 mb-3">Diagnostics</h4>
+          <div class="list-group mb-3">
+        `;
+        diagnostics.forEach(diag => {
+          const badgeClass = diag.score >= 50 ? 'bg-warning' : 'bg-danger';
+          html += `
+            <div class="list-group-item">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <strong>${diag.title}</strong>
+                  <p class="mb-0 small text-muted">${diag.description}</p>
+                </div>
+                <span class="badge ${badgeClass}">${diag.score}</span>
+              </div>
+            </div>
+          `;
+        });
+        html += '</div>';
+      }
+
+      html += `
+            </div>
+          </div>
+        </div>
+      `;
+
+      return html;
+    }
+
+    function renderPerformanceAnalysis() {
+      const container = document.getElementById('performance-content');
+
+      if (!PERFORMANCE_DATA || typeof PERFORMANCE_DATA !== 'object') {
+        return;
+      }
+
+      // Extract data from nested structure (analysis wrapper OR frontend_analysis)
+      const data = PERFORMANCE_DATA.frontend_analysis || PERFORMANCE_DATA.analysis || PERFORMANCE_DATA;
+      const testedUrl = data.url || PERFORMANCE_DATA.url || 'Unknown';
+
+      // Update URL info
+      document.getElementById('tested-url').textContent = testedUrl;
+
+      let html = '<div class="row">';
+
+      // Mobile results
+      html += renderDeviceResults(data.mobile, 'Mobile', 'bi-phone-fill');
+
+      // Desktop results
+      html += renderDeviceResults(data.desktop, 'Desktop', 'bi-laptop-fill');
+
+      html += '</div>';
+
+      // Backend Analysis Section
+      if (PERFORMANCE_DATA.backend_analysis || PERFORMANCE_DATA.cache_configuration) {
+        const backend = PERFORMANCE_DATA.backend_analysis || {
+          cache_configuration: PERFORMANCE_DATA.cache_configuration,
+          php_settings: PERFORMANCE_DATA.php_settings,
+          performance_modules: PERFORMANCE_DATA.performance_modules
+        };
+
+        html += `
+          <div class="card mt-4 border-primary">
+            <div class="card-header bg-primary text-white">
+              <h3 class="h5 mb-0"><i class="bi bi-gear-fill me-2"></i>Backend Performance Configuration</h3>
+            </div>
+            <div class="card-body">
+              <p class="text-muted">Backend performance analysis checks configuration without production metrics.</p>
+
+              ${backend.cache_configuration ? `
+                <div class="mb-3">
+                  <h4 class="h6"><i class="bi bi-lightning-charge me-2"></i>Cache Configuration</h4>
+                  <ul class="list-unstyled ms-3">
+                    <li><strong>Backend:</strong> ${backend.cache_configuration.cache_backend || 'Unknown'}</li>
+                    <li><strong>Redis:</strong> ${backend.cache_configuration.redis_enabled ? '✅ Enabled' : '❌ Disabled'}</li>
+                    <li><strong>Memcache:</strong> ${backend.cache_configuration.memcache_enabled ? '✅ Enabled' : '❌ Disabled'}</li>
+                    <li><strong>Page Cache:</strong> ${backend.cache_configuration.page_cache_enabled || 'Unknown'}</li>
+                    <li><strong>Page Cache Max Age:</strong> ${backend.cache_configuration.page_cache_max_age || 0}s</li>
+                    <li><strong>Dynamic Page Cache:</strong> ${backend.cache_configuration.dynamic_page_cache_enabled || 'Unknown'}</li>
+                  </ul>
+                  ${backend.cache_configuration.cache_bins && backend.cache_configuration.cache_bins.length > 0 ? `
+                    <div class="alert alert-info py-2 mt-2"><small><strong>Custom Cache Bins:</strong> ${backend.cache_configuration.cache_bins.join(', ')}</small></div>
+                  ` : ''}
+                  ${backend.cache_configuration.varnish_purge_modules && backend.cache_configuration.varnish_purge_modules.length > 0 ? `
+                    <div class="alert alert-info py-2 mt-2"><small><strong>Varnish Modules:</strong> ${backend.cache_configuration.varnish_purge_modules.join(', ')}</small></div>
+                  ` : ''}
+                  ${backend.cache_configuration.recommendations && backend.cache_configuration.recommendations.length > 0 ? `
+                    <div class="alert alert-warning py-2 mt-2">
+                      <small><strong>Recommendations:</strong></small>
+                      <ul class="mb-0 ms-3">
+                        ${backend.cache_configuration.recommendations.map(rec => `<li><small>${rec}</small></li>`).join('')}
+                      </ul>
+                    </div>
+                  ` : ''}
+                </div>
+              ` : ''}
+
+              ${backend.php_settings ? `
+                <div class="mb-3">
+                  <h4 class="h6"><i class="bi bi-cpu me-2"></i>PHP Settings (Local DDEV)</h4>
+                  <div class="alert alert-warning py-2"><small>${backend.php_settings.warning || 'Settings from local environment'}</small></div>
+                  <ul class="list-unstyled ms-3">
+                    <li><strong>PHP Version:</strong> ${backend.php_settings.php_version || 'Unknown'}</li>
+                    <li><strong>Memory Limit:</strong> ${backend.php_settings.memory_limit || 'Unknown'}</li>
+                    <li><strong>Max Execution Time:</strong> ${backend.php_settings.max_execution_time || 'Unknown'}s</li>
+                    <li><strong>POST Max Size:</strong> ${backend.php_settings.post_max_size || 'Unknown'}</li>
+                    <li><strong>Upload Max Filesize:</strong> ${backend.php_settings.upload_max_filesize || 'Unknown'}</li>
+                  </ul>
+                  ${backend.php_settings.opcache ? `
+                    <div class="alert alert-${backend.php_settings.opcache.enabled ? 'success' : 'warning'} py-2 mt-2">
+                      <small><strong>OPcache:</strong> ${backend.php_settings.opcache.enabled ? '✅ Enabled' : '❌ Disabled'}</small>
+                      ${backend.php_settings.opcache.enabled ? `
+                        <ul class="mb-0 ms-3 mt-1">
+                          <li><small>Memory: ${backend.php_settings.opcache.memory_consumption}MB</small></li>
+                          <li><small>Max Files: ${backend.php_settings.opcache.max_accelerated_files}</small></li>
+                          <li><small>Validate Timestamps: ${backend.php_settings.opcache.validate_timestamps}</small></li>
+                        </ul>
+                      ` : ''}
+                    </div>
+                  ` : ''}
+                  ${backend.php_settings.recommendations && backend.php_settings.recommendations.length > 0 ? `
+                    <div class="alert alert-warning py-2 mt-2">
+                      <small><strong>Recommendations:</strong></small>
+                      <ul class="mb-0 ms-3">
+                        ${backend.php_settings.recommendations.map(rec => `<li><small>${rec}</small></li>`).join('')}
+                      </ul>
+                    </div>
+                  ` : ''}
+                </div>
+              ` : ''}
+
+              ${backend.performance_modules ? `
+                <div class="mb-3">
+                  <h4 class="h6"><i class="bi bi-puzzle me-2"></i>Performance Modules</h4>
+                  <div class="alert alert-info py-2">
+                    <small>
+                      <strong>Summary:</strong>
+                      Cache (${backend.performance_modules.statistics?.cache_enabled || 0}),
+                      Aggregation (${backend.performance_modules.statistics?.aggregation_enabled || 0}),
+                      Image Optimization (${backend.performance_modules.statistics?.image_optimization_enabled || 0}),
+                      CDN (${backend.performance_modules.statistics?.cdn_enabled || 0}),
+                      DB Optimization (${backend.performance_modules.statistics?.database_optimization_enabled || 0})
+                    </small>
+                  </div>
+
+                  ${backend.performance_modules.cache_modules && backend.performance_modules.cache_modules.length > 0 ? `
+                    <details class="mb-2">
+                      <summary style="cursor: pointer; font-weight: 600;"><small>🚀 Cache Modules (${backend.performance_modules.cache_modules.filter(m => m.status === 'Enabled').length}/${backend.performance_modules.cache_modules.length})</small></summary>
+                      <ul class="mb-0 mt-1 ms-3">
+                        ${backend.performance_modules.cache_modules.map(mod => `
+                          <li><small>${mod.status === 'Enabled' ? '✅' : '⚪'} <strong>${mod.module}</strong> - ${mod.description}</small></li>
+                        `).join('')}
+                      </ul>
+                    </details>
+                  ` : ''}
+
+                  ${backend.performance_modules.image_optimization_modules && backend.performance_modules.image_optimization_modules.length > 0 ? `
+                    <details class="mb-2">
+                      <summary style="cursor: pointer; font-weight: 600;"><small>🖼️ Image Optimization (${backend.performance_modules.image_optimization_modules.filter(m => m.status === 'Enabled').length}/${backend.performance_modules.image_optimization_modules.length})</small></summary>
+                      <ul class="mb-0 mt-1 ms-3">
+                        ${backend.performance_modules.image_optimization_modules.map(mod => `
+                          <li><small>${mod.status === 'Enabled' ? '✅' : '⚪'} <strong>${mod.module}</strong> - ${mod.description}</small></li>
+                        `).join('')}
+                      </ul>
+                    </details>
+                  ` : ''}
+
+                  ${backend.performance_modules.cdn_modules && backend.performance_modules.cdn_modules.length > 0 ? `
+                    <details class="mb-2">
+                      <summary style="cursor: pointer; font-weight: 600;"><small>🌐 CDN Modules (${backend.performance_modules.cdn_modules.filter(m => m.status === 'Enabled').length}/${backend.performance_modules.cdn_modules.length})</small></summary>
+                      <ul class="mb-0 mt-1 ms-3">
+                        ${backend.performance_modules.cdn_modules.map(mod => `
+                          <li><small>${mod.status === 'Enabled' ? '✅' : '⚪'} <strong>${mod.module}</strong> - ${mod.description}</small></li>
+                        `).join('')}
+                      </ul>
+                    </details>
+                  ` : ''}
+
+                  ${backend.performance_modules.database_optimization_modules && backend.performance_modules.database_optimization_modules.length > 0 ? `
+                    <details class="mb-2">
+                      <summary style="cursor: pointer; font-weight: 600;"><small>🗄️ Database Optimization (${backend.performance_modules.database_optimization_modules.filter(m => m.status === 'Enabled').length}/${backend.performance_modules.database_optimization_modules.length})</small></summary>
+                      <ul class="mb-0 mt-1 ms-3">
+                        ${backend.performance_modules.database_optimization_modules.map(mod => `
+                          <li><small>${mod.status === 'Enabled' ? '✅' : '⚪'} <strong>${mod.module}</strong> - ${mod.description}</small></li>
+                        `).join('')}
+                      </ul>
+                    </details>
+                  ` : ''}
+
+                  ${backend.performance_modules.mobile_modules && backend.performance_modules.mobile_modules.length > 0 ? `
+                    <details class="mb-2">
+                      <summary style="cursor: pointer; font-weight: 600;"><small>📱 Mobile Modules (${backend.performance_modules.mobile_modules.filter(m => m.status === 'Enabled').length}/${backend.performance_modules.mobile_modules.length})</small></summary>
+                      <ul class="mb-0 mt-1 ms-3">
+                        ${backend.performance_modules.mobile_modules.map(mod => `
+                          <li><small>${mod.status === 'Enabled' ? '✅' : '⚪'} <strong>${mod.module}</strong> - ${mod.description}</small></li>
+                        `).join('')}
+                      </ul>
+                    </details>
+                  ` : ''}
+
+                  ${backend.performance_modules.additional_modules && backend.performance_modules.additional_modules.length > 0 ? `
+                    <details class="mb-2">
+                      <summary style="cursor: pointer; font-weight: 600;"><small>⚡ Additional Performance (${backend.performance_modules.additional_modules.filter(m => m.status === 'Enabled').length}/${backend.performance_modules.additional_modules.length})</small></summary>
+                      <ul class="mb-0 mt-1 ms-3">
+                        ${backend.performance_modules.additional_modules.map(mod => `
+                          <li><small>${mod.status === 'Enabled' ? '✅' : '⚪'} <strong>${mod.module}</strong> - ${mod.description}</small></li>
+                        `).join('')}
+                      </ul>
+                    </details>
+                  ` : ''}
+                </div>
+              ` : ''}
+
+              ${backend.database_indexes ? `
+                <div class="mb-3">
+                  <h4 class="h6"><i class="bi bi-database me-2"></i>Database Indexes</h4>
+                  <ul class="list-unstyled ms-3">
+                    <li><strong>Node indexes:</strong> ${backend.database_indexes.node_field_data_indexes || 0}</li>
+                    <li><strong>User indexes:</strong> ${backend.database_indexes.users_field_data_indexes || 0}</li>
+                    <li><strong>Taxonomy indexes:</strong> ${backend.database_indexes.taxonomy_term_field_data_indexes || 0}</li>
+                    <li><strong>Tables without primary key:</strong> ${backend.database_indexes.tables_without_primary_key_count || 0}</li>
+                  </ul>
+                  ${backend.database_indexes.largest_tables && backend.database_indexes.largest_tables.length > 0 ? `
+                    <details class="mb-2">
+                      <summary style="cursor: pointer; font-weight: 600;"><small>📊 Largest Tables</small></summary>
+                      <ul class="mb-0 mt-1 ms-3">
+                        ${backend.database_indexes.largest_tables.slice(0, 10).map(table => `
+                          <li><small><strong>${table.table_name}</strong>: ${table.size_mb}MB (${table.row_count} rows)</small></li>
+                        `).join('')}
+                      </ul>
+                    </details>
+                  ` : ''}
+                  ${backend.database_indexes.recommendations && backend.database_indexes.recommendations.length > 0 ? `
+                    <div class="alert alert-warning py-2 mt-2">
+                      <small><strong>Recommendations:</strong></small>
+                      <ul class="mb-0 ms-3">
+                        ${backend.database_indexes.recommendations.map(rec => `<li><small>${rec}</small></li>`).join('')}
+                      </ul>
+                    </div>
+                  ` : ''}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }
+
+      // Additional Info
+      html += `
+        <div class="card mt-4 bg-light">
+          <div class="card-body">
+            <h4 class="h6 mb-3"><i class="bi bi-lightbulb me-2"></i>Understanding Performance Scores</h4>
+            <ul class="mb-0">
+              <li><strong>90-100 (Good):</strong> Site is performing well</li>
+              <li><strong>50-89 (Needs Improvement):</strong> Site has room for optimization</li>
+              <li><strong>0-49 (Poor):</strong> Site requires significant performance improvements</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card mt-3 border-primary">
+          <div class="card-body">
+            <h4 class="h6 mb-3"><i class="bi bi-link-45deg me-2"></i>Learn More</h4>
+            <p class="mb-2">For detailed performance optimization guides:</p>
+            <ul class="mb-0">
+              <li><a href="https://web.dev/performance/" target="_blank" class="text-primary">web.dev/performance</a></li>
+              <li><a href="https://pagespeed.web.dev/" target="_blank" class="text-primary">PageSpeed Insights</a></li>
+            </ul>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    // Render on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderPerformanceAnalysis);
+    } else {
+      renderPerformanceAnalysis();
+    }
+  </script>
+</body>
+</html>
+

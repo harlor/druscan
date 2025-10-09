@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drupal Modules</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="drupal-modules">
+      <div class="card-body p-4">
+        <h2 class="mb-4">Drupal Modules</h2>
+        <p>Complete list of all Drupal modules installed on the system with their status and versions.</p>
+
+        <div id="modules-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading modules information...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Safe placeholder handling - will be replaced during audit generation
+    let MODULES_DATA;
+    try {
+      MODULES_DATA = __DRUPAL_MODULES_JSON_PLACEHOLDER__;
+    } catch (e) {
+      // Placeholder not replaced yet - leave loading spinner visible
+      MODULES_DATA = null;
+    }
+
+    function renderModules() {
+      const container = document.getElementById('modules-content');
+
+      if (!MODULES_DATA || typeof MODULES_DATA !== 'object') {
+        // Keep loading spinner if data is not available
+        return;
+      }
+
+      const data = MODULES_DATA;
+      let html = '';
+
+      // Module Statistics
+      html += '<div class="row mb-4">';
+      html += `<div class="col-md-3">
+        <div class="card bg-primary text-white">
+          <div class="card-body text-center">
+            <h4 class="card-title">${data.statistics_total || 0}</h4>
+            <p class="card-text">Total Modules</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card bg-success text-white">
+          <div class="card-body text-center">
+            <h4 class="card-title">${data.statistics_enabled || 0}</h4>
+            <p class="card-text">Enabled</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card bg-warning text-dark">
+          <div class="card-body text-center">
+            <h4 class="card-title">${data.statistics_disabled || 0}</h4>
+            <p class="card-text">Disabled</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card bg-info text-white">
+          <div class="card-body text-center">
+            <h4 class="card-title">${data.statistics_custom || 0}</h4>
+            <p class="card-text">Custom</p>
+          </div>
+        </div>
+      </div>`;
+      html += '</div>';
+
+      // Drupal Core Information
+      if (data.composer_drupal_core) {
+        const core = data.composer_drupal_core;
+        html += '<div class="alert alert-info mb-4">';
+        html += '<h5><i class="bi bi-info-circle me-2"></i>Drupal Core Information</h5>';
+        html += '<div class="row">';
+        html += '<div class="col-md-6">';
+        html += `<strong>Version:</strong> ${core.version || 'N/A'}<br>`;
+        html += `<strong>PHP Requirement:</strong> ${core.php_requirement || 'N/A'}`;
+        html += '</div>';
+        html += '<div class="col-md-6">';
+        html += `<strong>Package:</strong> ${core.name || 'N/A'}<br>`;
+        html += '<strong>Type:</strong> drupal-core';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+      }
+
+      // All Modules Table
+      html += '<h3 class="mt-4 mb-3">All Modules</h3>';
+      html += '<div class="table-responsive">';
+      html += '<table class="table table-hover table-sm">';
+      html += '<thead class="table-primary">';
+      html += '<tr>';
+      html += '<th style="width: 20%;">Package</th>';
+      html += '<th style="width: 30%;">Module Name</th>';
+      html += '<th style="width: 15%;">Machine Name</th>';
+      html += '<th style="width: 15%;">Type</th>';
+      html += '<th style="width: 20%;">Version</th>';
+      html += '</tr>';
+      html += '</thead>';
+      html += '<tbody>';
+
+      // Core Modules
+      if (data.enabled_modules_core && Object.keys(data.enabled_modules_core).length > 0) {
+        html += '<tr class="table-secondary">';
+        html += '<td colspan="5"><strong><i class="bi bi-gear-fill me-2"></i>CORE MODULES</strong></td>';
+        html += '</tr>';
+
+        Object.entries(data.enabled_modules_core).forEach(([key, module]) => {
+          html += '<tr>';
+          html += `<td>${module.package || 'Core'}</td>`;
+          html += `<td>${module.name || key}</td>`;
+          html += `<td><code>${key}</code></td>`;
+          html += `<td><span class="badge ${module.type === 'theme' ? 'bg-secondary' : 'bg-info'}">${module.type || 'module'}</span></td>`;
+          html += `<td>${module.version || 'N/A'}</td>`;
+          html += '</tr>';
+        });
+      }
+
+      // Contributed Modules
+      if (data.enabled_modules_contrib && Object.keys(data.enabled_modules_contrib).length > 0) {
+        html += '<tr class="table-secondary">';
+        html += '<td colspan="5"><strong><i class="bi bi-puzzle-fill me-2"></i>CONTRIBUTED MODULES</strong></td>';
+        html += '</tr>';
+
+        Object.entries(data.enabled_modules_contrib).forEach(([key, module]) => {
+          html += '<tr>';
+          html += `<td>${module.package || 'Other'}</td>`;
+          html += `<td>${module.name || key}</td>`;
+          html += `<td><code>${key}</code></td>`;
+          html += `<td><span class="badge ${module.type === 'theme' ? 'bg-secondary' : 'bg-info'}">${module.type || 'module'}</span></td>`;
+          html += `<td>${module.version || 'N/A'}</td>`;
+          html += '</tr>';
+        });
+      }
+
+      // Custom Modules
+      if (data.enabled_modules_custom && Object.keys(data.enabled_modules_custom).length > 0) {
+        html += '<tr class="table-secondary">';
+        html += '<td colspan="5"><strong><i class="bi bi-code-square me-2"></i>CUSTOM MODULES</strong></td>';
+        html += '</tr>';
+
+        Object.entries(data.enabled_modules_custom).forEach(([key, module]) => {
+          html += '<tr>';
+          html += `<td>${module.package || 'Custom'}</td>`;
+          html += `<td>${module.name || key}</td>`;
+          html += `<td><code>${key}</code></td>`;
+          html += `<td><span class="badge ${module.type === 'theme' ? 'bg-secondary' : 'bg-warning'}">${module.type || 'module'}</span></td>`;
+          html += `<td>${module.version || 'dev'}</td>`;
+          html += '</tr>';
+        });
+      }
+
+      html += '</tbody>';
+      html += '</table>';
+      html += '</div>';
+
+      // Applied Patches Section
+      if (data.patches_list && Object.keys(data.patches_list).length > 0) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-patch-check me-2"></i>Applied Patches</h3>';
+        html += '<div class="alert alert-warning">';
+        html += '<h5><i class="bi bi-exclamation-triangle me-2"></i>Patches Applied</h5>';
+        html += '<p>The following packages have patches applied. This indicates code modifications from original versions:</p>';
+        html += '</div>';
+
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-striped table-sm">';
+        html += '<thead class="table-warning">';
+        html += '<tr>';
+        html += '<th style="width: 25%;">Package</th>';
+        html += '<th style="width: 50%;">Patch Description</th>';
+        html += '<th style="width: 25%;">Patch File/URL</th>';
+        html += '</tr>';
+        html += '</thead>';
+        html += '<tbody>';
+
+        Object.entries(data.patches_list).forEach(([packageName, patches]) => {
+          Object.entries(patches).forEach(([description, patchPath]) => {
+            html += '<tr>';
+            html += `<td><code>${packageName}</code></td>`;
+            html += `<td>${description}</td>`;
+
+            if (patchPath.startsWith('http')) {
+              html += `<td><a href="${patchPath}" target="_blank" class="badge bg-primary">Remote Patch</a></td>`;
+            } else {
+              html += `<td><span class="badge bg-secondary">Local: ${patchPath}</span></td>`;
+            }
+            html += '</tr>';
+          });
+        });
+
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+
+        html += '<div class="alert alert-info mt-3">';
+        html += `<p class="mb-0"><strong>Total patched packages:</strong> ${data.patches_count || Object.keys(data.patches_list).length}</p>`;
+        html += '</div>';
+      }
+
+      // Custom Modules Detailed Analysis
+      if (data.custom_modules && data.custom_modules.length > 0) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-code-slash me-2"></i>Custom Modules Analysis</h3>';
+
+        data.custom_modules.forEach(module => {
+          html += '<div class="card mb-3">';
+          html += '<div class="card-header bg-light">';
+          html += `<h6 class="mb-0"><i class="bi bi-file-code me-2"></i>${module.name}</h6>`;
+          html += '</div>';
+          html += '<div class="card-body">';
+          html += `<p class="mb-2"><strong>Description:</strong> ${module.description || 'No description available'}</p>`;
+          html += `<p class="mb-2"><strong>Lines of Code:</strong> ${module.lines_of_code || 0}</p>`;
+          html += `<p class="mb-2"><strong>Module File Lines:</strong> ${module.module_file_lines || 0}</p>`;
+
+          if (module.module_functions && module.module_functions.length > 0) {
+            html += `<p class="mb-2"><strong>Functions:</strong> <code>${module.module_functions.join(', ')}</code></p>`;
+          }
+
+          if (module.routing && module.routing.length > 0) {
+            html += `<p class="mb-2"><strong>Routes:</strong> ${module.routing.join(', ')}</p>`;
+          }
+
+          html += `<p class="mb-0"><strong>Custom Entities:</strong> ${module.has_custom_entities ? 'Yes' : 'No'}`;
+          if (module.has_custom_entities && module.custom_entities.length > 0) {
+            html += ` (${module.custom_entities.join(', ')})`;
+          }
+          html += '</p>';
+          html += '</div>';
+          html += '</div>';
+        });
+      }
+
+      // Module Categories Summary
+      const categoryCounts = {};
+      if (data.enabled_modules_core) {
+        Object.values(data.enabled_modules_core).forEach(mod => {
+          const pkg = mod.package || 'Other';
+          categoryCounts[pkg] = (categoryCounts[pkg] || 0) + 1;
+        });
+      }
+      if (data.enabled_modules_contrib) {
+        Object.values(data.enabled_modules_contrib).forEach(mod => {
+          const pkg = mod.package || 'Other';
+          categoryCounts[pkg] = (categoryCounts[pkg] || 0) + 1;
+        });
+      }
+
+      if (Object.keys(categoryCounts).length > 0) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-collection me-2"></i>Module Categories</h3>';
+        html += '<div class="card">';
+        html += '<div class="card-header bg-light">';
+        html += '<h6 class="mb-0">Most Common Categories</h6>';
+        html += '</div>';
+        html += '<div class="card-body">';
+        html += '<ul class="list-unstyled mb-0">';
+
+        const sortedCategories = Object.entries(categoryCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10);
+
+        sortedCategories.forEach(([category, count]) => {
+          html += `<li><strong>${category}:</strong> ${count} modules</li>`;
+        });
+
+        html += '</ul>';
+        html += '</div>';
+        html += '</div>';
+      }
+
+      container.innerHTML = html;
+    }
+
+    // Render on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderModules);
+    } else {
+      renderModules();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recommended Modules Check</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .module-category {
+      margin-bottom: 40px;
+    }
+
+    .category-header {
+      background: linear-gradient(135deg, var(--droptica-primary) 0%, #0029CC 100%);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px 8px 0 0;
+      margin-bottom: 0;
+    }
+
+    .category-icon {
+      font-size: 1.5rem;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="modules-recommendations">
+      <div class="card-body p-4">
+        <h2 class="mb-4">Recommended Modules Analysis</h2>
+        <p>Verification of essential recommended modules organized by category: SEO, Security, and Performance. These modules provide critical functionality for production-ready Drupal sites.</p>
+
+        <div id="recommendations-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading recommended modules analysis...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Safe placeholder handling - will be replaced during audit generation
+    let MODULES_RECOMMENDATIONS_DATA;
+    try {
+      MODULES_RECOMMENDATIONS_DATA = __MODULES_RECOMMENDATIONS_JSON_PLACEHOLDER__;
+    } catch (e) {
+      // Placeholder not replaced yet - leave loading spinner visible
+      MODULES_RECOMMENDATIONS_DATA = null;
+    }
+
+    function renderModuleCategory(categoryName, categoryData, iconClass, color) {
+      if (!categoryData || !categoryData.modules) {
+        return '';
+      }
+
+      const stats = categoryData.statistics || {};
+      const modules = categoryData.modules || [];
+
+      let html = '';
+
+      html += '<div class="module-category">';
+      html += `<div class="category-header" style="background: linear-gradient(135deg, ${color} 0%, ${color}dd 100%);">`;
+      html += `<h3 class="mb-0"><i class="${iconClass} category-icon"></i>${categoryName} Modules</h3>`;
+      html += '</div>';
+
+      html += '<div class="card">';
+      html += '<div class="card-body">';
+
+      // Statistics cards
+      html += '<div class="row mb-4">';
+      html += `<div class="col-md-3">
+        <div class="card text-center border-primary">
+          <div class="card-body">
+            <h4 class="text-primary">${categoryData.total_count || 0}</h4>
+            <p class="mb-0">Total Recommended</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card text-center border-success">
+          <div class="card-body">
+            <h4 class="text-success">${stats.enabled_in_drupal_count || 0}</h4>
+            <p class="mb-0">Enabled</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card text-center border-info">
+          <div class="card-body">
+            <h4 class="text-info">${stats.added_to_composer_count || 0}</h4>
+            <p class="mb-0">In Composer</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card text-center border-warning">
+          <div class="card-body">
+            <h4 class="text-warning">${stats.not_added_count || 0}</h4>
+            <p class="mb-0">Not Installed</p>
+          </div>
+        </div>
+      </div>`;
+      html += '</div>';
+
+      // Modules table
+      html += '<div class="table-responsive">';
+      html += '<table class="table table-hover table-sm">';
+      html += '<thead class="table-primary">';
+      html += '<tr>';
+      html += '<th style="width: 30%;">Module Name</th>';
+      html += '<th style="width: 15%;">Enabled</th>';
+      html += '<th style="width: 15%;">In Composer</th>';
+      html += '<th style="width: 40%;">Purpose</th>';
+      html += '</tr>';
+      html += '</thead>';
+      html += '<tbody>';
+
+      modules.forEach(module => {
+        html += '<tr>';
+        html += `<td><strong>${module.display_name || module.machine_name}</strong>`;
+        if (module.is_core) {
+          html += ' <span class="badge bg-secondary ms-1">Core</span>';
+        }
+        html += `<br><small class="text-muted">${module.machine_name}</small></td>`;
+
+        // Enabled status
+        if (module.is_enabled_in_drupal) {
+          html += '<td><span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Enabled</span></td>';
+        } else {
+          html += '<td><span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Not Enabled</span></td>';
+        }
+
+        // Composer status
+        if (module.is_added_to_composer || module.is_core) {
+          html += '<td><span class="badge bg-info"><i class="bi bi-check-circle me-1"></i>Yes</span></td>';
+        } else {
+          html += '<td><span class="badge bg-warning"><i class="bi bi-x-circle me-1"></i>No</span></td>';
+        }
+
+        html += `<td>${module.purpose || 'No description available'}</td>`;
+        html += '</tr>';
+      });
+
+      html += '</tbody>';
+      html += '</table>';
+      html += '</div>';
+
+      html += '</div>'; // card-body
+      html += '</div>'; // card
+      html += '</div>'; // module-category
+
+      return html;
+    }
+
+    function renderRecommendations() {
+      const container = document.getElementById('recommendations-content');
+
+      if (!MODULES_RECOMMENDATIONS_DATA || typeof MODULES_RECOMMENDATIONS_DATA !== 'object') {
+        // Keep loading spinner if data is not available
+        return;
+      }
+
+      const data = MODULES_RECOMMENDATIONS_DATA.analysis || MODULES_RECOMMENDATIONS_DATA;
+      let html = '';
+
+      // Overall summary
+      const totalSeo = data.seo?.total_count || 0;
+      const totalSecurity = data.security?.total_count || 0;
+      const totalPerformance = data.performance?.total_count || 0;
+      const totalAll = totalSeo + totalSecurity + totalPerformance;
+
+      const enabledSeo = data.seo?.statistics?.enabled_in_drupal_count || 0;
+      const enabledSecurity = data.security?.statistics?.enabled_in_drupal_count || 0;
+      const enabledPerformance = data.performance?.statistics?.enabled_in_drupal_count || 0;
+      const enabledAll = enabledSeo + enabledSecurity + enabledPerformance;
+
+      html += '<div class="alert alert-info mb-4">';
+      html += '<h4><i class="bi bi-info-circle me-2"></i>Overall Summary</h4>';
+      html += `<p class="mb-2"><strong>Total Recommended Modules:</strong> ${totalAll} (SEO: ${totalSeo}, Security: ${totalSecurity}, Performance: ${totalPerformance})</p>`;
+      html += `<p class="mb-0"><strong>Total Enabled:</strong> ${enabledAll} of ${totalAll} (${totalAll > 0 ? Math.round((enabledAll / totalAll) * 100) : 0}%)</p>`;
+      html += '</div>';
+
+      // Render each category
+      if (data.seo) {
+        html += renderModuleCategory('SEO', data.seo, 'bi bi-search', '#10B981');
+      }
+
+      if (data.security) {
+        html += renderModuleCategory('Security', data.security, 'bi bi-shield-check', '#DC2626');
+      }
+
+      if (data.performance) {
+        html += renderModuleCategory('Performance', data.performance, 'bi bi-speedometer2', '#F59E0B');
+      }
+
+      container.innerHTML = html;
+    }
+
+    // Render on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderRecommendations);
+    } else {
+      renderRecommendations();
+    }
+  </script>
+</body>
+</html>

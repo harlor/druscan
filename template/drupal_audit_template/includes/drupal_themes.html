@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drupal Themes</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="drupal-themes">
+      <div class="card-body p-4">
+        <h2 class="mb-4">Drupal Themes</h2>
+        <p>Analysis of all themes installed on the system including core, contributed, and custom themes.</p>
+
+        <div id="themes-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading themes information...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Safe placeholder handling - will be replaced during audit generation
+    let THEMES_DATA;
+    try {
+      THEMES_DATA = __DRUPAL_THEMES_JSON_PLACEHOLDER__;
+    } catch (e) {
+      // Placeholder not replaced yet - leave loading spinner visible
+      THEMES_DATA = null;
+    }
+
+    function renderThemes() {
+      const container = document.getElementById('themes-content');
+
+      if (!THEMES_DATA || typeof THEMES_DATA !== 'object') {
+        // Keep loading spinner if data is not available
+        return;
+      }
+
+      const data = THEMES_DATA;
+      let html = '';
+
+      // Theme Statistics
+      html += '<div class="row mb-4">';
+      html += `<div class="col-md-3">
+        <div class="card bg-primary text-white">
+          <div class="card-body text-center">
+            <h4 class="card-title">${data.statistics_total || 0}</h4>
+            <p class="card-text">Total Themes</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card bg-success text-white">
+          <div class="card-body text-center">
+            <h4 class="card-title">${data.statistics_enabled || 0}</h4>
+            <p class="card-text">Enabled</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card bg-warning text-dark">
+          <div class="card-body text-center">
+            <h4 class="card-title">${data.statistics_contrib || 0}</h4>
+            <p class="card-text">Contributed</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card bg-info text-white">
+          <div class="card-body text-center">
+            <h4 class="card-title">${data.statistics_custom || 0}</h4>
+            <p class="card-text">Custom</p>
+          </div>
+        </div>
+      </div>`;
+      html += '</div>';
+
+      // Default Theme Information
+      if (data.default_theme) {
+        html += '<div class="alert alert-info mb-4">';
+        html += '<h5><i class="bi bi-palette-fill me-2"></i>Active Themes</h5>';
+        html += '<div class="row">';
+        html += '<div class="col-md-6">';
+        html += `<strong>Default Theme:</strong> ${data.default_theme.default || 'N/A'}`;
+        html += '</div>';
+        html += '<div class="col-md-6">';
+        html += `<strong>Admin Theme:</strong> ${data.default_theme.admin || 'N/A'}`;
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+      }
+
+      // Core Themes Section
+      if (data.core_themes && Object.keys(data.core_themes).length > 0) {
+        html += '<h3 class="mt-4 mb-3"><i class="bi bi-gear-fill me-2"></i>Core Themes</h3>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-hover table-sm">';
+        html += '<thead class="table-primary">';
+        html += '<tr>';
+        html += '<th style="width: 30%;">Theme Name</th>';
+        html += '<th style="width: 20%;">Machine Name</th>';
+        html += '<th style="width: 15%;">Version</th>';
+        html += '<th style="width: 15%;">Status</th>';
+        html += '</tr>';
+        html += '</thead>';
+        html += '<tbody>';
+
+        Object.entries(data.core_themes).forEach(([key, theme]) => {
+          const statusClass = theme.status === 'enabled' ? 'bg-success' : 'bg-secondary';
+          html += '<tr>';
+          html += `<td>${theme.name || key}</td>`;
+          html += `<td><code>${key}</code></td>`;
+          html += `<td>${theme.version || 'N/A'}</td>`;
+          html += `<td><span class="badge ${statusClass}">${theme.status || 'unknown'}</span></td>`;
+          html += '</tr>';
+        });
+
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+      }
+
+      // Contributed Themes Section
+      if (data.contrib_themes && Object.keys(data.contrib_themes).length > 0) {
+        html += '<h3 class="mt-4 mb-3"><i class="bi bi-puzzle-fill me-2"></i>Contributed Themes</h3>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-hover table-sm">';
+        html += '<thead class="table-warning">';
+        html += '<tr>';
+        html += '<th style="width: 30%;">Theme Name</th>';
+        html += '<th style="width: 20%;">Machine Name</th>';
+        html += '<th style="width: 15%;">Version</th>';
+        html += '<th style="width: 15%;">Status</th>';
+        html += '</tr>';
+        html += '</thead>';
+        html += '<tbody>';
+
+        Object.entries(data.contrib_themes).forEach(([key, theme]) => {
+          const statusClass = theme.status === 'enabled' ? 'bg-success' : 'bg-secondary';
+          html += '<tr>';
+          html += `<td>${theme.name || key}</td>`;
+          html += `<td><code>${key}</code></td>`;
+          html += `<td>${theme.version || 'N/A'}</td>`;
+          html += `<td><span class="badge ${statusClass}">${theme.status || 'unknown'}</span></td>`;
+          html += '</tr>';
+        });
+
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+      }
+
+      // Custom Themes Section - Detailed Analysis
+      if (data.custom_themes && data.custom_themes.length > 0) {
+        html += '<h3 class="mt-4 mb-3"><i class="bi bi-code-square me-2"></i>Custom Themes</h3>';
+
+        data.custom_themes.forEach(theme => {
+          const isActive = data.default_theme &&
+            (data.default_theme.default === theme.machine_name ||
+             data.default_theme.admin === theme.machine_name);
+
+          html += '<div class="card mb-3">';
+          html += '<div class="card-header bg-light">';
+          html += `<h6 class="mb-0">`;
+          html += `<i class="bi bi-palette-fill me-2"></i>${theme.name || theme.machine_name}`;
+          if (isActive) {
+            html += ` <span class="badge bg-primary ms-2">Active</span>`;
+          }
+          html += `</h6>`;
+          html += '</div>';
+          html += '<div class="card-body">';
+
+          html += '<div class="row">';
+          html += '<div class="col-md-6">';
+          html += '<h5 class="h6">Theme Information</h5>';
+          html += '<ul class="list-unstyled">';
+          html += `<li><strong>Machine Name:</strong> <code>${theme.machine_name || 'N/A'}</code></li>`;
+          html += `<li><strong>Name:</strong> ${theme.name || 'N/A'}</li>`;
+          html += `<li><strong>Base Theme:</strong> ${theme.base_theme || 'none'}</li>`;
+          html += `<li><strong>Description:</strong> ${theme.description || 'No description'}</li>`;
+          html += `<li><strong>Core Compatibility:</strong> ${theme.core_version_requirement || 'N/A'}</li>`;
+          html += `<li><strong>Engine:</strong> ${theme.engine || 'Twig'}</li>`;
+          html += '</ul>';
+          html += '</div>';
+
+          html += '<div class="col-md-6">';
+          html += '<h5 class="h6">File Statistics</h5>';
+          html += '<ul class="list-unstyled">';
+          html += `<li><strong>Template Files:</strong> ${theme.template_files_count || 0}</li>`;
+          html += `<li><strong>SCSS Files:</strong> ${theme.scss_files_count || 0}</li>`;
+          html += `<li><strong>JavaScript Libraries:</strong> ${theme.js_libraries_count || 0}</li>`;
+          html += `<li><strong>Translation Files:</strong> ${theme.translation_files_count || 0}`;
+          if (theme.translation_languages && theme.translation_languages.length > 0) {
+            html += ` (${theme.translation_languages.join(', ')})`;
+          }
+          html += '</li>';
+          html += '</ul>';
+          html += '</div>';
+          html += '</div>';
+
+          // Regions
+          if (theme.regions && theme.regions.length > 0) {
+            html += '<h5 class="h6 mt-3">Theme Regions</h5>';
+            html += '<div class="row">';
+
+            const regionGroups = {
+              header: [],
+              content: [],
+              footer: [],
+              other: []
+            };
+
+            theme.regions.forEach(region => {
+              const regionLower = region.toLowerCase();
+              if (regionLower.includes('header')) {
+                regionGroups.header.push(region);
+              } else if (regionLower.includes('footer')) {
+                regionGroups.footer.push(region);
+              } else if (regionLower.includes('content') || regionLower.includes('main') ||
+                         regionLower.includes('sidebar') || regionLower.includes('aside')) {
+                regionGroups.content.push(region);
+              } else {
+                regionGroups.other.push(region);
+              }
+            });
+
+            if (regionGroups.header.length > 0) {
+              html += '<div class="col-md-4">';
+              html += '<h6 class="small mb-2">Header Regions</h6>';
+              html += '<ul class="list-unstyled small">';
+              regionGroups.header.forEach(region => {
+                html += `<li><i class="bi bi-layout-text-window-reverse text-primary me-1"></i>${region}</li>`;
+              });
+              html += '</ul>';
+              html += '</div>';
+            }
+
+            if (regionGroups.content.length > 0) {
+              html += '<div class="col-md-4">';
+              html += '<h6 class="small mb-2">Content Regions</h6>';
+              html += '<ul class="list-unstyled small">';
+              regionGroups.content.forEach(region => {
+                html += `<li><i class="bi bi-layout-text-window text-success me-1"></i>${region}</li>`;
+              });
+              html += '</ul>';
+              html += '</div>';
+            }
+
+            if (regionGroups.footer.length > 0) {
+              html += '<div class="col-md-4">';
+              html += '<h6 class="small mb-2">Footer Regions</h6>';
+              html += '<ul class="list-unstyled small">';
+              regionGroups.footer.forEach(region => {
+                html += `<li><i class="bi bi-layout-text-window text-warning me-1"></i>${region}</li>`;
+              });
+              html += '</ul>';
+              html += '</div>';
+            }
+
+            if (regionGroups.other.length > 0) {
+              html += '<div class="col-md-12">';
+              html += '<h6 class="small mb-2 mt-2">Other Regions</h6>';
+              html += '<ul class="list-unstyled small">';
+              regionGroups.other.forEach(region => {
+                html += `<li><i class="bi bi-layout-sidebar text-secondary me-1"></i>${region}</li>`;
+              });
+              html += '</ul>';
+              html += '</div>';
+            }
+
+            html += '</div>';
+          }
+
+          // Libraries
+          if (theme.libraries && theme.libraries.length > 0) {
+            html += '<h5 class="h6 mt-3">JavaScript Libraries</h5>';
+            html += '<ul class="list-unstyled small">';
+            theme.libraries.forEach(lib => {
+              html += `<li><i class="bi bi-file-code text-info me-1"></i><code>${lib}</code></li>`;
+            });
+            html += '</ul>';
+          }
+
+          html += '</div>';
+          html += '</div>';
+        });
+      }
+
+      // All Themes Summary Table
+      if (data.all_themes && Object.keys(data.all_themes).length > 0) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-list-ul me-2"></i>All Themes Summary</h3>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-striped table-sm">';
+        html += '<thead class="table-secondary">';
+        html += '<tr>';
+        html += '<th style="width: 25%;">Theme Name</th>';
+        html += '<th style="width: 20%;">Machine Name</th>';
+        html += '<th style="width: 15%;">Version</th>';
+        html += '<th style="width: 15%;">Status</th>';
+        html += '<th style="width: 25%;">Path</th>';
+        html += '</tr>';
+        html += '</thead>';
+        html += '<tbody>';
+
+        Object.entries(data.all_themes).forEach(([key, theme]) => {
+          const statusClass = theme.status === 'enabled' ? 'bg-success' : 'bg-secondary';
+          const pathType = theme.path.includes('/custom/') ? 'custom' :
+                          theme.path.includes('/contrib/') ? 'contrib' : 'core';
+          const pathBadgeClass = pathType === 'custom' ? 'bg-warning' :
+                                 pathType === 'contrib' ? 'bg-info' : 'bg-primary';
+
+          html += '<tr>';
+          html += `<td>${theme.name || key}</td>`;
+          html += `<td><code>${key}</code></td>`;
+          html += `<td>${theme.version || 'N/A'}</td>`;
+          html += `<td><span class="badge ${statusClass}">${theme.status || 'unknown'}</span></td>`;
+          html += `<td><span class="badge ${pathBadgeClass}">${pathType}</span> <small class="text-muted">${theme.path}</small></td>`;
+          html += '</tr>';
+        });
+
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+      }
+
+      container.innerHTML = html;
+    }
+
+    // Render on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderThemes);
+    } else {
+      renderThemes();
+    }
+  </script>
+</body>
+</html>

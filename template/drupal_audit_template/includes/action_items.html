@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Action Items</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      background-color: #ffffff;
+    }
+    .section-header {
+      border-bottom: 2px solid #0039FF;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    .recommendation-details {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-left: 3px solid #0039FF;
+      margin: 10px 0;
+    }
+    .priority-critical { border-left-color: #dc3545 !important; }
+    .priority-high { border-left-color: #fd7e14 !important; }
+    .priority-medium { border-left-color: #ffc107 !important; }
+    .priority-low { border-left-color: #6c757d !important; }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+
+    <!-- ========================================== -->
+    <!-- ACTION ITEMS -->
+    <!-- ========================================== -->
+    <h1 class="section-header">
+      <i class="bi bi-list-check me-2"></i>Action Items
+    </h1>
+
+    <!-- SUMMARY STATS (Auto-calculated by JavaScript) -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="card border-danger">
+          <div class="card-body text-center">
+            <h3 class="text-danger mb-0" id="count-critical">0</h3>
+            <small class="text-muted">Critical</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-warning">
+          <div class="card-body text-center">
+            <h3 class="text-warning mb-0" id="count-high">0</h3>
+            <small class="text-muted">High Priority</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-info">
+          <div class="card-body text-center">
+            <h3 class="text-info mb-0" id="count-medium">0</h3>
+            <small class="text-muted">Medium Priority</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-secondary">
+          <div class="card-body text-center">
+            <h3 class="text-secondary mb-0" id="total-effort">0-0h</h3>
+            <small class="text-muted">Estimated Effort</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIONS TABLE -->
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 5%">#</th>
+            <th style="width: 45%">Action</th>
+            <th style="width: 15%">Priority</th>
+            <th style="width: 7%">Min (h)</th>
+            <th style="width: 7%">Max (h)</th>
+            <th style="width: 11%">When</th>
+            <th style="width: 10%">Details</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- ============================================ -->
+          <!-- AI INSTRUCTIONS:
+
+          1. Extract ALL recommendations from JSON analysis
+          2. Sort by priority: Critical → High → Medium → Low
+          3. For each action:
+
+          <tr class="table-[danger|warning|info|light]" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#action-N">
+            <td>N</td>
+            <td><strong>Brief action title (max 60 chars)</strong></td>
+            <td><span class="badge bg-[danger|warning|info|secondary]">Priority</span></td>
+            <td>X</td>
+            <td>Y</td>
+            <td>Week N</td>
+            <td><i class="bi bi-chevron-down"></i></td>
+          </tr>
+          <tr class="collapse" id="action-N">
+            <td colspan="7">
+              <div class="recommendation-details priority-[critical|high|medium|low]">
+                <p><strong>What:</strong> Description</p>
+                <p><strong>Why:</strong> Impact/risk</p>
+                <p class="mb-0"><strong>How:</strong><br>
+                  1. Step one<br>
+                  2. Step two<br>
+                  3. Step three
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          Timeline (When column):
+          - Week 1 = Critical (security, broken functionality)
+          - Week 2-3 = High (updates, core)
+          - Week 4+ = Medium (improvements)
+          - Month 2+ = Low (nice-to-have)
+
+          Priority badges:
+          - Critical: bg-danger (red)
+          - High: bg-warning (orange)
+          - Medium: bg-info (blue)
+          - Low: bg-secondary (gray)
+
+          Table row colors:
+          - Critical: table-danger
+          - High: table-warning
+          - Medium: table-info
+          - Low: table-light
+
+          ============================================ -->
+
+          <!-- EXAMPLES (remove after filling) -->
+
+          <!-- Example 1: Critical Priority -->
+          <tr class="table-danger" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#action-1">
+            <td>1</td>
+            <td><strong>Example Action Item 1 (Critical Priority)</strong></td>
+            <td><span class="badge bg-danger">Critical</span></td>
+            <td>2</td>
+            <td>3</td>
+            <td>Week 1</td>
+            <td><i class="bi bi-chevron-down"></i></td>
+          </tr>
+          <tr class="collapse" id="action-1">
+            <td colspan="7">
+              <div class="recommendation-details priority-critical">
+                <p><strong>What:</strong> Brief description of what needs to be done</p>
+                <p><strong>Why:</strong> Explanation of the impact and why this is critical</p>
+                <p class="mb-0"><strong>How:</strong><br>
+                  1. First step to implement<br>
+                  2. Second step to implement<br>
+                  3. Third step to implement<br>
+                  4. Testing and verification
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Example 2: High Priority -->
+          <tr class="table-warning" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#action-2">
+            <td>2</td>
+            <td><strong>Example Action Item 2 (High Priority)</strong></td>
+            <td><span class="badge bg-warning">High</span></td>
+            <td>5</td>
+            <td>8</td>
+            <td>Week 2</td>
+            <td><i class="bi bi-chevron-down"></i></td>
+          </tr>
+          <tr class="collapse" id="action-2">
+            <td colspan="7">
+              <div class="recommendation-details priority-high">
+                <p><strong>What:</strong> Brief description of what needs to be done</p>
+                <p><strong>Why:</strong> Explanation of the impact and importance</p>
+                <p class="mb-0"><strong>How:</strong><br>
+                  1. First step to implement<br>
+                  2. Second step to implement<br>
+                  3. Third step to implement
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Example 3: Medium Priority -->
+          <tr class="table-info" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#action-3">
+            <td>3</td>
+            <td><strong>Example Action Item 3 (Medium Priority)</strong></td>
+            <td><span class="badge bg-info">Medium</span></td>
+            <td>13</td>
+            <td>20</td>
+            <td>Month 2</td>
+            <td><i class="bi bi-chevron-down"></i></td>
+          </tr>
+          <tr class="collapse" id="action-3">
+            <td colspan="7">
+              <div class="recommendation-details priority-medium">
+                <p><strong>What:</strong> Brief description of what needs to be done</p>
+                <p><strong>Why:</strong> Explanation of the benefits and improvements</p>
+                <p class="mb-0"><strong>How:</strong><br>
+                  1. First step to implement<br>
+                  2. Second step to implement<br>
+                  3. Third step to implement
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- AI: Generate all action items here (replace examples above) -->
+
+        </tbody>
+      </table>
+    </div>
+
+    <!-- NEXT AUDIT -->
+    <div class="alert alert-success border-start border-4 border-success mt-4">
+      <strong><i class="bi bi-calendar-check-fill me-2"></i>Next Audit:</strong>
+      [AI: Calculate 6 months from audit date] ([Month] [Year])
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Auto-calculate statistics from table
+    document.addEventListener('DOMContentLoaded', function() {
+      const rows = document.querySelectorAll('tbody tr[data-bs-toggle="collapse"]');
+      let criticalCount = 0;
+      let highCount = 0;
+      let mediumCount = 0;
+      let totalMin = 0;
+      let totalMax = 0;
+
+      rows.forEach(row => {
+        // Count priorities by badge color
+        const badge = row.querySelector('.badge');
+        if (badge) {
+          if (badge.classList.contains('bg-danger')) {
+            criticalCount++;
+          } else if (badge.classList.contains('bg-warning')) {
+            highCount++;
+          } else if (badge.classList.contains('bg-info')) {
+            mediumCount++;
+          }
+        }
+
+        // Sum effort (min and max)
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 5) {
+          // Min is 4th cell (index 3), Max is 5th cell (index 4)
+          const minValue = parseInt(cells[3].textContent) || 0;
+          const maxValue = parseInt(cells[4].textContent) || 0;
+          totalMin += minValue;
+          totalMax += maxValue;
+        }
+      });
+
+      // Update statistics cards
+      document.getElementById('count-critical').textContent = criticalCount;
+      document.getElementById('count-high').textContent = highCount;
+      document.getElementById('count-medium').textContent = mediumCount;
+      document.getElementById('total-effort').textContent = totalMin + '-' + totalMax + 'h';
+    });
+  </script>
+</body>
+</html>

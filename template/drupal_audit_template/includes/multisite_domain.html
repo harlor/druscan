@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multisite and Multi-Domain</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .badge-status {
+      padding: 0.35em 0.65em;
+      font-size: 0.85em;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="multisite-domain">
+      <div class="card-body p-4">
+        <h2 class="mb-4">Multisite and Multi-Domain Configuration</h2>
+        <p>Analysis of multi-domain and multisite configurations. Understanding how the site handles multiple domains or separate sites is critical for deployment, hosting, and content management strategies.</p>
+
+        <div id="multisite-domain-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading multisite and domain configuration...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Safe placeholder handling - will be replaced during audit generation
+    let MULTISITE_DOMAIN_DATA;
+    try {
+      MULTISITE_DOMAIN_DATA = __MULTISITE_DOMAIN_JSON_PLACEHOLDER__;
+    } catch (e) {
+      // Placeholder not replaced yet - leave loading spinner visible
+      MULTISITE_DOMAIN_DATA = null;
+    }
+
+    function getStatusBadge(status) {
+      if (status === 'enabled') {
+        return '<span class="badge bg-success badge-status">Enabled</span>';
+      } else if (status === 'disabled') {
+        return '<span class="badge bg-warning badge-status">Disabled</span>';
+      } else {
+        return '<span class="badge bg-secondary badge-status">Not Installed</span>';
+      }
+    }
+
+    function renderMultisiteDomain() {
+      const container = document.getElementById('multisite-domain-content');
+
+      if (!MULTISITE_DOMAIN_DATA || typeof MULTISITE_DOMAIN_DATA !== 'object') {
+        // Keep loading spinner if data is not available
+        return;
+      }
+
+      const data = MULTISITE_DOMAIN_DATA.full_analysis || {};
+      let html = '';
+
+      // Configuration Summary
+      if (data.summary) {
+        const summary = data.summary;
+        const configType = summary.configuration_type || 'single_site_single_domain';
+
+        let alertClass = 'alert-info';
+        let icon = 'info-circle-fill';
+        let title = 'Single Site Configuration';
+        let description = 'This site runs as a single Drupal installation with one domain.';
+
+        if (configType === 'both_domain_and_multisite') {
+          alertClass = 'alert-warning';
+          icon = 'exclamation-triangle-fill';
+          title = 'Complex Configuration Detected';
+          description = 'This site uses BOTH Domain module AND multisite configuration. This is a rare and complex setup requiring careful maintenance.';
+        } else if (configType === 'domain_module_only') {
+          alertClass = 'alert-primary';
+          icon = 'globe';
+          title = 'Multi-Domain Configuration';
+          description = 'This site uses the Domain module to serve multiple domains from a single Drupal installation.';
+        } else if (configType === 'multisite_only') {
+          alertClass = 'alert-primary';
+          icon = 'diagram-3';
+          title = 'Multisite Configuration';
+          description = 'This site uses Drupal multisite configuration to run multiple separate sites from one codebase.';
+        }
+
+        html += `<div class="alert ${alertClass} border-start border-4">`;
+        html += `<i class="bi bi-${icon} me-2"></i>`;
+        html += `<strong>${title}:</strong> ${description}`;
+        html += '</div>';
+
+        // Statistics
+        html += '<div class="row mb-4">';
+        html += `<div class="col-md-3">
+          <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+              <h4 class="card-title">${summary.total_domains || 0}</h4>
+              <p class="card-text small">Domain Records</p>
+            </div>
+          </div>
+        </div>`;
+        html += `<div class="col-md-3">
+          <div class="card bg-info text-white">
+            <div class="card-body text-center">
+              <h4 class="card-title">${summary.total_sites || 0}</h4>
+              <p class="card-text small">Site Directories</p>
+            </div>
+          </div>
+        </div>`;
+        html += `<div class="col-md-3">
+          <div class="card ${summary.has_multi_domain ? 'bg-success' : 'bg-secondary'} text-white">
+            <div class="card-body text-center">
+              <h4 class="card-title"><i class="bi bi-${summary.has_multi_domain ? 'check-circle' : 'x-circle'}"></i></h4>
+              <p class="card-text small">Domain Module</p>
+            </div>
+          </div>
+        </div>`;
+        html += `<div class="col-md-3">
+          <div class="card ${summary.has_multisite ? 'bg-success' : 'bg-secondary'} text-white">
+            <div class="card-body text-center">
+              <h4 class="card-title"><i class="bi bi-${summary.has_multisite ? 'check-circle' : 'x-circle'}"></i></h4>
+              <p class="card-text small">Multisite Setup</p>
+            </div>
+          </div>
+        </div>`;
+        html += '</div>';
+      }
+
+      // Domain Module Section
+      if (data.domain_module) {
+        const domainMod = data.domain_module;
+        html += '<h3 class="mt-4 mb-3"><i class="bi bi-globe me-2"></i>Domain Module Configuration</h3>';
+
+        html += '<div class="card mb-3">';
+        html += '<div class="card-body">';
+        html += '<h5>Module Status</h5>';
+        html += '<table class="table table-sm">';
+        html += '<tbody>';
+        html += `<tr><td><strong>Domain Module</strong></td><td>${getStatusBadge(domainMod.domain_module_status)}</td></tr>`;
+        html += `<tr><td><strong>Domain Access Module</strong></td><td>${getStatusBadge(domainMod.domain_access_status)}</td></tr>`;
+        html += `<tr><td><strong>Total Domain Records</strong></td><td><span class="badge bg-primary">${domainMod.domain_count}</span></td></tr>`;
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+        html += '</div>';
+
+        // Domain Records
+        if (domainMod.domain_records && domainMod.domain_records.length > 0) {
+          html += '<div class="card mb-3">';
+          html += '<div class="card-body">';
+          html += '<h5>Configured Domains</h5>';
+          html += '<table class="table table-striped">';
+          html += '<thead><tr><th>Domain Name</th><th>Hostname</th><th>Scheme</th><th>Status</th><th>Default</th><th>Weight</th></tr></thead>';
+          html += '<tbody>';
+          domainMod.domain_records.forEach(domain => {
+            html += '<tr>';
+            html += `<td><strong>${domain.name}</strong></td>`;
+            html += `<td><code>${domain.hostname}</code></td>`;
+            html += `<td><span class="badge bg-secondary">${domain.scheme}</span></td>`;
+            html += `<td>${domain.status ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Inactive</span>'}</td>`;
+            html += `<td>${domain.is_default ? '<i class="bi bi-star-fill text-warning"></i>' : ''}</td>`;
+            html += `<td>${domain.weight}</td>`;
+            html += '</tr>';
+          });
+          html += '</tbody>';
+          html += '</table>';
+          html += '</div>';
+          html += '</div>';
+        }
+
+        // Related Modules
+        if (domainMod.domain_related_modules && domainMod.domain_related_modules.length > 0) {
+          html += '<div class="card mb-3">';
+          html += '<div class="card-body">';
+          html += '<h5>Domain-Related Modules</h5>';
+          html += '<table class="table table-sm table-hover">';
+          html += '<thead><tr><th>Module</th><th>Name</th><th>Version</th><th>Status</th></tr></thead>';
+          html += '<tbody>';
+          domainMod.domain_related_modules.forEach(module => {
+            html += '<tr>';
+            html += `<td><code>${module.module}</code></td>`;
+            html += `<td>${module.name}</td>`;
+            html += `<td><span class="badge bg-light text-dark">${module.version || 'N/A'}</span></td>`;
+            html += `<td>${getStatusBadge(module.status)}</td>`;
+            html += '</tr>';
+          });
+          html += '</tbody>';
+          html += '</table>';
+          html += '</div>';
+          html += '</div>';
+        }
+      }
+
+      // Multisite Section
+      if (data.multisite) {
+        const multisite = data.multisite;
+        html += '<h3 class="mt-4 mb-3"><i class="bi bi-diagram-3 me-2"></i>Multisite Configuration</h3>';
+
+        html += '<div class="card mb-3">';
+        html += '<div class="card-body">';
+        html += '<h5>Multisite Status</h5>';
+        html += '<table class="table table-sm">';
+        html += '<tbody>';
+        html += `<tr><td><strong>Sites Directory Exists</strong></td><td>${multisite.sites_directory_exists ? '<i class="bi bi-check-circle-fill text-success"></i> Yes' : '<i class="bi bi-x-circle-fill text-secondary"></i> No'}</td></tr>`;
+        html += `<tr><td><strong>Multisite Detected</strong></td><td>${multisite.multisite_detected ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-secondary">No</span>'}</td></tr>`;
+        html += `<tr><td><strong>Configuration Type</strong></td><td><span class="badge bg-info">${multisite.multisite_type.replace(/_/g, ' ').toUpperCase()}</span></td></tr>`;
+        html += `<tr><td><strong>Site Directories</strong></td><td><span class="badge bg-primary">${multisite.site_directories_count}</span></td></tr>`;
+        html += `<tr><td><strong>Settings Files</strong></td><td><span class="badge bg-primary">${multisite.settings_files_count}</span></td></tr>`;
+        html += `<tr><td><strong>sites.php Configuration</strong></td><td>${multisite.sites_php_exists ? '<i class="bi bi-check-circle-fill text-success"></i> Exists' : '<i class="bi bi-x-circle-fill text-secondary"></i> Not Found'}</td></tr>`;
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+        html += '</div>';
+
+        // Site Directories
+        if (multisite.site_directories && multisite.site_directories.length > 0) {
+          html += '<div class="card mb-3">';
+          html += '<div class="card-body">';
+          html += '<h5>Site-Specific Directories</h5>';
+          html += '<table class="table table-striped">';
+          html += '<thead><tr><th>Directory</th><th>Settings File</th><th>Files Directory</th></tr></thead>';
+          html += '<tbody>';
+          multisite.site_directories.forEach(site => {
+            html += '<tr>';
+            html += `<td><code>sites/${site.directory}/</code></td>`;
+            html += `<td>${site.has_settings ? '<i class="bi bi-check-circle-fill text-success"></i> Yes' : '<i class="bi bi-x-circle text-secondary"></i> No'}</td>`;
+            html += `<td>${site.has_files ? '<i class="bi bi-check-circle-fill text-success"></i> Yes' : '<i class="bi bi-x-circle text-secondary"></i> No'}</td>`;
+            html += '</tr>';
+          });
+          html += '</tbody>';
+          html += '</table>';
+          html += '</div>';
+          html += '</div>';
+        }
+
+        // sites.php Configuration
+        if (multisite.sites_php_exists && multisite.sites_php_configuration) {
+          html += '<div class="card mb-3">';
+          html += '<div class="card-body">';
+          html += '<h5>sites.php Configuration (Preview)</h5>';
+          html += '<pre class="bg-light p-3 rounded"><code>' + multisite.sites_php_configuration + '</code></pre>';
+          html += '</div>';
+          html += '</div>';
+        }
+      }
+
+      // Recommendations
+      html += '<h3 class="mt-4 mb-3"><i class="bi bi-lightbulb me-2"></i>Recommendations</h3>';
+      html += '<div class="card border-start border-4 border-warning">';
+      html += '<div class="card-body">';
+      html += '<ul class="mb-0">';
+
+      if (data.summary && data.summary.configuration_type === 'both_domain_and_multisite') {
+        html += '<li><strong>Complex Setup Warning:</strong> Running both Domain module and multisite increases complexity. Consider consolidating to one approach if possible.</li>';
+      }
+
+      if (data.domain_module && data.domain_module.domain_module_status === 'enabled') {
+        html += '<li><strong>Domain Module:</strong> Ensure all domains are properly configured in DNS and web server (Apache/Nginx).</li>';
+        html += '<li><strong>Domain Access:</strong> Review content access permissions per domain to avoid unauthorized cross-domain access.</li>';
+      }
+
+      if (data.multisite && data.multisite.multisite_detected) {
+        html += '<li><strong>Multisite Configuration:</strong> Each site should have its own database and files directory for proper isolation.</li>';
+        html += '<li><strong>Shared Codebase:</strong> All sites share the same Drupal core and modules - updates affect all sites simultaneously.</li>';
+        html += '<li><strong>Backup Strategy:</strong> Implement per-site backup procedures for databases and files directories.</li>';
+      }
+
+      if ((!data.summary || data.summary.configuration_type === 'single_site_single_domain')) {
+        html += '<li><strong>Single Site:</strong> Current configuration is standard single-site Drupal - easiest to maintain and deploy.</li>';
+      }
+
+      html += '</ul>';
+      html += '</div>';
+      html += '</div>';
+
+      container.innerHTML = html;
+    }
+
+    // Run the render function when page loads
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderMultisiteDomain);
+    } else {
+      renderMultisiteDomain();
+    }
+  </script>
+</body>
+</html>

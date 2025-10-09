@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Views</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="views">
+      <div class="card-body p-4">
+        <h2 class="mb-4">Views</h2>
+        <p>Custom views configured in the system for displaying and filtering content.</p>
+
+        <div id="views-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading views information...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Safe placeholder handling - will be replaced during audit generation
+    let VIEWS_DATA;
+    try {
+      VIEWS_DATA = __VIEWS_JSON_PLACEHOLDER__;
+    } catch (e) {
+      // Placeholder not replaced yet - leave loading spinner visible
+      VIEWS_DATA = null;
+    }
+
+    function renderViews() {
+      const container = document.getElementById('views-content');
+
+      if (!VIEWS_DATA || typeof VIEWS_DATA !== 'object') {
+        // Keep loading spinner if data is not available
+        return;
+      }
+
+      const data = VIEWS_DATA;
+      let html = '';
+
+      // Views Statistics Cards
+      const stats = data.statistics || data.full_analysis?.statistics || {};
+      html += '<div class="row mb-4">';
+      html += `<div class="col-md-3">
+        <div class="card text-center border-primary">
+          <div class="card-body">
+            <h4 class="text-primary">${stats.total || 0}</h4>
+            <p class="mb-0">Total Views</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card text-center border-success">
+          <div class="card-body">
+            <h4 class="text-success">${stats.enabled || 0}</h4>
+            <p class="mb-0">Enabled Views</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card text-center border-warning">
+          <div class="card-body">
+            <h4 class="text-warning">${stats.custom || 0}</h4>
+            <p class="mb-0">Custom Views</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card text-center border-info">
+          <div class="card-body">
+            <h4 class="text-info">${stats.with_relationships || 0}</h4>
+            <p class="mb-0">Complex Views</p>
+          </div>
+        </div>
+      </div>`;
+      html += '</div>';
+
+      html += '<div class="alert alert-info border-start border-4 border-info">';
+      html += '<i class="bi bi-info-circle-fill me-2"></i>';
+      html += '<strong>Views Summary:</strong> Analysis of all views including core, contributed, and custom views with their display types and configurations.';
+      html += '</div>';
+
+      // View Configuration Details Table
+      const views = data.views || data.full_analysis?.views || [];
+
+      if (views.length > 0) {
+        html += '<h3 class="mt-4 mb-3">View Configuration Details</h3>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-hover table-primary">';
+        html += '<thead>';
+        html += '<tr>';
+        html += '<th>View Name</th>';
+        html += '<th>Status</th>';
+        html += '<th>Base Table</th>';
+        html += '<th>Display Types</th>';
+        html += '<th>Displays Count</th>';
+        html += '<th>Features</th>';
+        html += '</tr>';
+        html += '</thead>';
+        html += '<tbody>';
+
+        views.forEach(view => {
+          html += '<tr>';
+
+          // View Name and Description
+          html += '<td>';
+          html += `<strong>${view.label || view.id}</strong>`;
+          if (view.description) {
+            html += `<br><small class="text-muted">${view.description}</small>`;
+          }
+          html += '</td>';
+
+          // Status
+          html += '<td>';
+          if (view.status) {
+            html += '<span class="badge bg-success">Enabled</span>';
+          } else {
+            html += '<span class="badge bg-secondary">Disabled</span>';
+          }
+          html += '</td>';
+
+          // Base Table
+          html += `<td><code>${view.base_table || 'N/A'}</code></td>`;
+
+          // Display Types
+          html += '<td>';
+          if (view.displays && view.displays.types && view.displays.types.length > 0) {
+            view.displays.types.forEach(type => {
+              let badgeClass = 'bg-info';
+              if (type === 'page') badgeClass = 'bg-primary';
+              if (type === 'block') badgeClass = 'bg-warning';
+              if (type === 'feed') badgeClass = 'bg-success';
+              html += `<span class="badge ${badgeClass} me-1">${type}</span>`;
+            });
+          } else {
+            html += '<span class="text-muted">None</span>';
+          }
+          html += '</td>';
+
+          // Displays Count
+          html += `<td>${view.displays?.total || 0}</td>`;
+
+          // Features
+          html += '<td>';
+          let features = [];
+          if (view.has_relationships) {
+            features.push('<span class="badge bg-info" title="Has relationships"><i class="bi bi-diagram-3"></i> Relations</span>');
+          }
+          if (view.exposed_filters) {
+            features.push('<span class="badge bg-warning" title="Has exposed filters"><i class="bi bi-funnel"></i> Filters</span>');
+          }
+          if (view.displays?.routes && view.displays.routes.length > 0) {
+            features.push(`<span class="badge bg-primary" title="Has page displays"><i class="bi bi-link"></i> ${view.displays.routes.length} Routes</span>`);
+          }
+          if (view.displays?.blocks && view.displays.blocks.length > 0) {
+            features.push(`<span class="badge bg-secondary" title="Has block displays"><i class="bi bi-box"></i> ${view.displays.blocks.length} Blocks</span>`);
+          }
+
+          if (features.length > 0) {
+            html += features.join(' ');
+          } else {
+            html += '<span class="text-muted">None</span>';
+          }
+          html += '</td>';
+
+          html += '</tr>';
+
+          // Display Details (Expandable Row)
+          if (view.displays?.details && view.displays.details.length > 0) {
+            html += '<tr class="table-light">';
+            html += '<td colspan="6">';
+            html += '<div class="ps-4">';
+            html += '<small><strong>Display Details:</strong></small>';
+            html += '<ul class="mb-0 mt-1">';
+
+            view.displays.details.forEach(display => {
+              html += '<li>';
+              html += `<strong>${display.title}</strong> `;
+              html += `<span class="badge bg-light text-dark">${display.type}</span> `;
+
+              if (display.path) {
+                html += `- Path: <code>${display.path}</code> `;
+              }
+              if (display.block_id) {
+                html += `- Block ID: <code>${display.block_id}</code> `;
+              }
+              if (display.items_per_page) {
+                html += `- Items per page: ${display.items_per_page}`;
+              }
+
+              html += '</li>';
+            });
+
+            html += '</ul>';
+            html += '</div>';
+            html += '</td>';
+            html += '</tr>';
+          }
+        });
+
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+      } else {
+        html += '<div class="alert alert-warning mt-4">';
+        html += '<i class="bi bi-exclamation-triangle me-2"></i>';
+        html += '<strong>No views found</strong> - No Views module configurations detected in this system.';
+        html += '</div>';
+      }
+
+      // Routes Summary
+      if (data.routes_list && data.routes_list.length > 0) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-link-45deg me-2"></i>Views with Page Displays</h3>';
+        html += '<div class="card">';
+        html += '<div class="card-body">';
+        html += '<ul class="mb-0">';
+
+        data.routes_list.forEach(item => {
+          html += `<li><strong>${item.view_label}</strong> (${item.view_id})`;
+          html += '<ul>';
+          item.routes.forEach(route => {
+            html += `<li><code>${route.path}</code> - ${route.display_title}</li>`;
+          });
+          html += '</ul></li>';
+        });
+
+        html += '</ul>';
+        html += '</div>';
+        html += '</div>';
+      }
+
+      // Blocks Summary
+      if (data.blocks_list && data.blocks_list.length > 0) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-box me-2"></i>Views with Block Displays</h3>';
+        html += '<div class="card">';
+        html += '<div class="card-body">';
+        html += '<ul class="mb-0">';
+
+        data.blocks_list.forEach(item => {
+          html += `<li><strong>${item.view_label}</strong> (${item.view_id})`;
+          html += '<ul>';
+          item.blocks.forEach(block => {
+            html += `<li><code>${block.block_id}</code> - ${block.display_title}</li>`;
+          });
+          html += '</ul></li>';
+        });
+
+        html += '</ul>';
+        html += '</div>';
+        html += '</div>';
+      }
+
+      container.innerHTML = html;
+    }
+
+    // Render on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderViews);
+    } else {
+      renderViews();
+    }
+  </script>
+</body>
+</html>

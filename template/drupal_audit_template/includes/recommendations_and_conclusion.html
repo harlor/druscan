@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Action Plan</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      background-color: #ffffff;
+    }
+    .section-header {
+      border-bottom: 2px solid #0039FF;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    .recommendation-details {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-left: 3px solid #0039FF;
+      margin: 10px 0;
+    }
+    .priority-critical { border-left-color: #dc3545 !important; }
+    .priority-high { border-left-color: #fd7e14 !important; }
+    .priority-medium { border-left-color: #ffc107 !important; }
+    .priority-low { border-left-color: #6c757d !important; }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+
+    <!-- ========================================== -->
+    <!-- ACTION PLAN -->
+    <!-- ========================================== -->
+    <h1 class="section-header">
+      <i class="bi bi-list-check me-2"></i>Action Plan
+    </h1>
+
+    <div class="alert alert-info" role="alert">
+      <i class="bi bi-info-circle-fill me-2"></i>
+      All recommendations from the audit, sorted by priority. Click any row to expand details.
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ACTION ITEMS TABLE -->
+    <!-- ========================================== -->
+
+    <!-- SUMMARY STATS -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="card border-danger">
+          <div class="card-body text-center">
+            <h3 class="text-danger mb-0">[#]</h3>
+            <small class="text-muted">Critical Priority</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-warning">
+          <div class="card-body text-center">
+            <h3 class="text-warning mb-0">[#]</h3>
+            <small class="text-muted">High Priority</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-info">
+          <div class="card-body text-center">
+            <h3 class="text-info mb-0">[#]</h3>
+            <small class="text-muted">Medium Priority</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-secondary">
+          <div class="card-body text-center">
+            <h3 class="text-secondary mb-0">[Total Effort]</h3>
+            <small class="text-muted">Estimated Hours</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIONS TABLE -->
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 5%">#</th>
+            <th style="width: 50%">Action</th>
+            <th style="width: 15%">Priority</th>
+            <th style="width: 10%">Effort</th>
+            <th style="width: 10%">When</th>
+            <th style="width: 10%">Details</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- ============================================ -->
+          <!-- AI INSTRUCTIONS:
+
+          1. Extract ALL recommendations from JSON analysis (10-20 items typically)
+          2. Sort by priority: Critical → High → Medium → Low
+          3. For each action, create expandable row:
+
+          <tr class="table-[danger|warning|info|light]" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#action-1">
+            <td>1</td>
+            <td><strong>Brief action title</strong></td>
+            <td><span class="badge bg-[danger|warning|info|secondary]">Priority</span></td>
+            <td>2-3h</td>
+            <td>Week 1</td>
+            <td><i class="bi bi-chevron-down"></i></td>
+          </tr>
+          <tr class="collapse" id="action-1">
+            <td colspan="6">
+              <div class="recommendation-details priority-[critical|high|medium|low]">
+                <p><strong>What:</strong> Detailed description of what needs to be done</p>
+                <p><strong>Why:</strong> Why this is important, what's the impact/risk</p>
+                <p class="mb-0"><strong>How:</strong> Step-by-step implementation:<br>
+                  1. Step one<br>
+                  2. Step two<br>
+                  3. Step three
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          4. Timeline (When column):
+             - Week 1 = Critical items (do immediately)
+             - Week 2-3 = High priority items
+             - Week 4+ = Medium/Low priority items
+
+          5. Keep action titles SHORT (max 60 characters)
+          6. All details go in expanded section
+
+          ============================================ -->
+
+          <!-- EXAMPLE (remove after filling with real data) -->
+          <tr class="table-danger" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#action-example">
+            <td>1</td>
+            <td><strong>Patch security vulnerabilities in facets module</strong></td>
+            <td><span class="badge bg-danger">Critical</span></td>
+            <td>2-3h</td>
+            <td>Week 1</td>
+            <td><i class="bi bi-chevron-down"></i></td>
+          </tr>
+          <tr class="collapse" id="action-example">
+            <td colspan="6">
+              <div class="recommendation-details priority-critical">
+                <p><strong>What:</strong> Update drupal/facets from 2.0.9 to 3.0.1 and enshrined/svg-sanitize to ≥0.22.0</p>
+                <p><strong>Why:</strong> Two active CVEs (Information Disclosure + XSS) expose the site to attacks. Immediate patch required.</p>
+                <p class="mb-0"><strong>How:</strong><br>
+                  1. Update composer.json requirements<br>
+                  2. Run <code>composer update drupal/facets enshrined/svg-sanitize</code><br>
+                  3. Test search and faceting functionality<br>
+                  4. Deploy to production after testing
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- AI: Add all recommendations here -->
+          <!-- [PLACEHOLDER: AI will generate all action items] -->
+
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- NEXT AUDIT -->
+    <!-- ========================================== -->
+    <div class="alert alert-success border-start border-4 border-success mt-5">
+      <strong><i class="bi bi-calendar-check-fill me-2"></i>Next Audit Recommended:</strong>
+      [AI: Calculate date 6 months from current audit date] ([AI: Month] [AI: Year])
+    </div>
+
+    <!-- ========================================== -->
+    <!-- AI GUIDANCE -->
+    <!-- ========================================== -->
+    <div class="alert alert-light border mt-4" role="alert">
+      <h5 class="alert-heading"><i class="bi bi-lightbulb-fill me-2 text-warning"></i>Instructions for AI</h5>
+
+      <p><strong>This page should contain:</strong></p>
+      <ol>
+        <li><strong>Summary stats cards</strong> - Count of Critical/High/Medium items + Total effort</li>
+        <li><strong>Action items table</strong> - ONE table with ALL recommendations, expandable details</li>
+        <li><strong>Next audit date</strong> - One sentence</li>
+      </ol>
+
+      <p><strong>DO NOT include:</strong></p>
+      <ul>
+        <li>❌ Separate "Implementation Timeline" section</li>
+        <li>❌ Separate "Quick Action Checklist" section</li>
+        <li>❌ Separate "Next Steps" section</li>
+        <li>❌ Overall Assessment (it's in Executive Summary)</li>
+        <li>❌ Notable Achievements (it's in Executive Summary)</li>
+        <li>❌ Areas Requiring Attention (it's in Executive Summary)</li>
+      </ul>
+
+      <p><strong>Action items rules:</strong></p>
+      <ul>
+        <li>Extract from JSON: drupal_modules, updates_check, hacked_module_check, modules_recommendations, database_logs, cron_jobs, external_integrations, automated_tests</li>
+        <li>Sort by priority: Critical (security, broken functionality) → High (updates, config) → Medium (improvements) → Low (nice-to-have)</li>
+        <li>Use "When" column for timeline: Week 1 / Week 2-3 / Week 4+ / Month 2+</li>
+        <li>Keep main table row SHORT - all details in expandable section</li>
+        <li>Effort estimates: Be realistic (2-3h, 4-6h, 1-2 days, 1 week, etc.)</li>
+      </ul>
+
+      <p><strong>Timeline guidance (When column):</strong></p>
+      <ul>
+        <li><strong>Week 1:</strong> Critical security issues, broken functionality</li>
+        <li><strong>Week 2-3:</strong> High priority updates, core updates</li>
+        <li><strong>Week 4+:</strong> Medium priority improvements, security hardening</li>
+        <li><strong>Month 2+:</strong> Low priority enhancements, documentation</li>
+      </ul>
+
+      <p><strong>Target metrics:</strong></p>
+      <ul>
+        <li>Page length: ~200 lines HTML (vs 700+ before)</li>
+        <li>Reading time: 3-5 minutes</li>
+        <li>Action items: 10-20 total</li>
+        <li>One table to rule them all ✅</li>
+      </ul>
+
+      <p class="mb-0"><strong>Remember:</strong> This is an ACTION PLAN, not analysis. Analysis is in Executive Summary. This page = konkretne zadania do wykonania, posortowane, z oszacowaniami. I tyle!</p>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

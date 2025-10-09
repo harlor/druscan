@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hacked Module Check</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="hacked-module-check">
+      <div class="card-body p-4">
+        <h2 class="mb-4">Module Integrity Check</h2>
+        <p>Analysis of module modifications including patches from composer.json and verification using the Hacked module.</p>
+
+        <div id="hacked-check-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading integrity check data...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const HACKED_CHECK_DATA = __HACKED_MODULE_CHECK_JSON_PLACEHOLDER__;
+
+    function renderHackedCheck() {
+      const container = document.getElementById('hacked-check-content');
+
+      if (!HACKED_CHECK_DATA || typeof HACKED_CHECK_DATA !== 'object') {
+        container.innerHTML = '<div class="alert alert-warning">No hacked module check data available.</div>';
+        return;
+      }
+
+      const data = HACKED_CHECK_DATA.integrity_analysis;
+      if (!data) {
+        container.innerHTML = '<div class="alert alert-warning">No integrity analysis data available.</div>';
+        return;
+      }
+
+      let html = '';
+
+      // Status Summary
+      html += '<div class="alert alert-info border-start border-4 border-info mb-4">';
+      html += '<i class="bi bi-info-circle-fill me-2"></i>';
+      html += `<strong>Scan Status:</strong> ${data.status} - ${data.total_scanned} modules scanned`;
+      if (data.mode) {
+        html += ` (${data.mode})`;
+      }
+      html += '</div>';
+
+      // Patches Section
+      if (data.patches_list && Object.keys(data.patches_list).length > 0) {
+        html += '<h3 class="h4 mb-3 text-primary">';
+        html += '<i class="bi bi-patch-check me-2"></i>Documented Patches (composer.json)';
+        html += '</h3>';
+
+        html += '<div class="alert alert-info border-start border-4 border-info mb-4">';
+        html += '<i class="bi bi-info-circle-fill me-2"></i>';
+        html += `<strong>Patch Summary:</strong> ${data.patches_applied} packages have intentional patches applied via composer.json for bug fixes and compatibility.`;
+        html += '</div>';
+
+        html += '<div class="table-responsive mb-5">';
+        html += '<table class="table table-hover table-primary">';
+        html += '<thead><tr>';
+        html += '<th>Project Name</th>';
+        html += '<th>Patches Applied</th>';
+        html += '<th>Purpose</th>';
+        html += '</tr></thead><tbody>';
+
+        for (const [project, patches] of Object.entries(data.patches_list)) {
+          const patchCount = Object.keys(patches).length;
+          const purposes = Object.keys(patches).map(desc => {
+            // Clean up description
+            if (desc.startsWith('https://')) {
+              return 'Bug fix (' + desc.split('/').pop().replace('.patch', '') + ')';
+            }
+            return desc;
+          }).join(', ');
+
+          html += '<tr>';
+          html += `<td><strong>${project === 'drupal/core' ? 'Drupal core' : project}</strong></td>`;
+          html += `<td><span class="badge bg-warning">${patchCount} patch${patchCount > 1 ? 'es' : ''}</span></td>`;
+          html += `<td>${purposes}</td>`;
+          html += '</tr>';
+        }
+
+        html += '</tbody></table></div>';
+      }
+
+      // Hacked Module Results
+      html += '<h3 class="h4 mb-3 text-primary">';
+      html += '<i class="bi bi-shield-check me-2"></i>Hacked Module Verification';
+      html += '</h3>';
+
+      // Display different message based on mode
+      if (data.mode && data.mode.includes('Drupal 11')) {
+        html += '<div class="alert alert-warning border-start border-4 border-warning mb-4">';
+        html += '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+        html += '<strong>Hacked Module Status:</strong> Module is installed but full change detection is unavailable in Drupal 11. All modules scanned successfully.';
+        html += '</div>';
+      } else if (data.changed_count !== undefined) {
+        if (data.changed_count === 0) {
+          html += '<div class="alert alert-success border-start border-4 border-success mb-4">';
+          html += '<i class="bi bi-check-circle-fill me-2"></i>';
+          html += '<strong>All Clear:</strong> No unauthorized modifications detected. All modules match their official versions.';
+          html += '</div>';
+        } else {
+          html += '<div class="alert alert-danger border-start border-4 border-danger mb-4">';
+          html += '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+          html += `<strong>Modifications Detected:</strong> ${data.changed_count} module${data.changed_count > 1 ? 's have' : ' has'} been modified from their official version.`;
+          html += '</div>';
+
+          if (data.changed_modules && data.changed_modules.length > 0) {
+            html += '<div class="card bg-light mb-4">';
+            html += '<div class="card-body">';
+            html += '<h5 class="card-title text-danger"><i class="bi bi-exclamation-circle me-2"></i>Modified Modules</h5>';
+            html += '<ul class="mb-0">';
+            data.changed_modules.forEach(module => {
+              html += `<li>${module}</li>`;
+            });
+            html += '</ul></div></div>';
+          }
+        }
+      }
+
+      // Statistics cards
+      html += '<div class="row mb-4">';
+
+      html += '<div class="col-md-4">';
+      html += '<div class="card bg-light">';
+      html += '<div class="card-body text-center">';
+      html += '<h5 class="card-title text-primary">';
+      html += '<i class="bi bi-box-seam me-2"></i>Total Scanned';
+      html += '</h5>';
+      html += `<p class="card-text display-6">${data.total_scanned}</p>`;
+      html += '</div></div></div>';
+
+      if (data.changed_count !== undefined) {
+        html += '<div class="col-md-4">';
+        html += '<div class="card bg-light">';
+        html += '<div class="card-body text-center">';
+        html += '<h5 class="card-title text-success">';
+        html += '<i class="bi bi-check-circle me-2"></i>Unchanged';
+        html += '</h5>';
+        html += `<p class="card-text display-6">${data.unchanged_count || 0}</p>`;
+        html += '</div></div></div>';
+
+        html += '<div class="col-md-4">';
+        html += '<div class="card bg-light">';
+        html += '<div class="card-body text-center">';
+        html += '<h5 class="card-title text-warning">';
+        html += '<i class="bi bi-exclamation-triangle me-2"></i>Modified';
+        html += '</h5>';
+        html += `<p class="card-text display-6">${data.changed_count}</p>`;
+        html += '</div></div></div>';
+      } else {
+        html += '<div class="col-md-4">';
+        html += '<div class="card bg-light">';
+        html += '<div class="card-body text-center">';
+        html += '<h5 class="card-title text-warning">';
+        html += '<i class="bi bi-patch-check me-2"></i>Patches Applied';
+        html += '</h5>';
+        html += `<p class="card-text display-6">${data.patches_applied || 0}</p>`;
+        html += '</div></div></div>';
+
+        html += '<div class="col-md-4">';
+        html += '<div class="card bg-light">';
+        html += '<div class="card-body text-center">';
+        html += '<h5 class="card-title text-info">';
+        html += '<i class="bi bi-info-circle me-2"></i>Packages Patched';
+        html += '</h5>';
+        html += `<p class="card-text display-6">${data.patches_list ? Object.keys(data.patches_list).length : 0}</p>`;
+        html += '</div></div></div>';
+      }
+
+      html += '</div>';
+
+      // Recommendations
+      html += '<div class="mt-4">';
+      html += '<h5>Recommendation</h5>';
+      html += '<ul class="list-unstyled">';
+
+      if (data.recommendation) {
+        html += `<li><i class="bi bi-info-circle text-info me-2"></i>${data.recommendation}</li>`;
+      } else {
+        html += '<li><i class="bi bi-check text-success me-2"></i>All patches are properly documented and serve legitimate purposes</li>';
+        html += '<li><i class="bi bi-check text-success me-2"></i>No unauthorized modifications detected in documented patches</li>';
+      }
+
+      if (data.note) {
+        html += `<li><i class="bi bi-info-circle text-info me-2"></i>${data.note}</li>`;
+      }
+
+      if (data.mode && data.mode.includes('Drupal 11')) {
+        html += '<li><i class="bi bi-info-circle text-info me-2"></i>Consider manual verification of critical modules if full integrity check is required</li>';
+      }
+
+      html += '</ul></div>';
+
+      container.innerHTML = html;
+    }
+
+    // Render on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderHackedCheck);
+    } else {
+      renderHackedCheck();
+    }
+  </script>
+</body>
+</html>

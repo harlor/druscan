@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>External Integrations</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="external-integrations">
+      <div class="card-body p-4">
+        <h2 class="mb-4">External Integrations</h2>
+        <p>Analysis of external system integrations including API modules, webservices, webhooks, third-party libraries, and custom API connections. Understanding external dependencies is critical for maintenance, security, and system reliability.</p>
+
+        <div id="external-integrations-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading external integrations information...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Safe placeholder handling - will be replaced during audit generation
+    let EXTERNAL_INTEGRATIONS_DATA;
+    try {
+      EXTERNAL_INTEGRATIONS_DATA = __EXTERNAL_INTEGRATIONS_JSON_PLACEHOLDER__;
+    } catch (e) {
+      // Placeholder not replaced yet - leave loading spinner visible
+      EXTERNAL_INTEGRATIONS_DATA = null;
+    }
+
+    function renderExternalIntegrations() {
+      const container = document.getElementById('external-integrations-content');
+
+      if (!EXTERNAL_INTEGRATIONS_DATA || typeof EXTERNAL_INTEGRATIONS_DATA !== 'object') {
+        // Keep loading spinner if data is not available
+        return;
+      }
+
+      const data = EXTERNAL_INTEGRATIONS_DATA.full_analysis || {};
+      let html = '';
+
+      // Alert about external integrations
+      html += '<div class="alert alert-info border-start border-4 border-info">';
+      html += '<i class="bi bi-info-circle-fill me-2"></i>';
+      html += '<strong>About External Integrations:</strong> External integrations connect the Drupal site to third-party services via APIs, webhooks, or other protocols. These may include payment gateways, CRM systems, email services, authentication providers, analytics platforms, and custom business systems.';
+      html += '</div>';
+
+      // Statistics
+      if (data.statistics) {
+        const stats = data.statistics;
+        html += '<h3 class="mt-4 mb-3">Integration Statistics</h3>';
+        html += '<div class="row mb-4">';
+        html += `<div class="col-md-2">
+          <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+              <h4 class="card-title">${stats.integration_modules || 0}</h4>
+              <p class="card-text small">Integration Modules</p>
+            </div>
+          </div>
+        </div>`;
+        html += `<div class="col-md-2">
+          <div class="card bg-info text-white">
+            <div class="card-body text-center">
+              <h4 class="card-title">${stats.rest_resources || 0}</h4>
+              <p class="card-text small">REST Resources</p>
+            </div>
+          </div>
+        </div>`;
+        html += `<div class="col-md-2">
+          <div class="card bg-success text-white">
+            <div class="card-body text-center">
+              <h4 class="card-title">${stats.jsonapi_endpoints || 0}</h4>
+              <p class="card-text small">JSON:API Endpoints</p>
+            </div>
+          </div>
+        </div>`;
+        html += `<div class="col-md-2">
+          <div class="card bg-warning text-dark">
+            <div class="card-body text-center">
+              <h4 class="card-title">${stats.queue_workers || 0}</h4>
+              <p class="card-text small">Queue Workers</p>
+            </div>
+          </div>
+        </div>`;
+        html += `<div class="col-md-2">
+          <div class="card bg-secondary text-white">
+            <div class="card-body text-center">
+              <h4 class="card-title">${stats.http_client_files || 0}</h4>
+              <p class="card-text small">HTTP Client Files</p>
+            </div>
+          </div>
+        </div>`;
+        html += `<div class="col-md-2">
+          <div class="card bg-dark text-white">
+            <div class="card-body text-center">
+              <h4 class="card-title">${stats.third_party_libraries || 0}</h4>
+              <p class="card-text small">3rd Party Libraries</p>
+            </div>
+          </div>
+        </div>`;
+        html += '</div>';
+      }
+
+      // Integration Modules Status
+      if (data.modules && data.modules.integration_related && data.modules.integration_related.length > 0) {
+        html += '<h3 class="mt-5 mb-3">Integration Modules Status</h3>';
+        html += '<p class="text-muted mb-3">Modules that provide integration capabilities or connect to external services</p>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-hover table-sm">';
+        html += '<thead class="table-primary">';
+        html += '<tr>';
+        html += '<th style="width: 25%;">Module Name</th>';
+        html += '<th style="width: 20%;">Package</th>';
+        html += '<th style="width: 45%;">Description</th>';
+        html += '<th style="width: 10%;">Status</th>';
+        html += '</tr>';
+        html += '</thead>';
+        html += '<tbody>';
+
+        // Sort modules: enabled first
+        const sortedModules = [...data.modules.integration_related].sort((a, b) => {
+          if (a.enabled && !b.enabled) return -1;
+          if (!a.enabled && b.enabled) return 1;
+          return 0;
+        });
+
+        sortedModules.forEach(module => {
+          html += '<tr>';
+          html += `<td><strong>${module.name || module.machine_name}</strong><br><small class="text-muted"><code>${module.machine_name}</code></small></td>`;
+          html += `<td><span class="badge bg-secondary">${module.package || 'N/A'}</span></td>`;
+          html += `<td>${module.description || 'No description'}</td>`;
+          if (module.enabled) {
+            html += '<td><span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Enabled</span></td>';
+          } else {
+            html += '<td><span class="badge bg-secondary"><i class="bi bi-dash-circle me-1"></i>Disabled</span></td>';
+          }
+          html += '</tr>';
+        });
+
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+      }
+
+      // REST API Configuration
+      if (data.rest) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-share me-2"></i>REST API Configuration</h3>';
+
+        if (data.rest.enabled) {
+          html += '<div class="alert alert-success border-start border-4 border-success">';
+          html += '<i class="bi bi-check-circle-fill me-2"></i>';
+          html += '<strong>REST API is enabled</strong>';
+          html += '</div>';
+
+          if (data.rest.resources && data.rest.resources.length > 0) {
+            html += '<h4 class="h6 mt-4 mb-3 text-primary">REST Resources</h4>';
+            html += '<div class="table-responsive">';
+            html += '<table class="table table-sm table-hover table-primary">';
+            html += '<thead>';
+            html += '<tr><th>Resource ID</th><th>Methods</th><th>Formats</th><th>Authentication</th></tr>';
+            html += '</thead>';
+            html += '<tbody>';
+            data.rest.resources.forEach(resource => {
+              html += '<tr>';
+              html += `<td><code>${resource.id || 'N/A'}</code></td>`;
+              html += `<td>${resource.methods ? resource.methods.join(', ') : 'N/A'}</td>`;
+              html += `<td>${resource.formats ? resource.formats.join(', ') : 'N/A'}</td>`;
+              html += `<td>${resource.authentication ? resource.authentication.join(', ') : 'N/A'}</td>`;
+              html += '</tr>';
+            });
+            html += '</tbody>';
+            html += '</table>';
+            html += '</div>';
+          } else {
+            html += '<p class="text-muted">REST module is enabled but no resources are configured.</p>';
+          }
+        } else {
+          html += '<div class="alert alert-secondary border-start border-4 border-secondary">';
+          html += '<i class="bi bi-x-circle-fill me-2"></i>';
+          html += '<strong>REST API is not enabled</strong>';
+          html += '</div>';
+        }
+      }
+
+      // JSON:API Configuration
+      if (data.jsonapi) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-braces me-2"></i>JSON:API Configuration</h3>';
+
+        if (data.jsonapi.enabled) {
+          html += '<div class="alert alert-success border-start border-4 border-success">';
+          html += '<i class="bi bi-check-circle-fill me-2"></i>';
+          html += '<strong>JSON:API is enabled</strong>';
+          html += '</div>';
+
+          if (data.jsonapi.endpoints && data.jsonapi.endpoints.length > 0) {
+            html += '<h4 class="h6 mt-4 mb-3 text-primary">JSON:API Endpoints</h4>';
+            html += '<div class="table-responsive">';
+            html += '<table class="table table-sm table-hover table-primary">';
+            html += '<thead>';
+            html += '<tr><th>Entity Type</th><th>Bundle</th><th>Endpoint Path</th></tr>';
+            html += '</thead>';
+            html += '<tbody>';
+            data.jsonapi.endpoints.forEach(endpoint => {
+              html += '<tr>';
+              html += `<td>${endpoint.entity_type || 'N/A'}</td>`;
+              html += `<td>${endpoint.bundle || 'N/A'}</td>`;
+              html += `<td><code>${endpoint.path || 'N/A'}</code></td>`;
+              html += '</tr>';
+            });
+            html += '</tbody>';
+            html += '</table>';
+            html += '</div>';
+          } else {
+            html += '<p class="text-muted">JSON:API module is enabled. All entity types are automatically exposed at <code>/jsonapi/</code> endpoints.</p>';
+          }
+        } else {
+          html += '<div class="alert alert-secondary border-start border-4 border-secondary">';
+          html += '<i class="bi bi-x-circle-fill me-2"></i>';
+          html += '<strong>JSON:API is not enabled</strong>';
+          html += '</div>';
+        }
+      }
+
+      // OAuth and Authentication
+      if (data.oauth && (data.oauth.modules.length > 0 || data.oauth.configurations.length > 0)) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-shield-lock-fill me-2"></i>OAuth and Authentication</h3>';
+
+        if (data.oauth.modules.length > 0) {
+          html += '<h4 class="h6 mt-4 mb-3 text-primary">Authentication Modules</h4>';
+          html += '<div class="table-responsive">';
+          html += '<table class="table table-sm table-hover table-primary">';
+          html += '<thead>';
+          html += '<tr><th>Module</th><th>Status</th></tr>';
+          html += '</thead>';
+          html += '<tbody>';
+          data.oauth.modules.forEach(module => {
+            html += '<tr>';
+            html += `<td><code>${module.machine_name || module.name}</code></td>`;
+            html += `<td><span class="badge ${module.status === 'Enabled' ? 'bg-success' : 'bg-secondary'}">${module.status}</span></td>`;
+            html += '</tr>';
+          });
+          html += '</tbody>';
+          html += '</table>';
+          html += '</div>';
+        }
+
+        if (data.oauth.configurations && data.oauth.configurations.length > 0) {
+          html += '<h4 class="h6 mt-4 mb-3 text-primary">OAuth Configurations</h4>';
+          html += '<div class="table-responsive">';
+          html += '<table class="table table-sm table-hover table-primary">';
+          html += '<thead>';
+          html += '<tr><th>Configuration</th><th>Provider</th><th>Details</th></tr>';
+          html += '</thead>';
+          html += '<tbody>';
+          data.oauth.configurations.forEach(config => {
+            html += '<tr>';
+            html += `<td>${config.name || 'N/A'}</td>`;
+            html += `<td>${config.provider || 'N/A'}</td>`;
+            html += `<td>${config.details || 'N/A'}</td>`;
+            html += '</tr>';
+          });
+          html += '</tbody>';
+          html += '</table>';
+          html += '</div>';
+        }
+      }
+
+      // Webhooks
+      if (data.webhooks && (data.webhooks.modules.length > 0 || data.webhooks.routes.length > 0)) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-webhook me-2"></i>Webhooks</h3>';
+
+        if (data.webhooks.modules.length > 0) {
+          html += '<h4 class="h6 mt-4 mb-3 text-primary">Webhook Modules</h4>';
+          html += '<ul class="list-unstyled">';
+          data.webhooks.modules.forEach(module => {
+            html += `<li><i class="bi bi-check-circle-fill text-success me-2"></i><code>${module}</code></li>`;
+          });
+          html += '</ul>';
+        }
+
+        if (data.webhooks.routes && data.webhooks.routes.length > 0) {
+          html += '<h4 class="h6 mt-4 mb-3 text-primary">Webhook Endpoints</h4>';
+          html += '<div class="table-responsive">';
+          html += '<table class="table table-sm table-hover table-primary">';
+          html += '<thead>';
+          html += '<tr><th>Endpoint Path</th><th>Module</th><th>Purpose</th></tr>';
+          html += '</thead>';
+          html += '<tbody>';
+          data.webhooks.routes.forEach(route => {
+            html += '<tr>';
+            html += `<td><code>${route.path || 'N/A'}</code></td>`;
+            html += `<td>${route.module || 'N/A'}</td>`;
+            html += `<td>${route.purpose || 'Webhook endpoint'}</td>`;
+            html += '</tr>';
+          });
+          html += '</tbody>';
+          html += '</table>';
+          html += '</div>';
+        }
+
+        if (data.webhooks.modules.length === 0 && data.webhooks.routes.length === 0) {
+          html += '<p class="text-muted">No webhook modules or endpoints detected.</p>';
+        }
+      }
+
+      // Queue Workers
+      if (data.queue_workers && data.queue_workers.length > 0) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-list-task me-2"></i>Queue Workers</h3>';
+        html += '<p class="text-muted mb-3">Background processing workers for external integrations</p>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-sm table-hover table-primary">';
+        html += '<thead>';
+        html += '<tr><th>Queue Worker ID</th><th>Title</th><th>Provider</th><th>Runs on Cron</th></tr>';
+        html += '</thead>';
+        html += '<tbody>';
+        data.queue_workers.forEach(worker => {
+          html += '<tr>';
+          html += `<td><code>${worker.id || 'N/A'}</code></td>`;
+          html += `<td>${worker.title || 'N/A'}</td>`;
+          html += `<td>${worker.provider || 'N/A'}</td>`;
+          html += `<td><span class="badge ${worker.runs_on_cron ? 'bg-success' : 'bg-secondary'}">${worker.runs_on_cron ? 'Yes' : 'No'}</span></td>`;
+          html += '</tr>';
+        });
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+      }
+
+      // HTTP Clients
+      if (data.http_clients) {
+        const hasClients =
+          (data.http_clients.guzzle_files && data.http_clients.guzzle_files.length > 0) ||
+          (data.http_clients.curl_files && data.http_clients.curl_files.length > 0) ||
+          (data.http_clients.file_get_contents_files && data.http_clients.file_get_contents_files.length > 0);
+
+        if (hasClients) {
+          html += '<h3 class="mt-5 mb-3"><i class="bi bi-arrow-left-right me-2"></i>HTTP Client Usage</h3>';
+          html += '<p class="text-muted mb-3">Custom code making external HTTP requests</p>';
+
+          if (data.http_clients.guzzle_files && data.http_clients.guzzle_files.length > 0) {
+            html += '<h4 class="h6 mt-4 mb-3 text-primary">Guzzle HTTP Client</h4>';
+            html += '<ul class="list-unstyled">';
+            data.http_clients.guzzle_files.forEach(file => {
+              html += `<li><i class="bi bi-file-code me-2"></i><code>${file}</code></li>`;
+            });
+            html += '</ul>';
+          }
+
+          if (data.http_clients.curl_files && data.http_clients.curl_files.length > 0) {
+            html += '<h4 class="h6 mt-4 mb-3 text-primary">cURL</h4>';
+            html += '<ul class="list-unstyled">';
+            data.http_clients.curl_files.forEach(file => {
+              html += `<li><i class="bi bi-file-code me-2"></i><code>${file}</code></li>`;
+            });
+            html += '</ul>';
+          }
+
+          if (data.http_clients.file_get_contents_files && data.http_clients.file_get_contents_files.length > 0) {
+            html += '<h4 class="h6 mt-4 mb-3 text-primary">file_get_contents()</h4>';
+            html += '<ul class="list-unstyled">';
+            data.http_clients.file_get_contents_files.forEach(file => {
+              html += `<li><i class="bi bi-file-code me-2"></i><code>${file}</code></li>`;
+            });
+            html += '</ul>';
+          }
+        }
+      }
+
+      // Third-Party Libraries
+      if (data.third_party && data.third_party.libraries && data.third_party.libraries.length > 0) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-box-seam me-2"></i>Third-Party Libraries</h3>';
+        html += '<p class="text-muted mb-3">Non-Drupal dependencies installed via Composer</p>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-hover table-primary">';
+        html += '<thead>';
+        html += '<tr><th>Library Name</th><th>Version</th><th>Purpose</th></tr>';
+        html += '</thead>';
+        html += '<tbody>';
+        data.third_party.libraries.forEach(lib => {
+          html += '<tr>';
+          html += `<td><code>${lib.name || 'N/A'}</code></td>`;
+          html += `<td>${lib.version || 'N/A'}</td>`;
+          html += `<td>${lib.purpose || lib.description || 'N/A'}</td>`;
+          html += '</tr>';
+        });
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+      }
+
+      // Payment Gateways
+      if (data.payment_gateways && (data.payment_gateways.modules.length > 0 || data.payment_gateways.configurations.length > 0)) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-credit-card-fill me-2"></i>Payment Gateways</h3>';
+
+        if (data.payment_gateways.modules.length > 0) {
+          html += '<p class="text-muted mb-3">Payment gateway modules detected</p>';
+          html += '<ul class="list-unstyled">';
+          data.payment_gateways.modules.forEach(module => {
+            html += `<li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>${module.name || module.machine_name}</strong></li>`;
+          });
+          html += '</ul>';
+        }
+
+        if (data.payment_gateways.configurations.length > 0) {
+          html += '<div class="table-responsive">';
+          html += '<table class="table table-sm table-hover table-primary">';
+          html += '<thead>';
+          html += '<tr><th>Gateway</th><th>Mode</th><th>Configuration</th></tr>';
+          html += '</thead>';
+          html += '<tbody>';
+          data.payment_gateways.configurations.forEach(config => {
+            html += '<tr>';
+            html += `<td>${config.name || 'N/A'}</td>`;
+            html += `<td><span class="badge ${config.mode === 'live' ? 'bg-danger' : 'bg-warning'}">${config.mode || 'N/A'}</span></td>`;
+            html += `<td>${config.details || 'N/A'}</td>`;
+            html += '</tr>';
+          });
+          html += '</tbody>';
+          html += '</table>';
+          html += '</div>';
+        }
+      }
+
+      // Email Services
+      if (data.email_services && (data.email_services.modules.length > 0 || data.email_services.configurations.length > 0)) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-envelope-fill me-2"></i>Email Services</h3>';
+
+        if (data.email_services.modules.length > 0) {
+          html += '<p class="text-muted mb-3">Email service modules detected</p>';
+          html += '<ul class="list-unstyled">';
+          data.email_services.modules.forEach(module => {
+            html += `<li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>${module.name || module.machine_name}</strong></li>`;
+          });
+          html += '</ul>';
+        }
+
+        if (data.email_services.configurations.length > 0) {
+          html += '<div class="table-responsive">';
+          html += '<table class="table table-sm table-hover table-primary">';
+          html += '<thead>';
+          html += '<tr><th>Service</th><th>Configuration</th></tr>';
+          html += '</thead>';
+          html += '<tbody>';
+          data.email_services.configurations.forEach(config => {
+            html += '<tr>';
+            html += `<td>${config.name || 'N/A'}</td>`;
+            html += `<td>${config.details || 'N/A'}</td>`;
+            html += '</tr>';
+          });
+          html += '</tbody>';
+          html += '</table>';
+          html += '</div>';
+        }
+      }
+
+      // Social Media
+      if (data.social_media && data.social_media.modules && data.social_media.modules.length > 0) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-share-fill me-2"></i>Social Media Integrations</h3>';
+        html += '<ul class="list-unstyled">';
+        data.social_media.modules.forEach(module => {
+          html += `<li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>${module.name || module.machine_name}</strong></li>`;
+        });
+        html += '</ul>';
+      }
+
+      // Analytics
+      if (data.analytics && data.analytics.modules && data.analytics.modules.length > 0) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-graph-up me-2"></i>Analytics Services</h3>';
+        html += '<ul class="list-unstyled">';
+        data.analytics.modules.forEach(module => {
+          html += `<li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>${module.name || module.machine_name}</strong></li>`;
+        });
+        html += '</ul>';
+
+        if (data.analytics.google_analytics_config && Object.keys(data.analytics.google_analytics_config).length > 0) {
+          html += '<h4 class="h6 mt-3 mb-2 text-primary">Google Analytics Configuration</h4>';
+          html += '<pre class="bg-light p-3 rounded"><code>' + JSON.stringify(data.analytics.google_analytics_config, null, 2) + '</code></pre>';
+        }
+      }
+
+      // Search Services
+      if (data.search_services && data.search_services.modules && data.search_services.modules.length > 0) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-search me-2"></i>Search Services</h3>';
+
+        html += '<h4 class="h6 mt-4 mb-3 text-primary">Search Modules</h4>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-sm table-hover table-primary">';
+        html += '<thead>';
+        html += '<tr><th>Module</th><th>Package</th></tr>';
+        html += '</thead>';
+        html += '<tbody>';
+        data.search_services.modules.forEach(module => {
+          html += '<tr>';
+          html += `<td><code>${module.machine_name || module.name}</code></td>`;
+          html += `<td><span class="badge bg-secondary">${module.package || 'N/A'}</span></td>`;
+          html += '</tr>';
+        });
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+
+        if (data.search_services.servers && data.search_services.servers.length > 0) {
+          html += '<h4 class="h6 mt-4 mb-3 text-primary">Search Servers</h4>';
+          html += '<div class="table-responsive">';
+          html += '<table class="table table-sm table-hover table-primary">';
+          html += '<thead>';
+          html += '<tr><th>Server Name</th><th>Backend</th><th>Status</th></tr>';
+          html += '</thead>';
+          html += '<tbody>';
+          data.search_services.servers.forEach(server => {
+            html += '<tr>';
+            html += `<td>${server.name || 'N/A'}</td>`;
+            html += `<td>${server.backend || 'N/A'}</td>`;
+            html += `<td><span class="badge ${server.enabled ? 'bg-success' : 'bg-secondary'}">${server.enabled ? 'Enabled' : 'Disabled'}</span></td>`;
+            html += '</tr>';
+          });
+          html += '</tbody>';
+          html += '</table>';
+          html += '</div>';
+        }
+      }
+
+      // External Storage
+      if (data.external_storage && data.external_storage.modules && data.external_storage.modules.length > 0) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-cloud-fill me-2"></i>External Storage</h3>';
+        html += '<ul class="list-unstyled">';
+        data.external_storage.modules.forEach(module => {
+          html += `<li><i class="bi bi-check-circle-fill text-success me-2"></i><strong>${module.name || module.machine_name}</strong></li>`;
+        });
+        html += '</ul>';
+      }
+
+      // Security Considerations
+      html += '<h3 class="mt-5 mb-3">Integration Security and Configuration</h3>';
+      html += '<div class="alert alert-warning border-start border-4 border-warning mt-4">';
+      html += '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+      html += '<strong>Security Considerations:</strong>';
+      html += '<ul class="mb-0 mt-2">';
+      html += '<li>API credentials should be stored in environment variables, not in code or configuration</li>';
+      html += '<li>Review <code>settings.php</code> and <code>settings.local.php</code> for hardcoded credentials</li>';
+      html += '<li>Implement proper error handling for all external API calls</li>';
+      html += '<li>Set up monitoring and alerting for integration failures</li>';
+      html += '<li>Regularly rotate API keys and authentication tokens</li>';
+      html += '<li>Document all external dependencies and their SLA requirements</li>';
+      html += '</ul>';
+      html += '</div>';
+
+      container.innerHTML = html;
+    }
+
+    // Render on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderExternalIntegrations);
+    } else {
+      renderExternalIntegrations();
+    }
+  </script>
+</body>
+</html>

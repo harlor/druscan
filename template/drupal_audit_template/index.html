@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drupal System Audit Report - [Site Name]</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+  <!-- Mermaid.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+
+  <style>
+    /* Droptica Brand Colors */
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-primary-dark: #0029CC;
+      --droptica-black: #000000;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+      --droptica-gray-light: #f8f9fa;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--droptica-gray-light);
+    }
+
+    /* Custom Header Styles */
+    h1 {
+      color: var(--droptica-primary);
+    }
+
+    /* Custom styles for main content */
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    /* Custom table header color */
+    .table-primary thead {
+      background-color: var(--droptica-primary) !important;
+      color: white !important;
+    }
+
+    /* Custom badge colors */
+    .badge-droptica {
+      background-color: var(--droptica-primary);
+    }
+
+    /* Custom code block styling */
+    pre {
+      border-left: 3px solid var(--droptica-primary);
+    }
+
+    code {
+      color: var(--droptica-danger);
+    }
+
+    /* Header redesign */
+    header {
+      background: white;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid #e9ecef;
+      padding: 0.75rem 0;
+    }
+
+    /* ASCII Logo as watermark */
+    .ascii-watermark {
+      display: none;
+    }
+
+    .header-content {
+      position: relative;
+      z-index: 1;
+      padding: 0 15px;
+    }
+
+    .tool-badge {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, var(--droptica-primary), var(--droptica-primary-dark));
+      color: white;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0, 57, 255, 0.2);
+      z-index: 10;
+    }
+
+    .tool-badge i {
+      font-size: 1rem;
+    }
+
+    .header-main-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      width: 100%;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .github-link {
+      display: flex;
+      align-items: center;
+      color: #6c757d;
+      text-decoration: none;
+      font-size: 1.2rem;
+      transition: color 0.2s;
+    }
+
+    .github-link:hover {
+      color: var(--droptica-primary);
+    }
+
+    .ascii-logo {
+      font-family: 'Courier New', monospace;
+      font-size: 0.5rem;
+      line-height: 0.95;
+      color: var(--droptica-primary);
+      font-weight: bold;
+      white-space: pre;
+      display: block;
+    }
+
+    .header-logo {
+      height: 24px;
+      width: auto;
+    }
+
+    .droptica-link {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    .droptica-link:hover {
+      opacity: 0.7;
+    }
+
+    .header-main-row h1 {
+      margin: 0;
+      line-height: 1;
+      font-size: 1.1rem !important;
+      font-weight: 600;
+      color: var(--droptica-black);
+    }
+
+    /* Audit Info Panel in Sidebar */
+    .audit-info-panel {
+      background: white;
+      padding: 12px 16px;
+      margin: 0 0 16px 0;
+      border-bottom: 2px solid #e9ecef;
+    }
+
+    .audit-info-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 4px 0;
+      gap: 8px;
+    }
+
+    .audit-info-label {
+      font-size: 0.7rem;
+      color: #6c757d;
+      font-weight: 500;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .audit-info-label i {
+      font-size: 0.75rem;
+      color: var(--droptica-primary);
+    }
+
+    .audit-info-value {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #212529;
+      text-align: right;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Layout Container */
+    .main-layout {
+      display: flex;
+      min-height: calc(100vh - 200px);
+    }
+
+    /* Sidebar Navigation */
+    .sidebar-nav {
+      width: 280px;
+      background: white;
+      border-right: 1px solid #e9ecef;
+      padding: 20px 0;
+      position: sticky;
+      top: 0;
+      height: calc(100vh - 120px);
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .sidebar-nav::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-thumb {
+      background: var(--droptica-primary);
+      border-radius: 3px;
+    }
+
+    .nav-section {
+      margin-bottom: 24px;
+    }
+
+    .nav-section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #6c757d;
+      padding: 0 20px;
+      margin-bottom: 8px;
+    }
+
+    .nav-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .nav-list-item {
+      margin: 0;
+    }
+
+    .nav-link-item {
+      display: block;
+      padding: 8px 20px;
+      color: #495057;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      border-left: 3px solid transparent;
+    }
+
+    .nav-link-item:hover {
+      background-color: var(--droptica-gray-light);
+      color: var(--droptica-primary);
+      border-left-color: var(--droptica-primary);
+    }
+
+    .nav-link-item.active {
+      background-color: rgba(0, 57, 255, 0.05);
+      color: var(--droptica-primary);
+      border-left-color: var(--droptica-primary);
+      font-weight: 600;
+    }
+
+    .nav-link-item i {
+      margin-right: 8px;
+      width: 16px;
+      text-align: center;
+    }
+
+    /* Content Area */
+    .content-main {
+      flex: 1;
+      padding: 30px;
+      background: white;
+      min-height: calc(100vh - 200px);
+    }
+
+    .content-section {
+      width: 100%;
+      min-height: 100%;
+    }
+
+    .content-section.active {
+      display: block;
+    }
+
+    .content-iframe {
+      width: 100%;
+      min-height: calc(100vh - 200px);
+      height: 100%;
+      border: none;
+      border-radius: 8px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .header-main-row {
+        justify-content: space-between;
+      }
+
+      .ascii-logo {
+        font-size: 0.35rem;
+        line-height: 0.9;
+      }
+
+      .header-logo {
+        height: 18px;
+      }
+
+      .github-link {
+        font-size: 1rem;
+      }
+
+      .ascii-watermark {
+        display: none;
+      }
+
+      .main-layout {
+        flex-direction: column;
+      }
+
+      .sidebar-nav {
+        width: 100%;
+        height: auto;
+        position: relative;
+        border-right: none;
+        border-bottom: 1px solid #e9ecef;
+      }
+
+      .audit-info-panel {
+        margin: 0 0 15px 0;
+
+      }
+      .content-main {
+        padding: 15px;
+      }
+
+      .content-iframe {
+        min-height: calc(100vh - 300px);
+        height: 100%;
+      }
+    }
+
+    /* Footer Styles */
+    footer {
+      background-color: #ffffff;
+      color: #333333;
+      border-top: 1px solid #e9ecef;
+      padding: 1.5rem 0;
+    }
+
+    .footer-text {
+      color: #6c757d;
+      font-size: 0.8rem;
+    }
+
+    .footer-logo img {
+      height: 22px;
+      opacity: 1;
+      transition: opacity 0.2s;
+    }
+
+    .footer-logo img:hover {
+      opacity: 0.7;
+    }
+
+    .footer-link {
+      color: var(--droptica-primary);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.8rem;
+    }
+
+    .footer-link:hover {
+      color: var(--droptica-primary-dark);
+      text-decoration: underline;
+    }
+
+    /* Mermaid Diagram Styles */
+    .diagram-section {
+      margin-top: 30px;
+      position: relative;
+    }
+
+    .mermaid {
+      text-align: center;
+      min-height: 400px;
+      cursor: grab;
+      overflow: hidden;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px;
+      background-color: #fafafa;
+    }
+
+    .mermaid:active {
+      cursor: grabbing;
+    }
+
+    .zoom-controls {
+      position: absolute;
+      top: 10px;
+      right: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      z-index: 1000;
+    }
+
+    .zoom-btn {
+      background: var(--droptica-primary);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 20px;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: background 0.2s;
+    }
+
+    .zoom-btn:hover {
+      background: var(--droptica-primary-dark);
+    }
+
+    .zoom-btn:active {
+      transform: scale(0.95);
+    }
+
+    .mermaid svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        background-color: white;
+      }
+      .card {
+        box-shadow: none !important;
+        page-break-inside: avoid;
+      }
+      header {
+        box-shadow: none;
+      }
+      .zoom-controls {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <header>
+    <!-- ASCII Watermark -->
+    <div class="ascii-watermark" aria-hidden="true">
+ ____  ____  _   _ ____   ____    _    _   _
+|  _ \|  _ \| | | / ___| / ___|  / \  | \ | |
+| | | | |_) | | | \___ \| |     / _ \ |  \| |
+| |_| |  _ <| |_| |___) | |___ / ___ \| |\  |
+|____/|_| \_\\___/|____/ \____/_/   \_\_| \_|
+    </div>
+
+    <div class="container-fluid header-content">
+      <!-- Header: ASCII Logo (left) + Droptica Logo + GitHub (right) -->
+      <div class="header-main-row">
+        <div class="header-left">
+          <code class="ascii-logo"> ____  ____  _   _ ____   ____    _    _   _
+|  _ \|  _ \| | | / ___| / ___|  / \  | \ | |
+| | | | |_) | | | \___ \| |     / _ \ |  \| |
+| |_| |  _ <| |_| |___) | |___ / ___ \| |\  |
+|____/|_| \_\\___/|____/ \____/_/   \_\_| \_|</code>
+        </div>
+        <div class="header-right">
+          <a href="https://github.com/droptica/druscan" target="_blank" rel="noopener noreferrer" class="github-link" title="View on GitHub">
+            <i class="bi bi-github"></i>
+          </a>
+          <a href="https://www.droptica.com" target="_blank" rel="noopener noreferrer" class="droptica-link" title="Built by Droptica">
+            <img src="https://www.droptica.com/themes/custom/droopler_subtheme/images/logo-droptica.svg" alt="Droptica Logo" class="header-logo">
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-layout">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar-nav">
+      <!-- Audit Information Panel -->
+      <div class="audit-info-panel">
+        <div class="audit-info-item">
+          <span class="audit-info-label">
+            <i class="bi bi-globe"></i>Site
+          </span>
+          <span class="audit-info-value">[Site Name]</span>
+        </div>
+        <div class="audit-info-item">
+          <span class="audit-info-label">
+            <i class="bi bi-code-square"></i>Version
+          </span>
+          <span class="audit-info-value">[Drupal Version]</span>
+        </div>
+        <div class="audit-info-item">
+          <span class="audit-info-label">
+            <i class="bi bi-calendar-check"></i>Date
+          </span>
+          <span class="audit-info-value">[Date]</span>
+        </div>
+        <div class="audit-info-item">
+          <span class="audit-info-label">
+            <i class="bi bi-person-badge"></i>Auditor
+          </span>
+          <span class="audit-info-value">[Auditor Name]</span>
+        </div>
+      </div>
+
+      <!-- Getting Started -->
+      <div class="nav-section">
+        <div class="nav-section-title">Getting Started</div>
+        <ul class="nav-list">
+          <li class="nav-list-item">
+            <a href="#about-tool" class="nav-link-item active" data-section="about-tool">
+              <i class="bi bi-info-circle"></i>About This Audit Tool
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Audit Checks -->
+      <div class="nav-section">
+        <div class="nav-section-title">Audit Checks</div>
+        <ul class="nav-list">
+          <li class="nav-list-item">
+            <a href="#system-info" class="nav-link-item" data-section="system-info">
+              <i class="bi bi-gear"></i>System Information
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#drupal-modules" class="nav-link-item" data-section="drupal-modules">
+              <i class="bi bi-puzzle"></i>Drupal Modules
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#updates-check" class="nav-link-item" data-section="updates-check">
+              <i class="bi bi-arrow-up-circle"></i>Updates Check
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#hacked-module" class="nav-link-item" data-section="hacked-module">
+              <i class="bi bi-shield-exclamation"></i>Hacked Module Check
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#custom-modules" class="nav-link-item" data-section="custom-modules">
+              <i class="bi bi-code-square"></i>Custom Modules
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#custom-themes" class="nav-link-item" data-section="custom-themes">
+              <i class="bi bi-palette"></i>Custom Themes
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#modules-recommendations" class="nav-link-item" data-section="modules-recommendations">
+              <i class="bi bi-puzzle"></i>Recommended Modules
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#entity-structure" class="nav-link-item" data-section="entity-structure">
+              <i class="bi bi-diagram-3"></i>Entity System Structure
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#menu-structure" class="nav-link-item" data-section="menu-structure">
+              <i class="bi bi-list"></i>Menu Structure
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#views" class="nav-link-item" data-section="views">
+              <i class="bi bi-eye"></i>Views
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#workflows" class="nav-link-item" data-section="workflows">
+              <i class="bi bi-arrow-repeat"></i>Workflows & Moderation
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#cron-tasks" class="nav-link-item" data-section="cron-tasks">
+              <i class="bi bi-clock"></i>Cron Tasks
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#external-integrations" class="nav-link-item" data-section="external-integrations">
+              <i class="bi bi-plug"></i>External Integrations
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#homepage-config" class="nav-link-item" data-section="homepage-config">
+              <i class="bi bi-house"></i>Homepage Configuration
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#dblog-errors" class="nav-link-item" data-section="dblog-errors">
+              <i class="bi bi-exclamation-triangle"></i>Database Log Errors
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#automated-tests" class="nav-link-item" data-section="automated-tests">
+              <i class="bi bi-check2-square"></i>Automated Tests
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#user-roles-perms" class="nav-link-item" data-section="user-roles-perms">
+              <i class="bi bi-people"></i>User Roles & Permissions
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#multisite-domain" class="nav-link-item" data-section="multisite-domain">
+              <i class="bi bi-hdd-network"></i>Multisite & Multi-Domain
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#multilingual" class="nav-link-item" data-section="multilingual">
+              <i class="bi bi-translate"></i>Multilingual Support
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#composer-sync" class="nav-link-item" data-section="composer-sync">
+              <i class="bi bi-database-check"></i>Composer & Codebase Sync
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#config-management" class="nav-link-item" data-section="config-management">
+              <i class="bi bi-sliders"></i>Configuration Management
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#performance" class="nav-link-item" data-section="performance">
+              <i class="bi bi-speedometer2"></i>Performance Analysis
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#accessibility" class="nav-link-item" data-section="accessibility">
+              <i class="bi bi-universal-access"></i>Accessibility (WCAG 2.1)
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#legal-compliance" class="nav-link-item" data-section="legal-compliance">
+              <i class="bi bi-shield-check"></i>Legal Compliance
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#code-quality-tools" class="nav-link-item" data-section="code-quality-tools">
+              <i class="bi bi-check2-square"></i>Code Quality Tools
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#git-repository" class="nav-link-item" data-section="git-repository">
+              <i class="bi bi-git"></i>Git Repository
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#backup-strategy" class="nav-link-item" data-section="backup-strategy">
+              <i class="bi bi-hdd-stack"></i>Backup Strategy
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#seo-analysis" class="nav-link-item" data-section="seo-analysis">
+              <i class="bi bi-search"></i>SEO Analysis
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Summary Sections -->
+      <div class="nav-section">
+        <div class="nav-section-title">Summary</div>
+        <ul class="nav-list">
+          <li class="nav-list-item">
+            <a href="#executive" class="nav-link-item" data-section="executive">
+              <i class="bi bi-clipboard-data"></i>Executive Summary
+            </a>
+          </li>
+          <li class="nav-list-item">
+            <a href="#action-items" class="nav-link-item" data-section="action-items">
+              <i class="bi bi-list-check"></i>Action Items
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Content Area -->
+    <div class="content-main">
+      <div id="about-tool" class="content-section active">
+        <iframe src="includes/about_audit_tool.html" class="content-iframe" title="About This Audit Tool"></iframe>
+      </div>
+      <div id="system-info" class="content-section" style="display: none;">
+        <iframe src="includes/system_information.html" class="content-iframe" title="System Information"></iframe>
+      </div>
+      <div id="drupal-modules" class="content-section" style="display: none;">
+        <iframe src="includes/drupal_modules.html" class="content-iframe" title="Drupal Modules"></iframe>
+      </div>
+      <div id="updates-check" class="content-section" style="display: none;">
+        <iframe src="includes/updates_check.html" class="content-iframe" title="Updates Check"></iframe>
+      </div>
+      <div id="hacked-module" class="content-section" style="display: none;">
+        <iframe src="includes/hacked_module_check.html" class="content-iframe" title="Hacked Module Check"></iframe>
+      </div>
+      <div id="custom-modules" class="content-section" style="display: none;">
+        <iframe src="includes/custom_modules.html" class="content-iframe" title="Custom Modules"></iframe>
+      </div>
+      <div id="custom-themes" class="content-section" style="display: none;">
+        <iframe src="includes/drupal_themes.html" class="content-iframe" title="Drupal Themes"></iframe>
+      </div>
+      <div id="modules-recommendations" class="content-section" style="display: none;">
+        <iframe src="includes/modules_recommendations.html" class="content-iframe" title="Recommended Modules"></iframe>
+      </div>
+      <div id="entity-structure" class="content-section" style="display: none;">
+        <iframe src="includes/entity_structure.html" class="content-iframe" title="Entity System Structure"></iframe>
+      </div>
+      <div id="menu-structure" class="content-section" style="display: none;">
+        <iframe src="includes/menu.html" class="content-iframe" title="Menu Structure"></iframe>
+      </div>
+      <div id="views" class="content-section" style="display: none;">
+        <iframe src="includes/views.html" class="content-iframe" title="Views"></iframe>
+      </div>
+      <div id="workflows" class="content-section" style="display: none;">
+        <iframe src="includes/workflows.html" class="content-iframe" title="Workflows and Content Moderation"></iframe>
+      </div>
+      <div id="cron-tasks" class="content-section" style="display: none;">
+        <iframe src="includes/cron.html" class="content-iframe" title="Cron Tasks"></iframe>
+      </div>
+      <div id="external-integrations" class="content-section" style="display: none;">
+        <iframe src="includes/external_integrations.html" class="content-iframe" title="External Integrations"></iframe>
+      </div>
+      <div id="homepage-config" class="content-section" style="display: none;">
+        <iframe src="includes/homepage.html" class="content-iframe" title="Homepage Configuration"></iframe>
+      </div>
+      <div id="dblog-errors" class="content-section" style="display: none;">
+        <iframe src="includes/database_logs.html" class="content-iframe" title="Database Log Errors"></iframe>
+      </div>
+      <div id="automated-tests" class="content-section" style="display: none;">
+        <iframe src="includes/automated_tests.html" class="content-iframe" title="Automated Tests"></iframe>
+      </div>
+      <div id="user-roles-perms" class="content-section" style="display: none;">
+        <iframe src="includes/user_roles.html" class="content-iframe" title="User Roles and Permissions"></iframe>
+      </div>
+      <div id="multisite-domain" class="content-section" style="display: none;">
+        <iframe src="includes/multisite_domain.html" class="content-iframe" title="Multisite and Multi-Domain"></iframe>
+      </div>
+      <div id="multilingual" class="content-section" style="display: none;">
+        <iframe src="includes/multilingual.html" class="content-iframe" title="Multilingual Support"></iframe>
+      </div>
+      <div id="composer-sync" class="content-section" style="display: none;">
+        <iframe src="includes/composer_codebase_sync.html" class="content-iframe" title="Composer & Codebase Synchronization"></iframe>
+      </div>
+      <div id="config-management" class="content-section" style="display: none;">
+        <iframe src="includes/configuration_management.html" class="content-iframe" title="Configuration Management"></iframe>
+      </div>
+      <div id="performance" class="content-section" style="display: none;">
+        <iframe src="includes/performance.html" class="content-iframe" title="Performance Analysis"></iframe>
+      </div>
+      <div id="accessibility" class="content-section" style="display: none;">
+        <iframe src="includes/accessibility.html" class="content-iframe" title="Accessibility Analysis (WCAG 2.1)"></iframe>
+      </div>
+      <div id="legal-compliance" class="content-section" style="display: none;">
+        <iframe src="includes/legal_compliance.html" class="content-iframe" title="Legal Compliance Check"></iframe>
+      </div>
+      <div id="code-quality-tools" class="content-section" style="display: none;">
+        <iframe src="includes/code_quality_tools.html" class="content-iframe" title="Code Quality Tools Analysis"></iframe>
+      </div>
+      <div id="git-repository" class="content-section" style="display: none;">
+        <iframe src="includes/git_repository.html" class="content-iframe" title="Git Repository Analysis"></iframe>
+      </div>
+      <div id="backup-strategy" class="content-section" style="display: none;">
+        <iframe src="includes/backup_strategy.html" class="content-iframe" title="Backup Strategy Analysis"></iframe>
+      </div>
+      <div id="seo-analysis" class="content-section" style="display: none;">
+        <iframe src="includes/seo_analysis.html" class="content-iframe" title="SEO Analysis"></iframe>
+      </div>
+      <div id="executive" class="content-section" style="display: none;">
+        <iframe src="includes/executive_summary.html" class="content-iframe" title="Executive Summary"></iframe>
+      </div>
+      <div id="action-items" class="content-section" style="display: none;">
+        <iframe src="includes/action_items.html" class="content-iframe" title="Action Items"></iframe>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-4 mt-5">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <div class="footer-logo">
+            <img src="https://www.droptica.com/themes/custom/droopler_subtheme/images/logo-droptica.svg" alt="Droptica Logo">
+          </div>
+          <p class="footer-text mt-2 mb-0">
+            <i class="bi bi-shield-check me-1"></i>
+            Solid Open Source solutions for ambitious companies
+          </p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <p class="footer-text mb-0">
+            <a href="https://www.droptica.com" class="footer-link" target="_blank">
+              <i class="bi bi-globe me-1"></i>www.droptica.com
+            </a>
+          </p>
+          <p class="footer-text mb-0">
+            <i class="bi bi-envelope me-1"></i>
+            <a href="mailto:hello@droptica.com" class="footer-link">sales@droptica.com</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+  <script>
+    // Navigation handling
+    document.addEventListener('DOMContentLoaded', function() {
+      const navLinks = document.querySelectorAll('.nav-link-item');
+      const contentSections = document.querySelectorAll('.content-section');
+
+      // Function to show a specific section
+      function showSection(sectionId) {
+        // Hide all sections
+        contentSections.forEach(section => {
+          section.style.display = 'none';
+          section.classList.remove('active');
+        });
+
+        // Show the selected section
+        const targetSection = document.getElementById(sectionId);
+        if (targetSection) {
+          targetSection.style.display = 'block';
+          targetSection.classList.add('active');
+        }
+
+        // Update active state on nav links
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.dataset.section === sectionId) {
+            link.classList.add('active');
+          }
+        });
+
+        // Update URL hash
+        window.location.hash = sectionId;
+
+        // Scroll to top of content area
+        document.querySelector('.content-main').scrollTop = 0;
+
+        // Reinitialize Mermaid if present
+        if (typeof mermaid !== 'undefined') {
+          setTimeout(() => {
+            mermaid.init();
+          }, 100);
+        }
+      }
+
+      // Handle nav link clicks
+      navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          const sectionId = this.dataset.section;
+          showSection(sectionId);
+        });
+      });
+
+      // Handle initial page load with hash
+      if (window.location.hash) {
+        const sectionId = window.location.hash.substring(1);
+        showSection(sectionId);
+      }
+
+      // Handle browser back/forward buttons
+      window.addEventListener('hashchange', function() {
+        if (window.location.hash) {
+          const sectionId = window.location.hash.substring(1);
+          showSection(sectionId);
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

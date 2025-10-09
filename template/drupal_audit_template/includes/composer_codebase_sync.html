@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Composer & Codebase Synchronization</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .badge-status {
+      padding: 0.35em 0.65em;
+      font-size: 0.85em;
+      font-weight: 500;
+    }
+
+    .sync-icon {
+      display: inline-block;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 48px;
+      font-size: 24px;
+      margin-right: 12px;
+    }
+
+    .status-synced {
+      background-color: rgba(16, 185, 129, 0.1);
+      color: var(--droptica-success);
+    }
+
+    .status-minor {
+      background-color: rgba(245, 158, 11, 0.1);
+      color: var(--droptica-warning);
+    }
+
+    .status-major {
+      background-color: rgba(220, 38, 38, 0.1);
+      color: var(--droptica-danger);
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="composer-sync">
+      <div class="card-body p-4">
+        <h2 class="mb-4">Composer & Codebase Synchronization</h2>
+        <p>Critical analysis comparing <code>composer.json</code> dependencies with actual codebase. Detects manually added modules/themes that bypass Composer, missing packages, and identifies potential deployment issues. Proper Composer management ensures version control, security updates, and reliable deployments.</p>
+
+        <div id="composer-sync-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Analyzing composer and codebase synchronization...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Safe placeholder handling - will be replaced during audit generation
+    let COMPOSER_SYNC_DATA;
+    try {
+      COMPOSER_SYNC_DATA = __COMPOSER_CODEBASE_SYNC_JSON_PLACEHOLDER__;
+    } catch (e) {
+      // Placeholder not replaced yet - leave loading spinner visible
+      COMPOSER_SYNC_DATA = null;
+    }
+
+    function getSyncStatusBadge(status) {
+      const badges = {
+        'synced': '<span class="badge bg-success badge-status"><i class="bi bi-check-circle me-1"></i>Synchronized</span>',
+        'minor_issues': '<span class="badge bg-warning badge-status"><i class="bi bi-exclamation-triangle me-1"></i>Minor Issues</span>',
+        'major_issues': '<span class="badge bg-danger badge-status"><i class="bi bi-x-circle me-1"></i>Major Issues</span>',
+        'unknown': '<span class="badge bg-secondary badge-status"><i class="bi bi-question-circle me-1"></i>Unknown</span>'
+      };
+      return badges[status] || badges['unknown'];
+    }
+
+    function getSyncIcon(status) {
+      const icons = {
+        'synced': '<i class="bi bi-check-circle-fill"></i>',
+        'minor_issues': '<i class="bi bi-exclamation-triangle-fill"></i>',
+        'major_issues': '<i class="bi bi-x-circle-fill"></i>',
+        'unknown': '<i class="bi bi-question-circle-fill"></i>'
+      };
+      return icons[status] || icons['unknown'];
+    }
+
+    function getSyncStatusClass(status) {
+      const classes = {
+        'synced': 'status-synced',
+        'minor_issues': 'status-minor',
+        'major_issues': 'status-major',
+        'unknown': 'status-minor'
+      };
+      return classes[status] || classes['unknown'];
+    }
+
+    function getSeverityBadge(severity) {
+      const badges = {
+        'success': 'bg-success',
+        'info': 'bg-info',
+        'high': 'bg-danger',
+        'medium': 'bg-warning',
+        'low': 'bg-info'
+      };
+      return badges[severity] || 'bg-secondary';
+    }
+
+    function formatNumber(num) {
+      return new Intl.NumberFormat().format(num);
+    }
+
+    function renderComposerSync() {
+      const container = document.getElementById('composer-sync-content');
+
+      if (!COMPOSER_SYNC_DATA || typeof COMPOSER_SYNC_DATA !== 'object') {
+        // Keep loading spinner if data is not available
+        return;
+      }
+
+      const data = COMPOSER_SYNC_DATA.full_analysis || {};
+      const summary = data.summary || {};
+      let html = '';
+
+      // Overall Sync Status Alert
+      const syncStatus = summary.sync_status || 'unknown';
+      const statusClass = getSyncStatusClass(syncStatus);
+
+      html += '<div class="card mb-4 border-start border-4 border-' + (syncStatus === 'synced' ? 'success' : syncStatus === 'minor_issues' ? 'warning' : 'danger') + '">';
+      html += '<div class="card-body">';
+      html += '<div class="d-flex align-items-center">';
+      html += '<div class="sync-icon ' + statusClass + '">' + getSyncIcon(syncStatus) + '</div>';
+      html += '<div>';
+      html += '<h4 class="mb-1">Synchronization Status: ' + getSyncStatusBadge(syncStatus) + '</h4>';
+
+      if (syncStatus === 'synced') {
+        html += '<p class="mb-0 text-muted">All contrib modules and themes are properly managed by Composer. No manual additions detected.</p>';
+      } else if (syncStatus === 'minor_issues') {
+        html += '<p class="mb-0 text-muted">Found minor synchronization issues. Review the details below and take corrective action.</p>';
+      } else {
+        html += '<p class="mb-0 text-danger fw-bold">Critical synchronization issues detected! Manual additions or missing packages found.</p>';
+      }
+
+      html += '</div>';
+      html += '</div>';
+      html += '</div>';
+      html += '</div>';
+
+      // Summary Statistics
+      html += '<h3 class="mt-4 mb-3"><i class="bi bi-graph-up me-2"></i>Summary Statistics</h3>';
+      html += '<div class="row mb-4">';
+
+      // Total Composer.json Packages
+      html += '<div class="col-md-3">';
+      html += '<div class="card bg-primary text-white">';
+      html += '<div class="card-body text-center">';
+      html += '<h3 class="card-title">' + formatNumber(summary.total_composer_drupal_packages || 0) + '</h3>';
+      html += '<p class="card-text mb-0">composer.json</p>';
+      html += '<small>Direct dependencies</small>';
+      html += '</div></div></div>';
+
+      // Total Composer.lock Packages
+      if (summary.total_composer_lock_packages && summary.total_composer_lock_packages > 0) {
+        html += '<div class="col-md-3">';
+        html += '<div class="card bg-success text-white">';
+        html += '<div class="card-body text-center">';
+        html += '<h3 class="card-title">' + formatNumber(summary.total_composer_lock_packages || 0) + '</h3>';
+        html += '<p class="card-text mb-0">composer.lock</p>';
+        html += '<small>All packages (incl. transitive)</small>';
+        html += '</div></div></div>';
+      }
+
+      // Total Contrib Modules
+      html += '<div class="col-md-3">';
+      html += '<div class="card bg-info text-white">';
+      html += '<div class="card-body text-center">';
+      html += '<h3 class="card-title">' + formatNumber(summary.total_contrib_modules || 0) + '</h3>';
+      html += '<p class="card-text mb-0">Contrib Modules</p>';
+      html += '<small>In filesystem</small>';
+      html += '</div></div></div>';
+
+      // Issues Count
+      const totalIssues = (summary.modules_in_filesystem_not_in_composer || 0) +
+                          (summary.themes_in_filesystem_not_in_composer || 0);
+      html += '<div class="col-md-3">';
+      html += '<div class="card ' + (totalIssues > 0 ? 'bg-danger' : 'bg-success') + ' text-white">';
+      html += '<div class="card-body text-center">';
+      html += '<h3 class="card-title">' + formatNumber(totalIssues) + '</h3>';
+      html += '<p class="card-text mb-0">Sync Issues</p>';
+      html += '<small>Manual additions detected</small>';
+      html += '</div></div></div>';
+
+      html += '</div>';
+
+      // Manual Modules (not in composer.lock)
+      if (data.modules_not_in_composer && data.modules_not_in_composer.length > 0) {
+        html += '<h3 class="mt-4 mb-3"><i class="bi bi-exclamation-circle me-2"></i>Modules NOT in Composer</h3>';
+        html += '<div class="alert alert-danger border-start border-4 border-danger">';
+        html += '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+        html += '<strong>Critical Issue:</strong> Found <strong>' + data.modules_not_in_composer.length + ' module(s)</strong> in <code>modules/contrib</code> directory that are not managed by Composer (not in composer.lock). ';
+        html += 'These modules were likely added manually (FTP, direct git commit) which bypasses dependency management. ';
+        html += '<strong>Note:</strong> Analysis includes transitive dependencies from profiles like Droopler or Open Intranet.';
+        html += '</div>';
+
+        html += '<div class="card mb-4">';
+        html += '<div class="card-body">';
+        html += '<table class="table table-hover">';
+        html += '<thead><tr><th>Module Name</th><th>Version</th><th>Path</th><th>Action Required</th></tr></thead>';
+        html += '<tbody>';
+
+        data.modules_not_in_composer.forEach(module => {
+          html += '<tr>';
+          html += '<td><code class="text-danger fw-bold">' + module.name + '</code></td>';
+          html += '<td><span class="badge bg-light text-dark">' + (module.version || 'unknown') + '</span></td>';
+          html += '<td><small class="text-muted">' + (module.path || 'modules/contrib') + '</small></td>';
+          html += '<td><code>composer require drupal/' + module.name + '</code></td>';
+          html += '</tr>';
+        });
+
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+        html += '</div>';
+      }
+
+      // Manual Themes (not in composer.lock)
+      if (data.themes_not_in_composer && data.themes_not_in_composer.length > 0) {
+        html += '<h3 class="mt-4 mb-3"><i class="bi bi-exclamation-circle me-2"></i>Themes NOT in Composer</h3>';
+        html += '<div class="alert alert-danger border-start border-4 border-danger">';
+        html += '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+        html += '<strong>Critical Issue:</strong> Found <strong>' + data.themes_not_in_composer.length + ' theme(s)</strong> in <code>themes/contrib</code> directory that are not managed by Composer (not in composer.lock). ';
+        html += '<strong>Note:</strong> Analysis includes transitive dependencies from profiles.';
+        html += '</div>';
+
+        html += '<div class="card mb-4">';
+        html += '<div class="card-body">';
+        html += '<table class="table table-hover">';
+        html += '<thead><tr><th>Theme Name</th><th>Version</th><th>Path</th><th>Action Required</th></tr></thead>';
+        html += '<tbody>';
+
+        data.themes_not_in_composer.forEach(theme => {
+          html += '<tr>';
+          html += '<td><code class="text-danger fw-bold">' + theme.name + '</code></td>';
+          html += '<td><span class="badge bg-light text-dark">' + (theme.version || 'unknown') + '</span></td>';
+          html += '<td><small class="text-muted">' + (theme.path || 'themes/contrib') + '</small></td>';
+          html += '<td><code>composer require drupal/' + theme.name + '</code></td>';
+          html += '</tr>';
+        });
+
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+        html += '</div>';
+      }
+
+      // Recommendations
+      if (data.recommendations && data.recommendations.length > 0) {
+        html += '<h3 class="mt-4 mb-3"><i class="bi bi-lightbulb me-2"></i>Recommendations</h3>';
+
+        data.recommendations.forEach(rec => {
+          const severityBadge = getSeverityBadge(rec.severity);
+          const borderColor = rec.severity === 'success' ? 'success' : rec.severity === 'high' ? 'danger' : 'warning';
+
+          html += '<div class="card mb-3 border-start border-4 border-' + borderColor + '">';
+          html += '<div class="card-body">';
+          html += '<h5 class="card-title">';
+          html += '<span class="badge ' + severityBadge + ' me-2">' + rec.severity.toUpperCase() + '</span>';
+          html += rec.title;
+          html += '</h5>';
+          html += '<p class="card-text">' + rec.description + '</p>';
+          if (rec.action) {
+            html += '<div class="alert alert-light mb-0">';
+            html += '<strong>Action:</strong> ' + rec.action;
+            html += '</div>';
+          }
+          html += '</div>';
+          html += '</div>';
+        });
+      }
+
+      // Best Practices
+      html += '<h3 class="mt-4 mb-3"><i class="bi bi-shield-check me-2"></i>Best Practices</h3>';
+      html += '<div class="card border-start border-4 border-primary">';
+      html += '<div class="card-body">';
+      html += '<ul class="mb-0">';
+      html += '<li><strong>Always use Composer:</strong> Never add modules or themes manually to <code>contrib</code> directories. Use <code>composer require drupal/MODULE_NAME</code>.</li>';
+      html += '<li><strong>Version Control:</strong> Commit <code>composer.json</code> and <code>composer.lock</code> to git. Never commit <code>vendor/</code> or <code>modules/contrib</code> directories.</li>';
+      html += '<li><strong>Deployment Process:</strong> On production, always run <code>composer install --no-dev</code> to restore exact package versions.</li>';
+      html += '<li><strong>Updates:</strong> Use <code>composer update drupal/MODULE_NAME</code> to update specific packages with dependencies.</li>';
+      html += '<li><strong>Patches:</strong> Manage patches through <code>composer.json</code> using <code>cweagans/composer-patches</code> plugin.</li>';
+      html += '<li><strong>Security:</strong> Regular <code>composer outdated</code> checks help identify packages needing security updates.</li>';
+      html += '<li><strong>CI/CD Integration:</strong> Automate <code>composer validate</code> and <code>composer install</code> in deployment pipelines.</li>';
+      html += '</ul>';
+      html += '</div>';
+      html += '</div>';
+
+      container.innerHTML = html;
+    }
+
+    // Run the render function when page loads
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderComposerSync);
+    } else {
+      renderComposerSync();
+    }
+  </script>
+</body>
+</html>
+

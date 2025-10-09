@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Updates Check</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="updates-check">
+      <div class="card-body p-4">
+        <h2 class="mb-4">Updates Check</h2>
+
+        <div id="updates-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading updates information...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const UPDATES_DATA = __UPDATES_CHECK_JSON_PLACEHOLDER__;
+
+    function renderUpdates() {
+      const container = document.getElementById('updates-content');
+
+      if (!UPDATES_DATA || typeof UPDATES_DATA !== 'object') {
+        container.innerHTML = '<div class="alert alert-warning">No updates data available.</div>';
+        return;
+      }
+
+      const data = UPDATES_DATA;
+      let html = '';
+
+      // Security Analysis Section
+      if (data.security_analysis) {
+        const secAnalysis = data.security_analysis;
+        const summary = secAnalysis.summary || {};
+
+        if (summary.total_vulnerabilities > 0) {
+          html += '<div class="alert alert-danger mb-4">';
+          html += '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+          html += `<strong>Security Alert:</strong> ${summary.total_vulnerabilities} security vulnerabilit${summary.total_vulnerabilities === 1 ? 'y' : 'ies'} found affecting ${summary.vulnerable_packages ? summary.vulnerable_packages.length : 0} package${summary.vulnerable_packages && summary.vulnerable_packages.length === 1 ? '' : 's'}. Immediate action required!`;
+          html += '</div>';
+
+          // Critical Enabled Vulnerabilities
+          if (secAnalysis.critical_enabled && secAnalysis.critical_enabled.length > 0) {
+            html += '<h3 class="h5 mb-3">Security Vulnerabilities (Enabled Modules)</h3>';
+            html += '<div class="table-responsive mb-4">';
+            html += '<table class="table table-hover table-danger">';
+            html += '<thead>';
+            html += '<tr>';
+            html += '<th>Package</th>';
+            html += '<th>Advisory ID</th>';
+            html += '<th>CVE</th>';
+            html += '<th>Title</th>';
+            html += '<th>Affected Versions</th>';
+            html += '<th>Link</th>';
+            html += '</tr>';
+            html += '</thead>';
+            html += '<tbody>';
+
+            secAnalysis.critical_enabled.forEach(item => {
+              const advisories = item.advisories || {};
+              // Handle both array and object structures
+              const advisoryList = Array.isArray(advisories) ? advisories : Object.values(advisories);
+              advisoryList.forEach(adv => {
+                html += '<tr>';
+                html += `<td><code>${item.package}</code></td>`;
+                html += `<td><span class="badge bg-danger">${adv.advisoryId || 'N/A'}</span></td>`;
+                html += `<td>${adv.cve || 'N/A'}</td>`;
+                html += `<td>${adv.title || 'No title'}</td>`;
+                html += `<td><code>${adv.affectedVersions || 'N/A'}</code></td>`;
+                html += `<td><a href="${adv.link}" target="_blank" class="btn btn-sm btn-outline-primary">View</a></td>`;
+                html += '</tr>';
+              });
+            });
+
+            html += '</tbody>';
+            html += '</table>';
+            html += '</div>';
+          }
+
+          // Non-Drupal Vulnerabilities
+          if (secAnalysis.non_drupal_vulnerabilities && secAnalysis.non_drupal_vulnerabilities.length > 0) {
+            html += '<h3 class="h5 mb-3">Non-Drupal Package Vulnerabilities</h3>';
+            html += '<div class="table-responsive mb-4">';
+            html += '<table class="table table-hover table-warning">';
+            html += '<thead>';
+            html += '<tr>';
+            html += '<th>Package</th>';
+            html += '<th>CVE</th>';
+            html += '<th>Severity</th>';
+            html += '<th>Title</th>';
+            html += '<th>Affected Versions</th>';
+            html += '<th>Link</th>';
+            html += '</tr>';
+            html += '</thead>';
+            html += '<tbody>';
+
+            secAnalysis.non_drupal_vulnerabilities.forEach(item => {
+              const advisories = item.advisories || [];
+              // Handle both array and object structures
+              const advisoryList = Array.isArray(advisories) ? advisories : Object.values(advisories);
+              advisoryList.forEach(adv => {
+                html += '<tr>';
+                html += `<td><code>${item.package}</code></td>`;
+                html += `<td>${adv.cve || 'N/A'}</td>`;
+                html += `<td><span class="badge bg-warning">${adv.severity || 'N/A'}</span></td>`;
+                html += `<td>${adv.title || 'No title'}</td>`;
+                html += `<td><code>${adv.affectedVersions || 'N/A'}</code></td>`;
+                html += `<td><a href="${adv.link}" target="_blank" class="btn btn-sm btn-outline-primary">View</a></td>`;
+                html += '</tr>';
+              });
+            });
+
+            html += '</tbody>';
+            html += '</table>';
+            html += '</div>';
+          }
+        } else {
+          html += '<div class="alert alert-success mb-4">';
+          html += '<i class="bi bi-shield-check me-2"></i>';
+          html += '<strong>Security Status:</strong> No known security vulnerabilities detected.';
+          html += '</div>';
+        }
+      }
+
+      // Outdated Packages Summary
+      if (data.outdated_all_packages_count) {
+        const totalOutdated = parseInt(data.outdated_all_packages_count) || 0;
+        if (totalOutdated > 0) {
+          html += '<div class="alert alert-info mb-4">';
+          html += '<i class="bi bi-info-circle me-2"></i>';
+          html += `<strong>Update Summary:</strong> ${totalOutdated} package${totalOutdated === 1 ? '' : 's'} ha${totalOutdated === 1 ? 's' : 've'} available updates. Priority should be given to security updates and Drupal core.`;
+          html += '</div>';
+        }
+      }
+
+      // Drupal Packages Updates
+      if (data.outdated_drupal_packages && data.outdated_drupal_packages.installed) {
+        const packages = data.outdated_drupal_packages.installed;
+
+        html += '<h3 class="h5 mb-3">Drupal Core and Contributed Modules</h3>';
+        html += '<p class="text-muted mb-3">Complete list of Drupal packages with available updates.</p>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-hover table-primary">';
+        html += '<thead>';
+        html += '<tr>';
+        html += '<th>Project Name</th>';
+        html += '<th>Current Version</th>';
+        html += '<th>Latest Version</th>';
+        html += '<th>Status</th>';
+        html += '<th>Description</th>';
+        html += '</tr>';
+        html += '</thead>';
+        html += '<tbody>';
+
+        packages.forEach(pkg => {
+          const isSecurityIssue = data.security_analysis &&
+            data.security_analysis.summary &&
+            data.security_analysis.summary.vulnerable_packages &&
+            data.security_analysis.summary.vulnerable_packages.includes(pkg.name);
+
+          const isDirect = pkg['direct-dependency'];
+          const updateStatus = pkg['latest-status'];
+
+          let statusBadge = '';
+          let rowClass = '';
+
+          if (isSecurityIssue) {
+            statusBadge = '<span class="badge bg-danger"><i class="bi bi-shield-exclamation me-1"></i>Security update required</span>';
+            rowClass = 'table-danger';
+          } else if (updateStatus === 'semver-safe-update') {
+            statusBadge = '<span class="badge bg-warning"><i class="bi bi-exclamation-triangle me-1"></i>Update available</span>';
+          } else if (updateStatus === 'update-possible') {
+            statusBadge = '<span class="badge bg-info"><i class="bi bi-info-circle me-1"></i>Major version available</span>';
+          } else {
+            statusBadge = '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Up to date</span>';
+          }
+
+          html += `<tr class="${rowClass}">`;
+          html += `<td><strong>${pkg.name}</strong>${isDirect ? ' <span class="badge bg-secondary">Direct</span>' : ''}${isSecurityIssue ? ' <span class="badge bg-danger ms-2">Security Risk</span>' : ''}</td>`;
+          html += `<td><code>${pkg.version}</code></td>`;
+          html += `<td><code>${pkg.latest}</code></td>`;
+          html += `<td>${statusBadge}</td>`;
+          html += `<td><small>${pkg.description || 'N/A'}</small></td>`;
+          html += '</tr>';
+        });
+
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+      }
+
+      // Composer Validate
+      if (data.composer_validate) {
+        html += '<h3 class="h5 mt-4 mb-3">Composer Configuration Validation</h3>';
+        html += '<pre class="bg-light p-3 rounded"><code>' + data.composer_validate + '</code></pre>';
+      }
+
+      // Disabled Modules Candidates
+      if (data.security_analysis && data.security_analysis.disabled_modules_candidates &&
+          data.security_analysis.disabled_modules_candidates.length > 0) {
+        html += '<h3 class="h5 mt-4 mb-3">Disabled Modules (Candidates for Removal)</h3>';
+        html += '<p class="text-muted">These modules are installed but disabled. Consider removing them to reduce security surface.</p>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-sm table-hover">';
+        html += '<thead>';
+        html += '<tr>';
+        html += '<th>Module</th>';
+        html += '<th>Package</th>';
+        html += '</tr>';
+        html += '</thead>';
+        html += '<tbody>';
+
+        // Show only first 20 disabled modules
+        const disabledModules = data.security_analysis.disabled_modules_candidates.slice(0, 20);
+        disabledModules.forEach(mod => {
+          html += '<tr>';
+          html += `<td><code>${mod.module}</code></td>`;
+          html += `<td>${mod.package || 'N/A'}</td>`;
+          html += '</tr>';
+        });
+
+        if (data.security_analysis.disabled_modules_candidates.length > 20) {
+          html += '<tr>';
+          html += '<td colspan="2" class="text-muted text-center">';
+          html += `... and ${data.security_analysis.disabled_modules_candidates.length - 20} more disabled modules`;
+          html += '</td>';
+          html += '</tr>';
+        }
+
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+      }
+
+      container.innerHTML = html;
+    }
+
+    // Render on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderUpdates);
+    } else {
+      renderUpdates();
+    }
+  </script>
+</body>
+</html>

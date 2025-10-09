@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Modules</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="custom-code">
+      <div class="card-body p-4">
+        <h2 class="mb-4">Custom Modules</h2>
+        <p>Overview of custom modules developed for the Drupal site, including code statistics and key functionality.</p>
+
+        <div id="custom-modules-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading custom modules information...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Safe placeholder handling - will be replaced during audit generation
+    let CUSTOM_MODULES_DATA;
+    try {
+      CUSTOM_MODULES_DATA = __DRUPAL_MODULES_JSON_PLACEHOLDER__;
+    } catch (e) {
+      // Placeholder not replaced yet - leave loading spinner visible
+      CUSTOM_MODULES_DATA = null;
+    }
+
+    function renderCustomModules() {
+      const container = document.getElementById('custom-modules-content');
+
+      if (!CUSTOM_MODULES_DATA || typeof CUSTOM_MODULES_DATA !== 'object') {
+        // Keep loading spinner if data is not available
+        return;
+      }
+
+      const customModules = CUSTOM_MODULES_DATA.custom_modules || [];
+
+      if (!Array.isArray(customModules) || customModules.length === 0) {
+        container.innerHTML = '<div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>No custom modules found in this Drupal installation.</div>';
+        return;
+      }
+
+      let html = '';
+
+      // Calculate statistics
+      const totalModules = customModules.length;
+      const totalLines = customModules.reduce((sum, mod) => sum + (mod.lines_of_code || 0), 0);
+      const modulesWithRoutes = customModules.filter(mod => mod.routing && mod.routing.length > 0).length;
+      const largestModule = customModules.reduce((max, mod) =>
+        (mod.lines_of_code || 0) > (max.lines_of_code || 0) ? mod : max, customModules[0]);
+
+      // Statistics Cards
+      html += '<div class="row mb-4">';
+      html += `<div class="col-md-3">
+        <div class="card text-center border-primary">
+          <div class="card-body">
+            <h4 class="text-primary">${totalModules}</h4>
+            <p class="mb-0">Custom Modules</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card text-center border-success">
+          <div class="card-body">
+            <h4 class="text-success">${totalLines}</h4>
+            <p class="mb-0">Total Lines of Code</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card text-center border-warning">
+          <div class="card-body">
+            <h4 class="text-warning">${modulesWithRoutes}</h4>
+            <p class="mb-0">Modules with Routes</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card text-center border-info">
+          <div class="card-body">
+            <h4 class="text-info">${largestModule.lines_of_code || 0}</h4>
+            <p class="mb-0">Largest Module (${largestModule.name || 'N/A'})</p>
+          </div>
+        </div>
+      </div>`;
+      html += '</div>';
+
+      // Custom Modules Table
+      html += '<h3 class="mt-4 mb-3">Custom Modules</h3>';
+      html += '<div class="table-responsive">';
+      html += '<table class="table table-hover table-primary">';
+      html += '<thead>';
+      html += '<tr>';
+      html += '<th>Module Name</th>';
+      html += '<th>Short Description</th>';
+      html += '<th>Routings (URLs)</th>';
+      html += '<th>Lines of Code (all files)</th>';
+      html += '<th>Lines of Code (.module file)</th>';
+      html += '</tr>';
+      html += '</thead>';
+      html += '<tbody>';
+
+      customModules.forEach(module => {
+        html += '<tr>';
+        html += `<td><code>${module.name || 'N/A'}</code></td>`;
+        html += `<td>${module.description || 'No description available'}</td>`;
+
+        // Routes
+        if (module.routing && module.routing.length > 0) {
+          html += `<td><code>${module.routing.join('</code><br><code>')}</code></td>`;
+        } else {
+          html += '<td><span class="text-muted">No routes</span></td>';
+        }
+
+        html += `<td>${module.lines_of_code || 0}</td>`;
+        html += `<td>${module.module_file_lines || 0}</td>`;
+        html += '</tr>';
+      });
+
+      html += '</tbody>';
+      html += '</table>';
+      html += '</div>';
+
+      // Module Analysis Summary
+      html += '<h3 class="mt-4 mb-3">Module Analysis Summary</h3>';
+      html += '<div class="alert alert-info border-start border-4 border-info">';
+      html += '<i class="bi bi-info-circle-fill me-2"></i>';
+      html += '<strong>Key Findings:</strong>';
+      html += '<ul class="mb-0 mt-2">';
+
+      // Largest module
+      if (largestModule) {
+        html += `<li><strong>${largestModule.name}</strong> is the largest module (${largestModule.lines_of_code || 0} lines)`;
+        if (largestModule.description) {
+          html += ` - ${largestModule.description}`;
+        }
+        html += '</li>';
+      }
+
+      // Routing modules
+      if (modulesWithRoutes > 0) {
+        html += `<li>${modulesWithRoutes} module${modulesWithRoutes > 1 ? 's have' : ' has'} routing configuration for administrative or public interfaces</li>`;
+      }
+
+      // Custom entities
+      const modulesWithEntities = customModules.filter(mod => mod.has_custom_entities);
+      if (modulesWithEntities.length > 0) {
+        html += `<li>${modulesWithEntities.length} module${modulesWithEntities.length > 1 ? 's define' : ' defines'} custom entity types: `;
+        const entityNames = modulesWithEntities.map(mod => mod.custom_entities.join(', ')).join(', ');
+        html += `<code>${entityNames}</code></li>`;
+      }
+
+      // Code complexity
+      const avgLinesPerModule = Math.round(totalLines / totalModules);
+      html += `<li>Average module size: ${avgLinesPerModule} lines of code</li>`;
+
+      if (avgLinesPerModule < 200) {
+        html += '<li>Code base is well-structured with low to moderate complexity</li>';
+      } else if (avgLinesPerModule < 500) {
+        html += '<li>Code base has moderate complexity - consider refactoring larger modules</li>';
+      } else {
+        html += '<li>Code base has high complexity - refactoring recommended for maintainability</li>';
+      }
+
+      html += '</ul>';
+      html += '</div>';
+
+      // Detailed Module Cards
+      html += '<h3 class="mt-5 mb-3"><i class="bi bi-code-slash me-2"></i>Detailed Module Analysis</h3>';
+
+      customModules.forEach(module => {
+        html += '<div class="card mb-3">';
+        html += '<div class="card-header bg-light">';
+        html += `<h6 class="mb-0"><i class="bi bi-file-code me-2"></i><strong>${module.name}</strong></h6>`;
+        html += '</div>';
+        html += '<div class="card-body">';
+
+        html += `<p class="mb-2"><strong>Description:</strong> ${module.description || 'No description available'}</p>`;
+        html += '<div class="row">';
+        html += '<div class="col-md-6">';
+        html += `<p class="mb-2"><strong>Total Lines of Code:</strong> ${module.lines_of_code || 0}</p>`;
+        html += `<p class="mb-2"><strong>Module File Lines:</strong> ${module.module_file_lines || 0}</p>`;
+        html += '</div>';
+        html += '<div class="col-md-6">';
+        html += `<p class="mb-2"><strong>Custom Entities:</strong> ${module.has_custom_entities ? 'Yes' : 'No'}`;
+        if (module.has_custom_entities && module.custom_entities && module.custom_entities.length > 0) {
+          html += ` (<code>${module.custom_entities.join(', ')}</code>)`;
+        }
+        html += '</p>';
+        html += '</div>';
+        html += '</div>';
+
+        // Routes
+        if (module.routing && module.routing.length > 0) {
+          html += `<p class="mb-2"><strong>Routes (${module.routing.length}):</strong></p>`;
+          html += '<ul class="mb-2">';
+          module.routing.forEach(route => {
+            html += `<li><code>${route}</code></li>`;
+          });
+          html += '</ul>';
+        }
+
+        // Functions
+        if (module.module_functions && module.module_functions.length > 0) {
+          html += `<p class="mb-2"><strong>Hooks/Functions (${module.module_functions.length}):</strong></p>`;
+          html += '<div class="mb-2">';
+          html += '<code style="font-size: 0.85em;">' + module.module_functions.join('</code>, <code style="font-size: 0.85em;">') + '</code>';
+          html += '</div>';
+        }
+
+        html += '</div>';
+        html += '</div>';
+      });
+
+      container.innerHTML = html;
+    }
+
+    // Render on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderCustomModules);
+    } else {
+      renderCustomModules();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cron Tasks</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="cron-tasks">
+      <div class="card-body p-4">
+        <h2 class="mb-4">Cron Tasks</h2>
+        <p>Scheduled tasks configured in the system and their execution details.</p>
+
+        <div id="cron-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading cron information...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Safe placeholder handling - will be replaced during audit generation
+    let CRON_DATA;
+    try {
+      CRON_DATA = __CRON_JOBS_JSON_PLACEHOLDER__;
+    } catch (e) {
+      // Placeholder not replaced yet - leave loading spinner visible
+      CRON_DATA = null;
+    }
+
+    function formatTimeAgo(hours, minutes) {
+      if (hours > 0) {
+        return `${hours} hours and ${minutes} minutes ago`;
+      } else if (minutes > 0) {
+        return `${minutes} minutes ago`;
+      } else {
+        return 'Less than 1 minute ago';
+      }
+    }
+
+    function renderCronInfo() {
+      const container = document.getElementById('cron-content');
+
+      if (!CRON_DATA || typeof CRON_DATA !== 'object') {
+        // Keep loading spinner if data is not available
+        return;
+      }
+
+      // Handle the data structure (might have full_analysis wrapper)
+      const data = CRON_DATA.full_analysis || CRON_DATA;
+      let html = '';
+
+      // Cron Configuration
+      if (data.status) {
+        html += '<div class="alert alert-info border-start border-4 border-info">';
+        html += '<i class="bi bi-clock-fill me-2"></i>';
+        html += '<strong>Cron Configuration:</strong>';
+        html += '<ul class="mb-0 mt-2">';
+
+        if (data.status.never_run) {
+          html += '<li class="text-danger"><strong>Last cron run:</strong> Never (cron has never been executed!)</li>';
+        } else {
+          html += `<li><strong>Last cron run:</strong> ${data.status.last_cron_run_date} (${formatTimeAgo(data.status.hours_ago, data.status.minutes_ago)})</li>`;
+        }
+
+        html += '</ul>';
+        html += '</div>';
+      }
+
+      // Statistics Overview
+      if (data.statistics) {
+        html += '<h3 class="mt-4 mb-3">Statistics Overview</h3>';
+        html += '<div class="row">';
+        html += '<div class="col-md-3 mb-3">';
+        html += '<div class="card bg-light">';
+        html += '<div class="card-body text-center">';
+        html += `<h5 class="card-title text-primary">${data.statistics.hook_cron_core}</h5>`;
+        html += '<p class="card-text">Core hook_cron</p>';
+        html += '</div></div></div>';
+
+        html += '<div class="col-md-3 mb-3">';
+        html += '<div class="card bg-light">';
+        html += '<div class="card-body text-center">';
+        html += `<h5 class="card-title text-success">${data.statistics.hook_cron_contrib}</h5>`;
+        html += '<p class="card-text">Contrib hook_cron</p>';
+        html += '</div></div></div>';
+
+        html += '<div class="col-md-3 mb-3">';
+        html += '<div class="card bg-light">';
+        html += '<div class="card-body text-center">';
+        html += `<h5 class="card-title text-warning">${data.statistics.hook_cron_custom}</h5>`;
+        html += '<p class="card-text">Custom hook_cron</p>';
+        html += '</div></div></div>';
+
+        html += '<div class="col-md-3 mb-3">';
+        html += '<div class="card bg-light">';
+        html += '<div class="card-body text-center">';
+        html += `<h5 class="card-title text-info">${data.statistics.queue_workers_cron}</h5>`;
+        html += '<p class="card-text">Cron Queue Workers</p>';
+        html += '</div></div></div>';
+
+        html += '</div>';
+      }
+
+      // Core hook_cron implementations
+      if (data.hook_cron_implementations && data.hook_cron_implementations.core && data.hook_cron_implementations.core.length > 0) {
+        html += '<h3 class="mt-4 mb-3">Core hook_cron Implementations</h3>';
+        html += '<div class="alert alert-light">';
+        html += '<p>These are standard Drupal core modules that implement hook_cron:</p>';
+        const coreModules = data.hook_cron_implementations.core.map(item => `<code>${item.module}</code>`).join(', ');
+        html += `<p>${coreModules}</p>`;
+        html += '</div>';
+      }
+
+      // Contrib hook_cron implementations
+      if (data.hook_cron_implementations && data.hook_cron_implementations.contrib && data.hook_cron_implementations.contrib.length > 0) {
+        html += '<h3 class="mt-4 mb-3">Contributed Modules with hook_cron</h3>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-hover table-primary">';
+        html += '<thead>';
+        html += '<tr>';
+        html += '<th>Module</th>';
+        html += '<th>Description</th>';
+        html += '</tr>';
+        html += '</thead>';
+        html += '<tbody>';
+        data.hook_cron_implementations.contrib.forEach(item => {
+          html += '<tr>';
+          html += `<td><code>${item.module}</code></td>`;
+          html += `<td>${item.description || 'N/A'}</td>`;
+          html += '</tr>';
+        });
+        html += '</tbody></table>';
+        html += '</div>';
+      }
+
+      // Custom hook_cron implementations
+      if (data.hook_cron_implementations && data.hook_cron_implementations.custom && data.hook_cron_implementations.custom.length > 0) {
+        html += '<h3 class="mt-4 mb-3">Custom Modules with hook_cron</h3>';
+        html += '<div class="alert alert-warning border-start border-4 border-warning">';
+        html += '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+        html += '<strong>Custom cron implementations found:</strong>';
+        html += '<ul class="mb-0 mt-2">';
+        data.hook_cron_implementations.custom.forEach(item => {
+          html += `<li><code>${item.module}</code> (${item.file})</li>`;
+        });
+        html += '</ul>';
+        html += '</div>';
+      }
+
+      // Queue Workers
+      if (data.queue_workers && data.queue_workers.cron_based && data.queue_workers.cron_based.length > 0) {
+        html += '<h3 class="mt-4 mb-3">Queue Workers Running on Cron</h3>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-hover">';
+        html += '<thead>';
+        html += '<tr>';
+        html += '<th>Queue ID</th>';
+        html += '<th>Title</th>';
+        html += '<th>Provider</th>';
+        html += '<th>Queue Items</th>';
+        html += '<th>Time Limit</th>';
+        html += '</tr>';
+        html += '</thead>';
+        html += '<tbody>';
+        data.queue_workers.cron_based.forEach(worker => {
+          html += '<tr>';
+          html += `<td><code>${worker.id}</code></td>`;
+          html += `<td>${worker.title}</td>`;
+          html += `<td>${worker.provider}</td>`;
+          html += `<td>${worker.queue_items !== null ? worker.queue_items : 'N/A'}</td>`;
+          html += `<td>${worker.cron_time_limit || 'Default'}</td>`;
+          html += '</tr>';
+        });
+        html += '</tbody></table>';
+        html += '</div>';
+      }
+
+      // All Queue Workers
+      if (data.queue_workers && data.queue_workers.all && data.queue_workers.all.length > 0) {
+        const nonCronWorkers = data.queue_workers.all.filter(w => !w.runs_on_cron);
+        if (nonCronWorkers.length > 0) {
+          html += '<h3 class="mt-4 mb-3">All Queue Workers (including non-cron)</h3>';
+          html += '<div class="table-responsive">';
+          html += '<table class="table table-hover table-sm">';
+          html += '<thead>';
+          html += '<tr>';
+          html += '<th>Queue ID</th>';
+          html += '<th>Title</th>';
+          html += '<th>Provider</th>';
+          html += '<th>Runs on Cron</th>';
+          html += '<th>Queue Items</th>';
+          html += '</tr>';
+          html += '</thead>';
+          html += '<tbody>';
+          data.queue_workers.all.forEach(worker => {
+            html += '<tr>';
+            html += `<td><code>${worker.id}</code></td>`;
+            html += `<td>${worker.title}</td>`;
+            html += `<td>${worker.provider}</td>`;
+            html += `<td>${worker.runs_on_cron ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-secondary">No</span>'}</td>`;
+            html += `<td>${worker.queue_items !== null ? worker.queue_items : 'N/A'}</td>`;
+            html += '</tr>';
+          });
+          html += '</tbody></table>';
+          html += '</div>';
+        }
+      }
+
+      // Ultimate Cron module
+      if (data.modules && data.modules.ultimate_cron_enabled) {
+        html += '<h3 class="mt-4 mb-3">Ultimate Cron Module</h3>';
+        html += '<div class="alert alert-success border-start border-4 border-success">';
+        html += '<i class="bi bi-check-circle-fill me-2"></i>';
+        html += '<strong>Ultimate Cron module is enabled</strong>';
+        html += '</div>';
+
+        if (data.ultimate_cron && data.ultimate_cron.jobs && data.ultimate_cron.jobs.length > 0) {
+          html += '<h4 class="mt-3 mb-3">Ultimate Cron Jobs</h4>';
+          html += '<div class="table-responsive">';
+          html += '<table class="table table-hover">';
+          html += '<thead>';
+          html += '<tr>';
+          html += '<th>Job ID</th>';
+          html += '<th>Label</th>';
+          html += '<th>Status</th>';
+          html += '</tr>';
+          html += '</thead>';
+          html += '<tbody>';
+          data.ultimate_cron.jobs.forEach(job => {
+            html += '<tr>';
+            html += `<td><code>${job.id}</code></td>`;
+            html += `<td>${job.label}</td>`;
+            html += `<td>${job.status === 'enabled' ? '<span class="badge bg-success">Enabled</span>' : '<span class="badge bg-secondary">Disabled</span>'}</td>`;
+            html += '</tr>';
+          });
+          html += '</tbody></table>';
+          html += '</div>';
+        }
+
+        if (data.ultimate_cron && data.ultimate_cron.last_runs && data.ultimate_cron.last_runs.length > 0) {
+          html += '<h4 class="mt-3 mb-3">Ultimate Cron Last Runs (20 most recent)</h4>';
+          html += '<div class="table-responsive">';
+          html += '<table class="table table-hover table-sm">';
+          html += '<thead>';
+          html += '<tr>';
+          html += '<th>Job Name</th>';
+          html += '<th>Start Time</th>';
+          html += '<th>Duration</th>';
+          html += '<th>Status</th>';
+          html += '</tr>';
+          html += '</thead>';
+          html += '<tbody>';
+          data.ultimate_cron.last_runs.forEach(run => {
+            const startDate = new Date(run.start_time * 1000);
+            html += '<tr>';
+            html += `<td><code>${run.name}</code></td>`;
+            html += `<td>${startDate.toLocaleString()}</td>`;
+            html += `<td>${run.duration ? (run.duration + 's') : 'N/A'}</td>`;
+            html += `<td>${run.status ? '<span class="badge bg-success">Success</span>' : '<span class="badge bg-danger">Failed</span>'}</td>`;
+            html += '</tr>';
+          });
+          html += '</tbody></table>';
+          html += '</div>';
+        }
+      }
+
+      // Errors
+      if (data.errors && data.errors.length > 0) {
+        html += '<h3 class="mt-4 mb-3">Recent Cron Errors</h3>';
+        html += '<div class="alert alert-danger border-start border-4 border-danger">';
+        html += '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+        html += '<strong>Recent errors detected:</strong>';
+        html += '<ul class="mb-0 mt-2">';
+        data.errors.forEach(error => {
+          html += `<li>${error.message || error.msg || 'Unknown error'}</li>`;
+        });
+        html += '</ul>';
+        html += '</div>';
+      }
+
+      container.innerHTML = html;
+    }
+
+    // Render on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderCronInfo);
+    } else {
+      renderCronInfo();
+    }
+  </script>
+</body>
+</html>

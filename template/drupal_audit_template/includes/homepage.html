@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homepage Configuration</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="homepage-configuration">
+      <div class="card-body p-4">
+        <h2 class="mb-4">Homepage Configuration</h2>
+        <p>Analysis of how the site's homepage is built and configured. Understanding the homepage structure is essential for maintenance and future development planning.</p>
+
+        <div id="homepage-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading homepage configuration...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Safe placeholder handling - will be replaced during audit generation
+    let HOMEPAGE_DATA;
+    try {
+      HOMEPAGE_DATA = __HOMEPAGE_CONFIGURATION_JSON_PLACEHOLDER__;
+    } catch (e) {
+      // Placeholder not replaced yet - leave loading spinner visible
+      HOMEPAGE_DATA = null;
+    }
+
+    function renderHomepageConfig() {
+      const container = document.getElementById('homepage-content');
+
+      if (!HOMEPAGE_DATA || typeof HOMEPAGE_DATA !== 'object' || !HOMEPAGE_DATA.full_analysis) {
+        // Keep loading spinner if data is not available
+        return;
+      }
+
+      const data = HOMEPAGE_DATA.full_analysis;
+      let html = '';
+
+      // Homepage Type Section
+      if (data.homepage_type_detection) {
+        html += '<h3 class="mt-4 mb-3">Homepage Type</h3>';
+        html += '<div class="alert alert-primary border-start border-4 border-primary">';
+        html += '<i class="bi bi-house-fill me-2"></i>';
+        html += '<strong>Configuration:</strong>';
+        html += '<ul class="mb-0 mt-2">';
+        html += `<li><strong>Configured path:</strong> <code>${data.homepage_type_detection.configured_path || 'N/A'}</code></li>`;
+        html += `<li><strong>Type:</strong> <span class="badge bg-info">${data.homepage_type_detection.description || 'Unknown'}</span></li>`;
+        html += '</ul>';
+        html += '</div>';
+
+        // Render specific homepage type details
+        const type = data.homepage_type_detection.type;
+        const details = data.homepage_type_detection.details || {};
+
+        if (type === 'default_promoted') {
+          html += '<div class="homepage-type-details">';
+          html += '<h4 class="h6 mt-4 mb-3 text-primary"><i class="bi bi-list-ul me-2"></i>Default Frontpage (Promoted Nodes)</h4>';
+          html += '<p>The homepage displays content nodes that have been "promoted to front page". This is the standard Drupal behavior when no custom homepage is configured.</p>';
+          html += '<ul class="list-unstyled">';
+          html += `<li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i><strong>Number of promoted nodes:</strong> ${details.promoted_nodes_count || 0}</li>`;
+          html += '</ul>';
+          html += '</div>';
+        }
+
+        if (type === 'static_node') {
+          html += '<div class="homepage-type-details">';
+          html += '<h4 class="h6 mt-4 mb-3 text-primary"><i class="bi bi-file-earmark-text me-2"></i>Static Node Homepage</h4>';
+          html += '<p>The homepage is a content node, providing full control over layout and content.</p>';
+          html += '<ul class="list-unstyled">';
+          html += `<li class="mb-2"><i class="bi bi-hash me-2"></i><strong>Node ID:</strong> ${details.node_id || 'N/A'}</li>`;
+          html += `<li class="mb-2"><i class="bi bi-file-text me-2"></i><strong>Title:</strong> ${details.title || 'N/A'}</li>`;
+          html += `<li class="mb-2"><i class="bi bi-tag me-2"></i><strong>Content Type:</strong> <code>${details.content_type || 'N/A'}</code></li>`;
+
+          const statusClass = details.status === 'published' ? 'text-success' : 'text-warning';
+          html += `<li class="mb-2"><i class="bi bi-circle-fill ${statusClass} me-2"></i><strong>Status:</strong> ${details.status || 'Unknown'}</li>`;
+
+          if (details.created) {
+            html += `<li class="mb-2"><i class="bi bi-calendar me-2"></i><strong>Created:</strong> ${details.created}</li>`;
+          }
+          if (details.updated) {
+            html += `<li class="mb-2"><i class="bi bi-calendar-check me-2"></i><strong>Updated:</strong> ${details.updated}</li>`;
+          }
+
+          const layoutBuilderStatus = details.layout_builder_enabled ? 'Yes - Custom layout' : 'No - Default layout';
+          html += `<li class="mb-2"><i class="bi bi-layout-wtf me-2"></i><strong>Layout Builder:</strong> ${layoutBuilderStatus}</li>`;
+
+          if (details.layout_builder_enabled && details.layout_sections_count) {
+            html += `<li class="mb-2"><i class="bi bi-grid me-2"></i><strong>Layout sections:</strong> ${details.layout_sections_count}</li>`;
+          }
+          html += '</ul>';
+
+          if (details.layout_builder_enabled) {
+            html += '<div class="alert alert-info border-start border-4 border-info mt-3">';
+            html += '<i class="bi bi-lightbulb-fill me-2"></i>';
+            html += '<strong>Note:</strong> Layout Builder is enabled, providing custom layout with blocks and sections arranged through the Layout Builder interface.';
+            html += '</div>';
+          }
+          html += '</div>';
+        }
+
+        if (type === 'view_based') {
+          html += '<div class="homepage-type-details">';
+          html += '<h4 class="h6 mt-4 mb-3 text-primary"><i class="bi bi-grid-3x3-gap-fill me-2"></i>View-based Homepage</h4>';
+          html += '<p>The homepage is powered by a custom Drupal View, allowing for complex filtering, sorting, and display options.</p>';
+          html += '<ul class="list-unstyled">';
+          html += `<li class="mb-2"><i class="bi bi-eye me-2"></i><strong>View ID:</strong> <code>${details.view_id || 'N/A'}</code></li>`;
+          html += `<li class="mb-2"><i class="bi bi-card-heading me-2"></i><strong>View Label:</strong> ${details.view_label || 'N/A'}</li>`;
+          html += `<li class="mb-2"><i class="bi bi-display me-2"></i><strong>Display:</strong> ${details.display_id || 'N/A'} - ${details.display_title || 'N/A'}</li>`;
+          html += `<li class="mb-2"><i class="bi bi-plugin me-2"></i><strong>Display Plugin:</strong> ${details.display_plugin || 'N/A'}</li>`;
+          html += '</ul>';
+
+          html += '<div class="alert alert-warning border-start border-4 border-warning mt-3">';
+          html += '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+          html += '<strong>Performance Note:</strong> Complex views can impact homepage performance. Consider caching configuration and query optimization.';
+          html += '</div>';
+          html += '</div>';
+        }
+
+        if (type === 'custom_route') {
+          html += '<div class="homepage-type-details">';
+          html += '<h4 class="h6 mt-4 mb-3 text-primary"><i class="bi bi-code-slash me-2"></i>Custom Route Homepage</h4>';
+          html += '<p>The homepage is handled by a custom route from a contributed or custom module.</p>';
+          html += '<ul class="list-unstyled">';
+          html += `<li class="mb-2"><i class="bi bi-signpost me-2"></i><strong>Route name:</strong> <code>${details.route_name || 'N/A'}</code></li>`;
+          if (details.controller) {
+            html += `<li class="mb-2"><i class="bi bi-gear me-2"></i><strong>Controller:</strong> <code>${details.controller}</code></li>`;
+          }
+          if (details.module) {
+            html += `<li class="mb-2"><i class="bi bi-box me-2"></i><strong>Module:</strong> ${details.module}</li>`;
+          }
+          html += '</ul>';
+
+          html += '<div class="alert alert-info border-start border-4 border-info mt-3">';
+          html += '<i class="bi bi-info-circle-fill me-2"></i>';
+          html += '<strong>Note:</strong> Custom routes provide maximum flexibility but require developer knowledge for modifications.';
+          html += '</div>';
+          html += '</div>';
+        }
+      }
+
+      // Blocks and Regions Section
+      if (data.blocks && data.blocks.regions) {
+        html += '<h3 class="mt-5 mb-3">Blocks and Regions</h3>';
+        html += '<p class="text-muted mb-3">Active blocks displayed on the homepage across all theme regions</p>';
+
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-hover table-primary">';
+        html += '<thead>';
+        html += '<tr>';
+        html += '<th>Region</th>';
+        html += '<th>Block Label</th>';
+        html += '<th>Block Type</th>';
+        html += '<th>Weight</th>';
+        html += '</tr>';
+        html += '</thead>';
+        html += '<tbody>';
+
+        // Flatten blocks from regions object
+        const allBlocks = [];
+        for (const [regionName, blocks] of Object.entries(data.blocks.regions)) {
+          blocks.forEach(block => {
+            allBlocks.push({ ...block, region: regionName });
+          });
+        }
+
+        allBlocks.forEach(block => {
+          html += '<tr>';
+          html += `<td><strong>${block.region || 'N/A'}</strong></td>`;
+          html += `<td>${block.label || 'N/A'}</td>`;
+          html += `<td><code>${block.plugin_id || 'N/A'}</code></td>`;
+          html += `<td>${block.weight !== undefined ? block.weight : 'N/A'}</td>`;
+          html += '</tr>';
+        });
+
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+
+        // Block statistics
+        const totalBlocks = data.blocks.total_active_blocks || allBlocks.length;
+        const viewsBlocks = allBlocks.filter(b => b.plugin_type === 'views' || (b.plugin_id && b.plugin_id.includes('views'))).length;
+        const customBlocks = allBlocks.filter(b => b.plugin_type === 'custom_block').length;
+
+        html += '<div class="alert alert-info border-start border-4 border-info mt-3">';
+        html += '<i class="bi bi-info-circle-fill me-2"></i>';
+        html += `<strong>Block Count:</strong> Total ${totalBlocks} active blocks on homepage | `;
+        html += `<strong>Views blocks:</strong> ${viewsBlocks} | `;
+        html += `<strong>Custom blocks:</strong> ${customBlocks}`;
+        html += '</div>';
+      }
+
+      // Page Builder Modules Section
+      if (data.page_builder_modules) {
+        html += '<h3 class="mt-5 mb-3">Page Builder Modules</h3>';
+        html += '<p class="text-muted mb-3">Installed page building and layout management modules</p>';
+
+        html += '<div class="row">';
+        for (const [moduleKey, module] of Object.entries(data.page_builder_modules)) {
+          const badgeClass = module.installed ? 'bg-success' : 'bg-secondary';
+          const statusText = module.installed ? 'Installed' : 'Not Installed';
+          html += '<div class="col-md-4 mb-3">';
+          html += '<div class="card h-100">';
+          html += '<div class="card-body">';
+          html += `<h6 class="card-title">${module.label}</h6>`;
+          html += `<span class="badge ${badgeClass}">${statusText}</span>`;
+          html += '</div>';
+          html += '</div>';
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+
+      // Statistics Summary
+      if (data.statistics) {
+        html += '<h3 class="mt-5 mb-3">Summary and Statistics</h3>';
+
+        const stats = data.statistics;
+
+        html += '<div class="alert alert-success border-start border-4 border-success">';
+        html += '<i class="bi bi-check-circle-fill me-2"></i>';
+        html += '<strong>Key Metrics:</strong>';
+        html += '<ul class="mb-0 mt-2">';
+        if (stats.homepage_path) {
+          html += `<li><strong>Homepage Path:</strong> <code>${stats.homepage_path}</code></li>`;
+        }
+        if (stats.homepage_type) {
+          html += `<li><strong>Homepage Type:</strong> ${stats.homepage_type}</li>`;
+        }
+        if (stats.active_blocks_count !== undefined) {
+          html += `<li><strong>Total Blocks:</strong> ${stats.active_blocks_count}</li>`;
+        }
+        if (stats.layout_builder_installed !== undefined) {
+          html += `<li><strong>Layout Builder:</strong> ${stats.layout_builder_installed ? 'Installed' : 'Not Installed'}</li>`;
+        }
+        if (stats.page_manager_installed !== undefined) {
+          html += `<li><strong>Page Manager:</strong> ${stats.page_manager_installed ? 'Installed' : 'Not Installed'}</li>`;
+        }
+        html += '</ul>';
+        html += '</div>';
+      }
+
+      // Metadata
+      if (data.metadata) {
+        html += '<h3 class="mt-5 mb-3">Site Metadata</h3>';
+        const meta = data.metadata;
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-bordered">';
+        html += '<tbody>';
+        if (meta.site_name) {
+          html += `<tr><td><strong>Site Name</strong></td><td>${meta.site_name}</td></tr>`;
+        }
+        if (meta.site_slogan) {
+          html += `<tr><td><strong>Site Slogan</strong></td><td>${meta.site_slogan}</td></tr>`;
+        }
+        if (meta.homepage_alias) {
+          html += `<tr><td><strong>Homepage Alias</strong></td><td><code>${meta.homepage_alias}</code></td></tr>`;
+        }
+        if (meta.homepage_full_url) {
+          html += `<tr><td><strong>Homepage URL</strong></td><td><a href="${meta.homepage_full_url}" target="_blank">${meta.homepage_full_url}</a></td></tr>`;
+        }
+        html += '</tbody>';
+        html += '</table>';
+        html += '</div>';
+      }
+
+      container.innerHTML = html;
+    }
+
+    // Render on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderHomepageConfig);
+    } else {
+      renderHomepageConfig();
+    }
+  </script>
+</body>
+</html>

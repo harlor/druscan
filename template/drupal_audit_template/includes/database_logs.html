@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database Logs</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="dblog-errors">
+      <div class="card-body p-4">
+        <h2 class="mb-4">Database Log Errors</h2>
+        <p>Analysis of system errors recorded in the database log (dblog/watchdog). This section identifies the most frequently occurring errors that may indicate system issues, misconfigurations, or bugs requiring attention.</p>
+
+        <div class="alert alert-info border-start border-4 border-info">
+          <i class="bi bi-info-circle-fill me-2"></i>
+          <strong>About Database Logs:</strong>
+          <ul class="mb-0 mt-2">
+            <li>Drupal logs all errors, warnings, and notices to the database</li>
+            <li>High error counts may indicate bugs, misconfigurations, or security issues</li>
+            <li>Recurring error patterns help identify root causes</li>
+            <li>Error severity levels: 0=Emergency, 1=Alert, 2=Critical, 3=Error, 4=Warning, 5=Notice, 6=Info, 7=Debug</li>
+          </ul>
+        </div>
+
+        <div id="database-logs-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading database logs information...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Safe placeholder handling - will be replaced during audit generation
+    let DATABASE_LOGS_DATA;
+    try {
+      DATABASE_LOGS_DATA = __DATABASE_LOGS_JSON_PLACEHOLDER__;
+    } catch (e) {
+      // Placeholder not replaced yet - leave loading spinner visible
+      DATABASE_LOGS_DATA = null;
+    }
+
+    function renderDatabaseLogs() {
+      const container = document.getElementById('database-logs-content');
+
+      if (!DATABASE_LOGS_DATA || typeof DATABASE_LOGS_DATA !== 'object') {
+        // Keep loading spinner if data is not available
+        return;
+      }
+
+      const data = DATABASE_LOGS_DATA;
+      let html = '';
+
+      // Check if watchdog table exists
+      if (data.watchdog_table_exists === "0") {
+        html += '<div class="alert alert-warning">';
+        html += '<i class="bi bi-exclamation-triangle me-2"></i>';
+        html += '<strong>Warning:</strong> Watchdog table not found. Database logging may not be enabled.';
+        html += '</div>';
+        container.innerHTML = html;
+        return;
+      }
+
+      // Error Statistics Summary
+      const totalEntries = parseInt(data.total_entries) || 0;
+      const errorCount = parseInt(data.error_count) || 0;
+      const uniqueTypes = data.errors_by_type ? data.errors_by_type.length : 0;
+
+      html += '<h3 class="mt-4 mb-3">Error Statistics Summary</h3>';
+      html += '<div class="row">';
+      html += '<div class="col-md-3">';
+      html += '<div class="card bg-light">';
+      html += '<div class="card-body text-center">';
+      html += `<h4 class="text-danger">${errorCount.toLocaleString()}</h4>`;
+      html += '<p class="mb-0 small text-muted">Total Errors (Severity 0-3)</p>';
+      html += '</div></div></div>';
+      html += '<div class="col-md-3">';
+      html += '<div class="card bg-light">';
+      html += '<div class="card-body text-center">';
+      html += `<h4 class="text-primary">${totalEntries.toLocaleString()}</h4>`;
+      html += '<p class="mb-0 small text-muted">Total Log Entries</p>';
+      html += '</div></div></div>';
+      html += '<div class="col-md-3">';
+      html += '<div class="card bg-light">';
+      html += '<div class="card-body text-center">';
+      html += `<h4 class="text-warning">${uniqueTypes}</h4>`;
+      html += '<p class="mb-0 small text-muted">Unique Error Types</p>';
+      html += '</div></div></div>';
+
+      if (data.detailed_analysis && data.detailed_analysis.exported_file_size) {
+        html += '<div class="col-md-3">';
+        html += '<div class="card bg-light">';
+        html += '<div class="card-body text-center">';
+        html += `<h4 class="text-info">${data.detailed_analysis.exported_file_size}</h4>`;
+        html += '<p class="mb-0 small text-muted">Exported Log Size</p>';
+        html += '</div></div></div>';
+      }
+      html += '</div>';
+
+      // Entries by Severity
+      if (data.entries_by_severity && Array.isArray(data.entries_by_severity) && data.entries_by_severity.length > 0) {
+        html += '<h3 class="mt-5 mb-3">Entries by Severity</h3>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-hover table-primary">';
+        html += '<thead><tr>';
+        html += '<th>Severity Level</th>';
+        html += '<th>Count</th>';
+        html += '<th>Percentage</th>';
+        html += '</tr></thead>';
+        html += '<tbody>';
+
+        const totalSeverity = data.entries_by_severity.reduce((sum, item) => sum + item.count, 0);
+        data.entries_by_severity.forEach(item => {
+          const percentage = totalSeverity > 0 ? ((item.count / totalSeverity) * 100).toFixed(1) : 0;
+          const severityBadge = getSeverityBadge(item.severity);
+          html += '<tr>';
+          html += `<td>${severityBadge}</td>`;
+          html += `<td><strong>${item.count.toLocaleString()}</strong></td>`;
+          html += `<td>${percentage}%</td>`;
+          html += '</tr>';
+        });
+        html += '</tbody></table></div>';
+      }
+
+      // Errors by Type (from detailed_analysis)
+      if (data.detailed_analysis && data.detailed_analysis.errors_grouped_by_type) {
+        const errorsByType = data.detailed_analysis.errors_grouped_by_type;
+        const sortedTypes = Object.entries(errorsByType).sort((a, b) => b[1] - a[1]);
+
+        if (sortedTypes.length > 0) {
+          html += '<h3 class="mt-5 mb-3">Errors by Module/Type</h3>';
+          html += '<p class="text-muted mb-3">Distribution of errors by module or component type</p>';
+          html += '<div class="table-responsive">';
+          html += '<table class="table table-hover table-primary">';
+          html += '<thead><tr>';
+          html += '<th>Type (Module/Component)</th>';
+          html += '<th>Error Count</th>';
+          html += '<th>Percentage</th>';
+          html += '</tr></thead>';
+          html += '<tbody>';
+
+          const totalTypeErrors = sortedTypes.reduce((sum, [, count]) => sum + count, 0);
+          sortedTypes.slice(0, 20).forEach(([type, count]) => {
+            const percentage = totalTypeErrors > 0 ? ((count / totalTypeErrors) * 100).toFixed(1) : 0;
+            html += '<tr>';
+            html += `<td><code>${escapeHtml(type)}</code></td>`;
+            html += `<td><strong>${count.toLocaleString()}</strong></td>`;
+            html += `<td>${percentage}%</td>`;
+            html += '</tr>';
+          });
+          html += '</tbody></table></div>';
+        }
+      }
+
+      // Top Frequent Errors
+      if (data.detailed_analysis && data.detailed_analysis.top_frequent_errors &&
+          Array.isArray(data.detailed_analysis.top_frequent_errors) &&
+          data.detailed_analysis.top_frequent_errors.length > 0) {
+
+        html += '<h3 class="mt-5 mb-3">Top 50 Most Frequent Error Messages</h3>';
+        html += '<p class="text-muted mb-3">Recurring error messages that appear most often in the logs</p>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-hover table-sm table-primary">';
+        html += '<thead><tr>';
+        html += '<th style="width: 5%;">#</th>';
+        html += '<th style="width: 50%;">Error Message</th>';
+        html += '<th style="width: 15%;">Type</th>';
+        html += '<th style="width: 10%;">Count</th>';
+        html += '<th style="width: 10%;">Severity</th>';
+        html += '<th style="width: 10%;">Last Seen</th>';
+        html += '</tr></thead>';
+        html += '<tbody>';
+
+        data.detailed_analysis.top_frequent_errors.slice(0, 50).forEach((error, index) => {
+          html += '<tr>';
+          html += `<td>${index + 1}</td>`;
+          html += `<td><code class="small">${escapeHtml(truncateText(error.message, 150))}</code></td>`;
+          html += `<td><span class="badge bg-secondary">${escapeHtml(error.type)}</span></td>`;
+          html += `<td><strong>${error.count}</strong></td>`;
+          html += `<td>${getSeverityBadge(error.severity)}</td>`;
+          html += `<td><small>${error.last_seen}</small></td>`;
+          html += '</tr>';
+        });
+        html += '</tbody></table></div>';
+      }
+
+      // Recent Critical Errors
+      if (data.detailed_analysis && data.detailed_analysis.recent_errors &&
+          Array.isArray(data.detailed_analysis.recent_errors) &&
+          data.detailed_analysis.recent_errors.length > 0) {
+
+        html += '<h3 class="mt-5 mb-3">Recent Critical Errors (Last 50)</h3>';
+        html += '<p class="text-muted mb-3">Most recent critical errors with timestamps</p>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-sm table-hover table-primary">';
+        html += '<thead><tr>';
+        html += '<th style="width: 15%;">Timestamp</th>';
+        html += '<th style="width: 15%;">Type</th>';
+        html += '<th style="width: 10%;">Severity</th>';
+        html += '<th style="width: 60%;">Error Message</th>';
+        html += '</tr></thead>';
+        html += '<tbody>';
+
+        data.detailed_analysis.recent_errors.slice(0, 50).forEach(error => {
+          html += '<tr>';
+          html += `<td><small>${error.datetime}</small></td>`;
+          html += `<td><span class="badge bg-secondary">${escapeHtml(error.type)}</span></td>`;
+          html += `<td>${getSeverityBadge(error.severity)}</td>`;
+          html += `<td><code class="small">${escapeHtml(truncateText(error.message, 150))}</code></td>`;
+          html += '</tr>';
+        });
+        html += '</tbody></table></div>';
+      }
+
+      // Summary and Recommendations
+      html += '<h3 class="mt-5 mb-3">Summary and Recommendations</h3>';
+
+      if (errorCount > 0) {
+        html += '<div class="alert alert-danger border-start border-4 border-danger">';
+        html += '<i class="bi bi-exclamation-octagon-fill me-2"></i>';
+        html += '<strong>Critical Issues Detected:</strong>';
+        html += '<ul class="mb-0 mt-2">';
+        html += `<li>${errorCount.toLocaleString()} critical errors found in the database logs</li>`;
+
+        if (data.detailed_analysis && data.detailed_analysis.top_frequent_errors &&
+            data.detailed_analysis.top_frequent_errors.length > 0) {
+          const topError = data.detailed_analysis.top_frequent_errors[0];
+          html += `<li>Most frequent error: "${escapeHtml(truncateText(topError.message, 100))}" (${topError.count} occurrences)</li>`;
+        }
+
+        html += '</ul>';
+        html += '</div>';
+      } else {
+        html += '<div class="alert alert-success border-start border-4 border-success">';
+        html += '<i class="bi bi-check-circle-fill me-2"></i>';
+        html += '<strong>Good News:</strong> No critical errors found in the database logs.';
+        html += '</div>';
+      }
+
+      html += '<div class="alert alert-warning border-start border-4 border-warning mt-3">';
+      html += '<i class="bi bi-lightbulb-fill me-2"></i>';
+      html += '<strong>Recommendations:</strong>';
+      html += '<ul class="mb-0 mt-2">';
+      html += '<li>Review and fix recurring errors to prevent future issues</li>';
+      html += '<li>Monitor logs regularly to catch new issues early</li>';
+      html += '<li>Consider implementing external logging service (e.g., Syslog, Sentry) for better monitoring</li>';
+      html += '<li>Set up automated alerting for critical error patterns</li>';
+      html += '<li>Regularly clear old log entries to maintain database performance</li>';
+      html += '</ul>';
+      html += '</div>';
+
+      html += '<div class="alert alert-info border-start border-4 border-info mt-3">';
+      html += '<i class="bi bi-tools me-2"></i>';
+      html += '<strong>Maintenance Tips:</strong>';
+      html += '<ul class="mb-0 mt-2">';
+      html += '<li>Use <code>drush watchdog:show</code> command for real-time log monitoring</li>';
+      html += '<li>Configure dblog to limit maximum rows (default: 1000 per severity)</li>';
+      html += '<li>Export critical errors to external systems for long-term tracking</li>';
+      html += '<li>Implement log rotation to prevent dblog table from growing too large</li>';
+      html += '</ul>';
+      html += '</div>';
+
+      container.innerHTML = html;
+    }
+
+    function getSeverityBadge(severity) {
+      const severityStr = String(severity).toLowerCase();
+
+      if (severityStr.includes('emergency') || severityStr === '0') {
+        return '<span class="badge bg-dark">Emergency</span>';
+      } else if (severityStr.includes('alert') || severityStr === '1') {
+        return '<span class="badge bg-danger">Alert</span>';
+      } else if (severityStr.includes('critical') || severityStr === '2') {
+        return '<span class="badge bg-danger">Critical</span>';
+      } else if (severityStr.includes('error') || severityStr === '3') {
+        return '<span class="badge bg-danger">Error</span>';
+      } else if (severityStr.includes('warning') || severityStr === '4') {
+        return '<span class="badge bg-warning text-dark">Warning</span>';
+      } else if (severityStr.includes('notice') || severityStr === '5') {
+        return '<span class="badge bg-info">Notice</span>';
+      } else if (severityStr.includes('info') || severityStr === '6') {
+        return '<span class="badge bg-secondary">Info</span>';
+      } else if (severityStr.includes('debug') || severityStr === '7') {
+        return '<span class="badge bg-light text-dark">Debug</span>';
+      }
+
+      return `<span class="badge bg-secondary">${escapeHtml(severity)}</span>`;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function truncateText(text, maxLength) {
+      if (!text || text.length <= maxLength) return text;
+      return text.substring(0, maxLength) + '...';
+    }
+
+    // Render on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderDatabaseLogs);
+    } else {
+      renderDatabaseLogs();
+    }
+  </script>
+</body>
+</html>

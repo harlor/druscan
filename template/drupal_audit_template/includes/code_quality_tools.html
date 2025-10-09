@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Quality Tools Analysis</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    h3 {
+      color: var(--droptica-primary);
+      margin-top: 1.5rem;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .section-intro {
+      background: rgba(0, 57, 255, 0.05);
+      padding: 15px;
+      border-left: 4px solid var(--droptica-primary);
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    .error-message {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid var(--droptica-warning);
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+
+    .error-message h3 {
+      color: var(--droptica-warning);
+      margin-top: 0;
+    }
+
+    .error-message code {
+      background: #fff;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .score-card {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .score-item {
+      background: var(--droptica-primary);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .score-item.pass {
+      background: var(--droptica-success);
+    }
+
+    .score-item.warning {
+      background: var(--droptica-warning);
+    }
+
+    .score-item.fail {
+      background: var(--droptica-danger);
+    }
+
+    .score-item.critical {
+      background: var(--droptica-danger);
+    }
+
+    .score-value {
+      font-size: 2.5em;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .score-label {
+      font-size: 0.9em;
+      opacity: 0.9;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    thead {
+      background: var(--droptica-primary);
+      color: white;
+    }
+
+    th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #ecf0f1;
+    }
+
+    tr:hover {
+      background: #f8f9fa;
+    }
+
+    .issue-card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 15px;
+      margin: 15px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .issue-card.error {
+      border-left: 4px solid var(--droptica-danger);
+    }
+
+    .issue-card.warning {
+      border-left: 4px solid var(--droptica-warning);
+    }
+
+    .issue-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .issue-code {
+      background: #ecf0f1;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+
+    .issue-type {
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 0.85em;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .issue-type.error {
+      background: var(--droptica-danger);
+      color: white;
+    }
+
+    .issue-type.warning {
+      background: var(--droptica-warning);
+      color: white;
+    }
+
+    .issue-message {
+      color: #555;
+      margin: 10px 0;
+    }
+
+    .issue-context {
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85em;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .issue-selector {
+      color: #7f8c8d;
+      font-size: 0.9em;
+      margin-top: 8px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .principle-card {
+      background: #f8f9fa;
+      border-radius: 6px;
+      padding: 15px;
+      margin: 10px 0;
+    }
+
+    .principle-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .principle-name {
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    .principle-count {
+      background: var(--droptica-primary);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.9em;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.85em;
+      font-weight: bold;
+      margin: 0 5px;
+    }
+
+    .badge.success {
+      background: var(--droptica-success);
+      color: white;
+    }
+
+    .badge.warning {
+      background: var(--droptica-warning);
+      color: white;
+    }
+
+    .badge.danger {
+      background: var(--droptica-danger);
+      color: white;
+    }
+
+    .info-box {
+      background: rgba(0, 57, 255, 0.05);
+      border-left: 4px solid var(--droptica-primary);
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    .info-box strong {
+      color: var(--droptica-primary);
+    }
+
+    code {
+      background: #ecf0f1;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+
+    .no-issues {
+      text-align: center;
+      padding: 40px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 6px;
+      color: #10B981;
+      font-size: 1.1em;
+    }
+
+    @media (max-width: 768px) {
+      .score-card {
+        grid-template-columns: 1fr;
+      }
+
+      table {
+        font-size: 0.9em;
+      }
+
+      .issue-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4">
+      <div class="card-body p-4">
+    <div class="container">
+        <h2 class="mb-4"><i class="bi bi-check2-square"></i> Code Quality Tools Analysis</h2>
+
+        <div class="section-intro">
+            <strong>About This Section:</strong> This analysis checks for static analysis and code quality tools configured in the project. These tools help maintain code quality, catch bugs early, enforce coding standards, and improve overall codebase health.
+        </div>
+
+        <div id="loading" class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading code quality tools data...</span>
+            </div>
+            <p class="mt-2">Loading code quality tools data...</p>
+        </div>
+
+        <div id="content" style="display: none;">
+            <!-- Statistics -->
+            <h2> Overview Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Tools Checked</h3>
+                    <div class="value" id="stat-total">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Tools Configured</h3>
+                    <div class="value" id="stat-configured">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Not Configured</h3>
+                    <div class="value" id="stat-not-configured">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Coverage</h3>
+                    <div class="value" id="stat-percentage">0%</div>
+                </div>
+            </div>
+
+            <!-- Status Message -->
+            <div id="status-message"></div>
+
+            <!-- Configured Tools -->
+            <h2>✅ Configured Tools</h2>
+            <div id="tools-found-section">
+                <table id="tools-found-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">Tool Name</th>
+                            <th style="width: 40%;">Description</th>
+                            <th style="width: 15%;">Status</th>
+                            <th style="width: 25%;">Configuration Files</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tools-found-body">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Not Configured Tools -->
+            <h2>❌ Not Configured Tools</h2>
+            <div id="tools-not-found-section">
+                <table id="tools-not-found-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">Tool Name</th>
+                            <th style="width: 60%;">Description</th>
+                            <th style="width: 20%;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tools-not-found-body">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Composer Packages -->
+            <h2> Installed Composer Packages</h2>
+            <div id="composer-packages-section">
+                <!-- Populated by JavaScript -->
+            </div>
+
+            <!-- DDEV Commands -->
+            <h2>⚙ DDEV Commands</h2>
+            <div id="ddev-commands-section">
+                <!-- Populated by JavaScript -->
+            </div>
+
+            <!-- Composer Scripts -->
+            <h2>📜 Composer Scripts</h2>
+            <div id="composer-scripts-section">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Safe placeholder handling
+        let CODE_QUALITY_TOOLS_DATA;
+        try {
+            CODE_QUALITY_TOOLS_DATA = __CODE_QUALITY_TOOLS_JSON_PLACEHOLDER__;
+        } catch (e) {
+            CODE_QUALITY_TOOLS_DATA = null;
+        }
+
+        function renderCodeQuality() {
+        // Process data
+        if (!CODE_QUALITY_TOOLS_DATA) {
+            // Keep loading spinner if data is not available
+            return;
+        } else {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+
+            // Extract data - it's already in the correct format
+            const data = CODE_QUALITY_TOOLS_DATA;
+
+            if (!data.analysis) {
+                document.getElementById('content').innerHTML = '<div class="error-box"><strong>Error:</strong> Invalid data format received.</div>';
+            } else {
+                const analysis = data.analysis;
+
+                // Populate statistics
+                document.getElementById('stat-total').textContent = analysis.statistics.total_tools_checked || 0;
+                document.getElementById('stat-configured').textContent = analysis.statistics.tools_configured || 0;
+                document.getElementById('stat-not-configured').textContent = analysis.statistics.tools_not_configured || 0;
+                document.getElementById('stat-percentage').textContent = (analysis.statistics.coverage_percentage || 0) + '%';
+
+                // Status message
+                const statusDiv = document.getElementById('status-message');
+                const coverage = analysis.statistics.coverage_percentage || 0;
+                if (coverage >= 50) {
+                    statusDiv.innerHTML = '<div class="success-box"><strong>Good!</strong> You have a decent set of code quality tools configured (' + coverage + '% coverage).</div>';
+                } else if (coverage >= 25) {
+                    statusDiv.innerHTML = '<div class="warning-box"><strong>Moderate:</strong> Consider adding more code quality tools to improve code maintainability (' + coverage + '% coverage).</div>';
+                } else {
+                    statusDiv.innerHTML = '<div class="error-box"><strong>Low Coverage:</strong> Very few code quality tools are configured. Consider implementing PHPStan, PHPCS, or similar tools (' + coverage + '% coverage).</div>';
+                }
+
+                // Populate configured tools table
+                const toolsFoundBody = document.getElementById('tools-found-body');
+                if (analysis.tools_found && analysis.tools_found.length > 0) {
+                    analysis.tools_found.forEach(tool => {
+                        const row = document.createElement('tr');
+
+                        // Config files badges
+                        let configFilesHtml = '';
+                        if (tool.config_files_found && tool.config_files_found.length > 0) {
+                            configFilesHtml = '<div class="config-files">';
+                            tool.config_files_found.forEach(file => {
+                                configFilesHtml += `<span class="config-file">${file}</span>`;
+                            });
+                            configFilesHtml += '</div>';
+                        }
+
+                        // Status badge
+                        let statusBadge = '<span class="badge badge-configured">✓ Configured</span>';
+                        if (tool.composer_installed) {
+                            statusBadge += ' <span class="badge badge-installed">Composer</span>';
+                        }
+
+                        row.innerHTML = `
+                            <td><strong>${tool.name}</strong></td>
+                            <td><div class="tool-description">${tool.description}</div></td>
+                            <td>${statusBadge}</td>
+                            <td>${configFilesHtml || '<em>Composer only</em>'}</td>
+                        `;
+                        toolsFoundBody.appendChild(row);
+                    });
+                } else {
+                    document.getElementById('tools-found-section').innerHTML = '<div class="info-box">No code quality tools are currently configured in this project.</div>';
+                }
+
+                // Populate not configured tools table
+                const toolsNotFoundBody = document.getElementById('tools-not-found-body');
+                if (analysis.tools_not_found && analysis.tools_not_found.length > 0) {
+                    analysis.tools_not_found.forEach(tool => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><strong>${tool.name}</strong></td>
+                            <td><div class="tool-description">${tool.description}</div></td>
+                            <td><span class="badge badge-not-configured">Not Configured</span></td>
+                        `;
+                        toolsNotFoundBody.appendChild(row);
+                    });
+                } else {
+                    document.getElementById('tools-not-found-section').innerHTML = '<div class="success-box">Great! All checked tools are configured in this project.</div>';
+                }
+
+                // Populate composer packages
+                const composerSection = document.getElementById('composer-packages-section');
+                if (analysis.composer_packages && analysis.composer_packages.length > 0) {
+                    let html = '<p>Found <strong>' + analysis.composer_packages.length + '</strong> code quality related packages:</p>';
+                    analysis.composer_packages.forEach(pkg => {
+                        html += `<div class="composer-package">
+                            <strong>${pkg.name}</strong> <code>${pkg.version}</code><br>
+                            <small>${pkg.description || 'No description available'}</small>
+                        </div>`;
+                    });
+                    composerSection.innerHTML = html;
+                } else {
+                    composerSection.innerHTML = '<div class="info-box">No code quality related Composer packages found.</div>';
+                }
+
+                // Populate DDEV commands
+                const ddevSection = document.getElementById('ddev-commands-section');
+                if (analysis.ddev_commands && analysis.ddev_commands.length > 0) {
+                    let html = '<p>Found <strong>' + analysis.ddev_commands.length + '</strong> custom DDEV commands:</p><ul>';
+                    analysis.ddev_commands.forEach(cmd => {
+                        const cmdName = cmd.split('/').pop();
+                        html += `<li><code>${cmdName}</code></li>`;
+                    });
+                    html += '</ul>';
+                    ddevSection.innerHTML = html;
+                } else {
+                    ddevSection.innerHTML = '<div class="info-box">No custom DDEV commands found in <code>.ddev/commands/</code> directory.</div>';
+                }
+
+                // Populate composer scripts
+                const scriptsSection = document.getElementById('composer-scripts-section');
+                if (analysis.composer_scripts && Object.keys(analysis.composer_scripts).length > 0) {
+                    let html = '<p>Found <strong>' + Object.keys(analysis.composer_scripts).length + '</strong> Composer scripts:</p><ul>';
+                    Object.keys(analysis.composer_scripts).forEach(scriptName => {
+                        html += `<li><code>${scriptName}</code></li>`;
+                    });
+                    html += '</ul>';
+                    scriptsSection.innerHTML = html;
+                } else {
+                    scriptsSection.innerHTML = '<div class="info-box">No custom Composer scripts found in <code>composer.json</code>.</div>';
+                }
+            }
+        }
+        }
+
+        // Call render function
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', renderCodeQuality);
+        } else {
+            renderCodeQuality();
+        }
+
+    </script>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

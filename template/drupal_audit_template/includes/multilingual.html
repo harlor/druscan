@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multilingual Support</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .badge-status {
+      padding: 0.35em 0.65em;
+      font-size: 0.85em;
+      font-weight: 500;
+    }
+
+    .language-flag {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-align: center;
+      line-height: 24px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="multilingual">
+      <div class="card-body p-4">
+        <h2 class="mb-4">Multilingual Support</h2>
+        <p>Comprehensive analysis of Drupal multilingual capabilities including language configuration, translation modules, translatable content types, and content statistics. Understanding language setup is critical for international sites and content localization strategies.</p>
+
+        <div id="multilingual-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading multilingual configuration...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Safe placeholder handling - will be replaced during audit generation
+    let MULTILINGUAL_DATA;
+    try {
+      MULTILINGUAL_DATA = __MULTILINGUAL_JSON_PLACEHOLDER__;
+    } catch (e) {
+      // Placeholder not replaced yet - leave loading spinner visible
+      MULTILINGUAL_DATA = null;
+    }
+
+    function getModuleBadge(enabled) {
+      return enabled ?
+        '<span class="badge bg-success badge-status"><i class="bi bi-check-circle me-1"><\/i>Enabled<\/span>' :
+        '<span class="badge bg-secondary badge-status"><i class="bi bi-x-circle me-1"><\/i>Disabled<\/span>';
+    }
+
+    function getLanguageInitials(langcode) {
+      return langcode.substring(0, 2).toUpperCase();
+    }
+
+    function formatNumber(num) {
+      return new Intl.NumberFormat().format(num);
+    }
+
+    function renderMultilingual() {
+      const container = document.getElementById('multilingual-content');
+
+      if (!MULTILINGUAL_DATA || typeof MULTILINGUAL_DATA !== 'object') {
+        // Keep loading spinner if data is not available
+        return;
+      }
+
+      const data = MULTILINGUAL_DATA.full_analysis || {};
+      let html = '';
+
+      // Multilingual Status Alert
+      if (data.multilingual_enabled) {
+        html += '<div class="alert alert-success border-start border-4 border-success">';
+        html += '<i class="bi bi-globe me-2"><\/i>';
+        html += '<strong>Multilingual Support Enabled:<\/strong> This site is configured for multilingual content with ';
+        html += `<strong>${data.languages?.total_count || 0} language(s)<\/strong> installed.`;
+        html += '<\/div>';
+      } else {
+        html += '<div class="alert alert-secondary border-start border-4">';
+        html += '<i class="bi bi-info-circle me-2"><\/i>';
+        html += '<strong>Single Language Site:<\/strong> Language module is not enabled. This site operates in a single language (English by default).';
+        html += '<\/div>';
+      }
+
+      // Core Translation Modules Status
+      if (data.modules) {
+        const modules = data.modules;
+        html += '<h3 class="mt-4 mb-3"><i class="bi bi-translate me-2"><\/i>Translation Modules<\/h3>';
+        html += '<div class="card mb-4">';
+        html += '<div class="card-body">';
+        html += '<div class="row">';
+
+        html += '<div class="col-md-3">';
+        html += '<div class="card border-start border-4 ' + (modules.language ? 'border-success' : 'border-secondary') + '">';
+        html += '<div class="card-body">';
+        html += '<h6 class="card-title">Language Module<\/h6>';
+        html += getModuleBadge(modules.language);
+        html += '<p class="small text-muted mt-2 mb-0">Foundation for multilingual support<\/p>';
+        html += '<\/div><\/div><\/div>';
+
+        html += '<div class="col-md-3">';
+        html += '<div class="card border-start border-4 ' + (modules.content_translation ? 'border-success' : 'border-secondary') + '">';
+        html += '<div class="card-body">';
+        html += '<h6 class="card-title">Content Translation<\/h6>';
+        html += getModuleBadge(modules.content_translation);
+        html += '<p class="small text-muted mt-2 mb-0">Translate nodes and entities<\/p>';
+        html += '<\/div><\/div><\/div>';
+
+        html += '<div class="col-md-3">';
+        html += '<div class="card border-start border-4 ' + (modules.interface_translation ? 'border-success' : 'border-secondary') + '">';
+        html += '<div class="card-body">';
+        html += '<h6 class="card-title">Interface Translation<\/h6>';
+        html += getModuleBadge(modules.interface_translation);
+        html += '<p class="small text-muted mt-2 mb-0">Translate UI strings<\/p>';
+        html += '<\/div><\/div><\/div>';
+
+        html += '<div class="col-md-3">';
+        html += '<div class="card border-start border-4 ' + (modules.config_translation ? 'border-success' : 'border-secondary') + '">';
+        html += '<div class="card-body">';
+        html += '<h6 class="card-title">Config Translation<\/h6>';
+        html += getModuleBadge(modules.config_translation);
+        html += '<p class="small text-muted mt-2 mb-0">Translate configuration<\/p>';
+        html += '<\/div><\/div><\/div>';
+
+        html += '<\/div>';
+        html += '<\/div>';
+        html += '<\/div>';
+      }
+
+      // Installed Languages
+      if (data.multilingual_enabled && data.languages && data.languages.installed && data.languages.installed.length > 0) {
+        html += '<h3 class="mt-4 mb-3"><i class="bi bi-flag me-2"><\/i>Installed Languages<\/h3>';
+        html += '<div class="card mb-4">';
+        html += '<div class="card-body">';
+
+        html += '<div class="mb-3">';
+        html += `<strong>Default Language:<\/strong> <span class="badge bg-warning text-dark ms-2">${data.languages.default_language || 'en'}<\/span>`;
+        html += `<span class="ms-3"><strong>Total Languages:<\/strong> <span class="badge bg-primary ms-2">${data.languages.total_count}<\/span><\/span>`;
+        html += '<\/div>';
+
+        html += '<table class="table table-hover">';
+        html += '<thead><tr><th>Language<\/th><th>Code<\/th><th>Direction<\/th><th>Weight<\/th><th>Default<\/th><\/tr><\/thead>';
+        html += '<tbody>';
+
+        data.languages.installed.forEach(lang => {
+          html += '<tr>';
+          html += `<td><span class="language-flag">${getLanguageInitials(lang.langcode)}<\/span><strong>${lang.name}<\/strong><\/td>`;
+          html += `<td><code>${lang.langcode}<\/code><\/td>`;
+          html += `<td><span class="badge bg-light text-dark">${lang.direction}<\/span><\/td>`;
+          html += `<td>${lang.weight}<\/td>`;
+          html += `<td>${lang.is_default ? '<i class="bi bi-star-fill text-warning"><\/i>' : ''}<\/td>`;
+          html += '<\/tr>';
+        });
+
+        html += '<\/tbody>';
+        html += '<\/table>';
+        html += '<\/div>';
+        html += '<\/div>';
+      }
+
+      // Content Statistics
+      if (data.multilingual_enabled && data.content_statistics) {
+        const stats = data.content_statistics;
+
+        html += '<h3 class="mt-4 mb-3"><i class="bi bi-file-text me-2"><\/i>Content Statistics<\/h3>';
+
+        // Summary Cards
+        html += '<div class="row mb-4">';
+        html += '<div class="col-md-4">';
+        html += '<div class="card bg-primary text-white">';
+        html += '<div class="card-body text-center">';
+        html += `<h3 class="card-title">${stats.translatable_content_types?.length || 0}<\/h3>`;
+        html += '<p class="card-text">Translatable Content Types<\/p>';
+        html += '<\/div><\/div><\/div>';
+
+        html += '<div class="col-md-4">';
+        html += '<div class="card bg-success text-white">';
+        html += '<div class="card-body text-center">';
+        html += `<h3 class="card-title">${formatNumber(stats.translated_nodes_count || 0)}<\/h3>`;
+        html += '<p class="card-text">Translated Nodes<\/p>';
+        html += '<\/div><\/div><\/div>';
+
+        html += '<div class="col-md-4">';
+        html += '<div class="card bg-info text-white">';
+        html += '<div class="card-body text-center">';
+        html += `<h3 class="card-title">${stats.languages_with_content?.length || 0}<\/h3>`;
+        html += '<p class="card-text">Languages with Content<\/p>';
+        html += '<\/div><\/div><\/div>';
+        html += '<\/div>';
+
+        // Translatable Content Types
+        if (stats.translatable_content_types && stats.translatable_content_types.length > 0) {
+          html += '<div class="card mb-4">';
+          html += '<div class="card-body">';
+          html += '<h5>Translatable Content Types<\/h5>';
+          html += '<table class="table table-striped">';
+          html += '<thead><tr><th>Content Type<\/th><th>Node Counts by Language<\/th><\/tr><\/thead>';
+          html += '<tbody>';
+
+          stats.translatable_content_types.forEach(type => {
+            html += '<tr>';
+            html += `<td><strong>${type.label}<\/strong><br><small class="text-muted">${type.type}<\/small><\/td>`;
+            html += '<td>';
+
+            if (type.node_counts_by_language && Object.keys(type.node_counts_by_language).length > 0) {
+              Object.entries(type.node_counts_by_language).forEach(([langcode, count]) => {
+                const isDefault = langcode === (data.languages?.default_language || 'en');
+                const badgeClass = isDefault ? 'bg-warning text-dark' : 'bg-light text-dark';
+                html += `<span class="badge ${badgeClass} me-2 mb-1">${langcode}: ${formatNumber(count)}<\/span>`;
+              });
+            } else {
+              html += '<span class="text-muted">No nodes<\/span>';
+            }
+
+            html += '<\/td>';
+            html += '<\/tr>';
+          });
+
+          html += '<\/tbody>';
+          html += '<\/table>';
+          html += '<\/div>';
+          html += '<\/div>';
+        }
+
+        // Languages with Content
+        if (stats.languages_with_content && stats.languages_with_content.length > 0) {
+          html += '<div class="card mb-4">';
+          html += '<div class="card-body">';
+          html += '<h5>Content Distribution by Language<\/h5>';
+
+          // Create a simple chart using Bootstrap progress bars
+          const maxCount = Math.max(...stats.languages_with_content.map(l => l.node_count));
+
+          stats.languages_with_content.forEach(langStat => {
+            const percentage = maxCount > 0 ? (langStat.node_count / maxCount) * 100 : 0;
+            const isDefault = langStat.langcode === (data.languages?.default_language || 'en');
+            const barClass = isDefault ? 'bg-warning' : 'bg-primary';
+
+            html += '<div class="mb-3">';
+            html += `<div class="d-flex justify-content-between align-items-center mb-1">`;
+            html += `<span><span class="language-flag">${getLanguageInitials(langStat.langcode)}<\/span><strong>${langStat.langcode.toUpperCase()}<\/strong>${isDefault ? ' <i class="bi bi-star-fill text-warning"><\/i>' : ''}<\/span>`;
+            html += `<span class="badge bg-secondary">${formatNumber(langStat.node_count)} nodes<\/span>`;
+            html += '<\/div>';
+            html += `<div class="progress" style="height: 25px;">`;
+            html += `<div class="progress-bar ${barClass}" role="progressbar" style="width: ${percentage}%" aria-valuenow="${langStat.node_count}" aria-valuemin="0" aria-valuemax="${maxCount}">`;
+            html += `${percentage.toFixed(1)}%`;
+            html += '<\/div><\/div>';
+            html += '<\/div>';
+          });
+
+          html += '<\/div>';
+          html += '<\/div>';
+        }
+      }
+
+      // Contributed Multilingual Modules
+      if (data.multilingual_enabled && data.contrib_modules && data.contrib_modules.length > 0) {
+        html += '<h3 class="mt-4 mb-3"><i class="bi bi-puzzle me-2"><\/i>Contributed Multilingual Modules<\/h3>';
+        html += '<div class="card mb-4">';
+        html += '<div class="card-body">';
+        html += '<table class="table table-hover">';
+        html += '<thead><tr><th>Module<\/th><th>Name<\/th><th>Version<\/th><th>Package<\/th><\/tr><\/thead>';
+        html += '<tbody>';
+
+        data.contrib_modules.forEach(module => {
+          html += '<tr>';
+          html += `<td><code>${module.module}<\/code><\/td>`;
+          html += `<td>${module.name}<\/td>`;
+          html += `<td><span class="badge bg-light text-dark">${module.version || 'N/A'}<\/span><\/td>`;
+          html += `<td><span class="badge bg-info">${module.package || 'N/A'}<\/span><\/td>`;
+          html += '<\/tr>';
+        });
+
+        html += '<\/tbody>';
+        html += '<\/table>';
+        html += '<\/div>';
+        html += '<\/div>';
+      }
+
+      // Recommendations
+      html += '<h3 class="mt-4 mb-3"><i class="bi bi-lightbulb me-2"><\/i>Recommendations<\/h3>';
+      html += '<div class="card border-start border-4 border-warning">';
+      html += '<div class="card-body">';
+      html += '<ul class="mb-0">';
+
+      if (!data.multilingual_enabled) {
+        html += '<li><strong>Single Language:<\/strong> This site operates in a single language. If multilingual support is needed, enable Language module and install required languages.<\/li>';
+        html += '<li><strong>Planning Multilingual:<\/strong> Consider enabling Content Translation, Interface Translation, and Config Translation modules for comprehensive multilingual support.<\/li>';
+      } else {
+        html += '<li><strong>Translation Workflow:<\/strong> Ensure proper translation workflows are in place for content editors.<\/li>';
+        html += '<li><strong>Interface Strings:<\/strong> If Interface Translation is enabled, regularly update and translate UI strings via translate.drupal.org.<\/li>';
+
+        if (data.modules && !data.modules.content_translation) {
+          html += '<li><strong>Missing Content Translation:<\/strong> Enable Content Translation module to allow node and entity translations.<\/li>';
+        }
+
+        if (data.modules && !data.modules.config_translation) {
+          html += '<li><strong>Missing Config Translation:<\/strong> Enable Config Translation module to translate menus, views, and other configuration.<\/li>';
+        }
+
+        if (data.content_statistics && data.content_statistics.translatable_content_types) {
+          const typesCount = data.content_statistics.translatable_content_types.length;
+          if (typesCount === 0) {
+            html += '<li><strong>No Translatable Content Types:<\/strong> Configure content types to be translatable in their settings.<\/li>';
+          } else {
+            html += `<li><strong>Translation Coverage:<\/strong> Monitor translation completeness across ${typesCount} translatable content type(s).<\/li>`;
+          }
+        }
+
+        html += '<li><strong>Performance:<\/strong> Multilingual sites may need additional caching strategies - consider enabling language-based cache contexts.<\/li>';
+        html += '<li><strong>SEO:<\/strong> Implement proper hreflang tags and language-specific URLs for better search engine indexing.<\/li>';
+      }
+
+      html += '<\/ul>';
+      html += '<\/div>';
+      html += '<\/div>';
+
+      container.innerHTML = html;
+    }
+
+    // Run the render function when page loads
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderMultilingual);
+    } else {
+      renderMultilingual();
+    }
+  </script>
+</body>
+</html>

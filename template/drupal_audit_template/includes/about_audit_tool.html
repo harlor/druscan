@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About This Audit Tool</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      background-color: #ffffff;
+    }
+    .feature-card {
+      border-left: 4px solid #0039FF;
+      padding: 15px;
+      margin-bottom: 15px;
+      background-color: #f8f9fa;
+      border-radius: 4px;
+    }
+    .feature-card h5 {
+      color: #0039FF;
+      margin-bottom: 10px;
+    }
+    .badge-custom {
+      background-color: #0039FF;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      margin-right: 8px;
+    }
+    .section-header {
+      border-bottom: 2px solid #0039FF;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <h1 class="section-header">
+      <i class="bi bi-tools me-2"></i>About This Audit Tool
+    </h1>
+
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="alert alert-primary" role="alert">
+          <i class="bi bi-info-circle-fill me-2"></i>
+          <strong>What is this?</strong> DRUSCAN is an automated Drupal audit tool that generates comprehensive technical analysis
+          without requiring direct database or codebase access. Perfect for evaluating sites when transitioning between agencies,
+          getting multiple vendor quotes, or assessing technical quality and security posture.
+        </div>
+      </div>
+    </div>
+
+    <h3 class="mt-4 mb-3"><i class="bi bi-target me-2 text-primary"></i>Primary Use Case: Agency Transitions & Vendor Evaluation</h3>
+
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-primary">
+          <div class="card-body">
+            <h5 class="card-title"><i class="bi bi-building me-2"></i>Project Handover Without Security Risks</h5>
+            <p>When transitioning a Drupal site to a new agency or getting quotes from multiple vendors, sharing full database dumps
+            and complete codebase access creates security and confidentiality concerns. DRUSCAN solves this by:</p>
+
+            <div class="row mt-3">
+              <div class="col-md-6">
+                <h6><i class="bi bi-shield-check text-success me-2"></i>What You Can Share Safely</h6>
+                <ul>
+                  <li>Structured JSON data about system configuration</li>
+                  <li>Module list and architecture overview</li>
+                  <li>Performance and security metrics</li>
+                  <li>Code quality statistics (without actual code)</li>
+                  <li>Content structure and entity relationships</li>
+                </ul>
+              </div>
+              <div class="col-md-6">
+                <h6><i class="bi bi-shield-x text-danger me-2"></i>What Stays Protected</h6>
+                <ul>
+                  <li>Actual database content and user data</li>
+                  <li>Proprietary custom code and business logic</li>
+                  <li>API keys and integration credentials</li>
+                  <li>Private files and media assets</li>
+                  <li>Server access and deployment details</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="alert alert-success mt-3 mb-0" role="alert">
+              <strong><i class="bi bi-lightbulb me-2"></i>Perfect For:</strong>
+              Request quotes from 3-5 agencies simultaneously without exposing sensitive data. Each vendor gets complete
+              technical insight needed for accurate estimation, while your intellectual property and data remain secure.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="mt-4 mb-3"><i class="bi bi-star-fill me-2 text-warning"></i>Key Features</h3>
+
+    <div class="row">
+      <div class="col-md-6">
+        <div class="feature-card">
+          <h5><i class="bi bi-shield-check me-2"></i>Security Analysis</h5>
+          <p>Comprehensive security assessment including:</p>
+          <ul>
+            <li>Security updates detection</li>
+            <li>Hacked module verification</li>
+            <li>Permission and role audit</li>
+            <li>Database log error analysis</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="feature-card">
+          <h5><i class="bi bi-puzzle-fill me-2"></i>Module Ecosystem Review</h5>
+          <p>Detailed module analysis covering:</p>
+          <ul>
+            <li>Enabled core and contributed modules</li>
+            <li>Custom module code quality</li>
+            <li>Module recommendations</li>
+            <li>Update availability check</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="feature-card">
+          <h5><i class="bi bi-diagram-3-fill me-2"></i>Architecture Overview</h5>
+          <p>Complete system structure analysis:</p>
+          <ul>
+            <li>Content type relationships</li>
+            <li>Entity structure and fields</li>
+            <li>Menu hierarchy</li>
+            <li>View configurations</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="feature-card">
+          <h5><i class="bi bi-code-square me-2"></i>Custom Code Assessment</h5>
+          <p>In-depth custom development review:</p>
+          <ul>
+            <li>Custom module analysis</li>
+            <li>Theme customization review</li>
+            <li>Code complexity metrics</li>
+            <li>Best practices validation</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="mt-4 mb-3"><i class="bi bi-bullseye me-2 text-primary"></i>Additional Use Cases</h3>
+
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <p>Beyond agency transitions, this audit tool helps you:</p>
+            <div class="row">
+              <div class="col-md-4">
+                <h6><i class="bi bi-shield-fill-check text-success me-2"></i>Ensure Security</h6>
+                <p class="small">Identify security vulnerabilities, outdated modules, and potential security risks before they become issues.</p>
+              </div>
+              <div class="col-md-4">
+                <h6><i class="bi bi-check-circle-fill text-success me-2"></i>Verify Quality</h6>
+                <p class="small">Assess if the development team is following best practices and maintaining code quality standards.</p>
+              </div>
+              <div class="col-md-4">
+                <h6><i class="bi bi-graph-up text-success me-2"></i>Optimize Performance</h6>
+                <p class="small">Discover performance bottlenecks and opportunities for optimization and scalability improvements.</p>
+              </div>
+              <div class="col-md-4">
+                <h6><i class="bi bi-arrow-repeat text-success me-2"></i>Plan Upgrades</h6>
+                <p class="small">Understand complexity and plan upgrade paths to newer Drupal versions with accurate time estimates.</p>
+              </div>
+              <div class="col-md-4">
+                <h6><i class="bi bi-cash-stack text-success me-2"></i>Estimate Costs</h6>
+                <p class="small">Evaluate technical debt and estimate maintenance costs for budget planning and resource allocation.</p>
+              </div>
+              <div class="col-md-4">
+                <h6><i class="bi bi-clipboard-check text-success me-2"></i>Compliance Check</h6>
+                <p class="small">Verify accessibility standards (WCAG), legal compliance (GDPR, cookies), and data protection measures.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="mt-4 mb-3"><i class="bi bi-list-check me-2 text-primary"></i>What's Included in This Audit</h3>
+
+    <div class="row">
+      <div class="col-12">
+        <p>This comprehensive audit covers multiple key areas including:</p>
+        <div class="row">
+          <div class="col-md-6">
+            <ul class="list-unstyled">
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>System Information & Environment</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Drupal Modules Ecosystem</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Security Updates & Patches</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Hacked Module Verification</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Custom Modules Analysis</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Custom Themes Review</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Recommended Modules</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Entity System Structure</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Menu Architecture</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Views Configuration</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Workflows & Content Moderation</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Cron Tasks & Automation</li>
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <ul class="list-unstyled">
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>External Integrations</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Homepage Configuration</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Database Log Errors</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Automated Tests Coverage</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>User Roles & Permissions</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Multisite & Multi-Domain</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Multilingual Support</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Performance Analysis</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Accessibility (WCAG 2.1)</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Legal Compliance (GDPR)</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Code Quality Tools</li>
+              <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>SEO Analysis</li>
+            </ul>
+          </div>
+        </div>
+        <p class="text-muted mt-2 small"><i class="bi bi-info-circle me-1"></i>More audit sections are continuously being added to provide even deeper insights.</p>
+      </div>
+    </div>
+
+    <h3 class="mt-4 mb-3"><i class="bi bi-gear-fill me-2 text-primary"></i>How It Works</h3>
+
+    <div class="row">
+      <div class="col-md-3">
+        <div class="text-center p-3 border rounded">
+          <i class="bi bi-terminal-fill display-4 text-primary mb-3"></i>
+          <h5>1. Data Collection</h5>
+          <p class="small">Automated scripts collect data using Drush commands and database queries.</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-center p-3 border rounded">
+          <i class="bi bi-cpu-fill display-4 text-primary mb-3"></i>
+          <h5>2. Analysis</h5>
+          <p class="small">AI-powered analysis processes the data to identify patterns and issues.</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-center p-3 border rounded">
+          <i class="bi bi-file-text-fill display-4 text-primary mb-3"></i>
+          <h5>3. Report Generation</h5>
+          <p class="small">Comprehensive report with findings, metrics, and visualizations is generated.</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-center p-3 border rounded">
+          <i class="bi bi-lightbulb-fill display-4 text-primary mb-3"></i>
+          <h5>4. Recommendations</h5>
+          <p class="small">Actionable recommendations prioritized by impact and effort required.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-info mt-4" role="alert">
+      <h5 class="alert-heading"><i class="bi bi-info-circle-fill me-2"></i>Navigation Tips</h5>
+      <ul class="mb-0">
+        <li>Use the left sidebar to navigate between sections</li>
+        <li>Each section provides detailed analysis and data for that specific area</li>
+        <li>The <strong>Executive Summary</strong> at the end provides high-level overview of findings</li>
+        <li>Check <strong>Key Recommendations</strong> for prioritized action items</li>
+        <li>Review the <strong>Conclusion</strong> for final assessment and next steps</li>
+      </ul>
+    </div>
+
+    <div class="alert alert-warning mt-3" role="alert">
+      <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>Version Compatibility</h5>
+      <p class="mb-0">
+        This audit tool is designed for <strong>Drupal 8, 9, 10, and 11</strong>. It uses modern Drush commands
+        and database schema from Drupal 8+. <strong>Drupal 7 sites are not supported</strong> by this automated audit tool.
+      </p>
+    </div>
+
+    <div class="card bg-light mt-4">
+      <div class="card-body">
+        <h5 class="card-title"><i class="bi bi-question-circle-fill me-2"></i>Questions or Feedback?</h5>
+        <p class="card-text">
+          This audit report is generated using advanced automation and AI analysis. If you have questions about
+          any findings or need clarification on recommendations, please contact the audit team.
+        </p>
+        <p class="card-text">
+          <small class="text-muted">
+            <i class="bi bi-clock me-1"></i>Typical audit generation time: 5-10 minutes<br>
+            <i class="bi bi-file-earmark-text me-1"></i>Report format: Interactive HTML with embedded visualizations
+          </small>
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

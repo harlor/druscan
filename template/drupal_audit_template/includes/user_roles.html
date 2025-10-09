@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Roles and Permissions</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+  <!-- Mermaid.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .permission-category {
+      background-color: var(--droptica-primary);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.9em;
+      font-weight: 500;
+    }
+
+    .permission-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+      padding: 15px;
+      background-color: #f8f9fa;
+    }
+
+    .role-badge {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.8em;
+      font-weight: 500;
+    }
+
+    .role-system { background-color: #e9ecef; color: #495057; }
+    .role-custom { background-color: #d1ecf1; color: #0c5460; }
+    .role-admin { background-color: #f8d7da; color: #721c24; }
+
+    .critical-perm {
+      background-color: #fff3cd;
+      border: 1px solid #ffeaa7;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin: 4px 0;
+    }
+
+    /* Mermaid Diagram Styles */
+    .diagram-section {
+      margin-top: 30px;
+      position: relative;
+    }
+
+    .mermaid {
+      text-align: center;
+      min-height: 400px;
+      cursor: grab;
+      overflow: hidden;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px;
+      background-color: #fafafa;
+    }
+
+    .mermaid:active {
+      cursor: grabbing;
+    }
+
+    .zoom-controls {
+      position: absolute;
+      top: 10px;
+      right: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      z-index: 1000;
+    }
+
+    .zoom-btn {
+      background: var(--droptica-primary);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 20px;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: background 0.2s;
+    }
+
+    .zoom-btn:hover {
+      background: #0029CC;
+    }
+
+    .zoom-btn:active {
+      transform: scale(0.95);
+    }
+
+    .mermaid svg {
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="user-roles-permissions">
+      <div class="card-body p-4">
+        <h2 class="mb-4">User Roles and Permissions Analysis</h2>
+        <p>Comprehensive analysis of user accounts, roles, and permission structure. This section provides insights into user management, access control, and security configuration.</p>
+
+        <div id="user-roles-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading user roles and permissions...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Safe placeholder handling - will be replaced during audit generation
+    let USER_ROLES_DATA;
+    try {
+      USER_ROLES_DATA = __USER_ROLES_JSON_PLACEHOLDER__;
+    } catch (e) {
+      // Placeholder not replaced yet - leave loading spinner visible
+      USER_ROLES_DATA = null;
+    }
+
+    function renderUserRoles() {
+      const container = document.getElementById('user-roles-content');
+
+      if (!USER_ROLES_DATA || typeof USER_ROLES_DATA !== 'object') {
+        // Keep loading spinner if data is not available
+        return;
+      }
+
+      // Handle nested structure - data is in full_analysis
+      const data = USER_ROLES_DATA.full_analysis || USER_ROLES_DATA;
+      let html = '';
+
+      // User Accounts Overview
+      if (data.user_statistics) {
+        const stats = data.user_statistics;
+        html += '<div class="row mb-4">';
+        html += '<div class="col-12"><h3 class="h5 mb-3"><i class="bi bi-people me-2"></i>User Accounts Overview</h3></div>';
+        html += `<div class="col-md-3">
+          <div class="card text-center border-primary">
+            <div class="card-body">
+              <h4 class="text-primary">${stats.total_users || 0}</h4>
+              <p class="mb-0">Total Users</p>
+            </div>
+          </div>
+        </div>`;
+        html += `<div class="col-md-3">
+          <div class="card text-center border-success">
+            <div class="card-body">
+              <h4 class="text-success">${stats.active_users || 0}</h4>
+              <p class="mb-0">Active Users</p>
+            </div>
+          </div>
+        </div>`;
+        html += `<div class="col-md-3">
+          <div class="card text-center border-danger">
+            <div class="card-body">
+              <h4 class="text-danger">${stats.blocked_users || 0}</h4>
+              <p class="mb-0">Blocked Users</p>
+            </div>
+          </div>
+        </div>`;
+        html += `<div class="col-md-3">
+          <div class="card text-center border-info">
+            <div class="card-body">
+              <h4 class="text-info">${stats.active_last_30_days || 0}</h4>
+              <p class="mb-0">Recent Logins (30d)</p>
+            </div>
+          </div>
+        </div>`;
+        html += '</div>';
+
+        // Registration Activity
+        if (stats.registrations_last_12_months && stats.registrations_last_12_months.length > 0) {
+          html += '<div class="row mb-4">';
+          html += '<div class="col-md-6"><div class="card">';
+          html += '<div class="card-header bg-light"><h6 class="mb-0"><i class="bi bi-calendar-plus me-2"></i>Registration Activity (Last 12 Months)</h6></div>';
+          html += '<div class="card-body">';
+          stats.registrations_last_12_months.forEach(reg => {
+            html += `<div class="d-flex justify-content-between align-items-center mb-2">
+              <span>${reg.month}</span>
+              <span class="badge bg-primary">${reg.count} user${reg.count !== 1 ? 's' : ''}</span>
+            </div>`;
+          });
+          html += '</div></div></div>';
+
+          html += '<div class="col-md-6"><div class="card">';
+          html += '<div class="card-header bg-light"><h6 class="mb-0"><i class="bi bi-person-check me-2"></i>User Status Distribution</h6></div>';
+          html += '<div class="card-body">';
+          html += `<div class="d-flex justify-content-between align-items-center mb-2">
+            <span>Active</span>
+            <span class="badge bg-success">${stats.active_users} user${stats.active_users !== 1 ? 's' : ''}</span>
+          </div>`;
+          if (stats.blocked_users > 0) {
+            html += `<div class="d-flex justify-content-between align-items-center">
+              <span>Blocked</span>
+              <span class="badge bg-danger">${stats.blocked_users} user${stats.blocked_users !== 1 ? 's' : ''}</span>
+            </div>`;
+          }
+          html += '</div></div></div>';
+          html += '</div>';
+        }
+      }
+
+      // Roles Overview
+      if (data.summary) {
+        const summary = data.summary;
+        html += '<div class="row mb-4">';
+        html += '<div class="col-12"><h3 class="h5 mb-3"><i class="bi bi-shield-check me-2"></i>User Roles Overview</h3></div>';
+        html += `<div class="col-md-4">
+          <div class="card text-center border-primary">
+            <div class="card-body">
+              <h4 class="text-primary">${summary.total_roles || 0}</h4>
+              <p class="mb-0">Total Roles</p>
+            </div>
+          </div>
+        </div>`;
+        html += `<div class="col-md-4">
+          <div class="card text-center border-info">
+            <div class="card-body">
+              <h4 class="text-info">${summary.system_roles || 0}</h4>
+              <p class="mb-0">System Roles</p>
+            </div>
+          </div>
+        </div>`;
+        html += `<div class="col-md-4">
+          <div class="card text-center border-warning">
+            <div class="card-body">
+              <h4 class="text-warning">${summary.custom_roles || 0}</h4>
+              <p class="mb-0">Custom Roles</p>
+            </div>
+          </div>
+        </div>`;
+        html += '</div>';
+      }
+
+      // Roles Table
+      if (data.roles && data.roles.length > 0) {
+        html += '<div class="row mb-4">';
+        html += '<div class="col-12"><div class="card">';
+        html += '<div class="card-header bg-light"><h6 class="mb-0"><i class="bi bi-table me-2"></i>All User Roles</h6></div>';
+        html += '<div class="card-body"><div class="table-responsive">';
+        html += '<table class="table table-hover table-primary">';
+        html += '<thead><tr><th>Role ID</th><th>Label</th><th>Weight</th><th>Type</th><th>Permissions</th><th>Users Assigned</th></tr></thead>';
+        html += '<tbody>';
+
+        const systemRoles = ['anonymous', 'authenticated', 'administrator'];
+        data.roles.forEach(role => {
+          const roleType = systemRoles.includes(role.role_id)
+            ? (role.is_admin ? '<span class="role-badge role-admin">Admin</span>' : '<span class="role-badge role-system">System</span>')
+            : '<span class="role-badge role-custom">Custom</span>';
+
+          const userCount = role.role_id === 'anonymous' ? 'N/A' : role.user_count;
+
+          html += `<tr>
+            <td><code>${role.role_id}</code></td>
+            <td>${role.label}</td>
+            <td>${role.weight}</td>
+            <td>${roleType}</td>
+            <td>${role.permissions_count}</td>
+            <td>${userCount}</td>
+          </tr>`;
+        });
+
+        html += '</tbody></table>';
+        html += '</div></div></div></div>';
+        html += '</div>';
+
+        // Custom Roles Detailed Analysis
+        const customRoles = data.roles.filter(r => !systemRoles.includes(r.role_id));
+        if (customRoles.length > 0) {
+          customRoles.forEach(role => {
+            html += `<div class="row mb-4">`;
+            html += `<div class="col-12">`;
+            html += `<h3 class="h5 mb-3"><i class="bi bi-gear me-2"></i>Custom Role: ${role.label} (${role.role_id})</h3>`;
+
+            html += `<div class="alert alert-info">
+              <i class="bi bi-info-circle me-2"></i>
+              <strong>Role Analysis:</strong> The ${role.label} role has ${role.permissions_count} permissions across multiple categories, providing comprehensive content management capabilities.
+            </div>`;
+
+            // Permission Categories Count
+            const perms = role.permissions;
+            html += '<div class="row">';
+            html += `<div class="col-md-3 mb-3">
+              <div class="card text-center">
+                <div class="card-body">
+                  <div class="permission-category mb-2">Access/View</div>
+                  <h4 class="mb-0">${perms.access_view ? perms.access_view.length : 0}</h4>
+                  <small class="text-muted">permissions</small>
+                </div>
+              </div>
+            </div>`;
+            html += `<div class="col-md-3 mb-3">
+              <div class="card text-center">
+                <div class="card-body">
+                  <div class="permission-category mb-2">Content Management</div>
+                  <h4 class="mb-0">${perms.content_management ? perms.content_management.length : 0}</h4>
+                  <small class="text-muted">permissions</small>
+                </div>
+              </div>
+            </div>`;
+            html += `<div class="col-md-3 mb-3">
+              <div class="card text-center">
+                <div class="card-body">
+                  <div class="permission-category mb-2">Administration</div>
+                  <h4 class="mb-0">${perms.administration ? perms.administration.length : 0}</h4>
+                  <small class="text-muted">permissions</small>
+                </div>
+              </div>
+            </div>`;
+            html += `<div class="col-md-3 mb-3">
+              <div class="card text-center">
+                <div class="card-body">
+                  <div class="permission-category mb-2">Other</div>
+                  <h4 class="mb-0">${(perms.usage ? perms.usage.length : 0) + (perms.other ? perms.other.length : 0)}</h4>
+                  <small class="text-muted">permissions</small>
+                </div>
+              </div>
+            </div>`;
+            html += '</div>';
+
+            // Detailed Permissions Accordion
+            html += '<div class="row mb-4">';
+            html += '<div class="col-12"><div class="card">';
+            html += '<div class="card-header bg-light"><h6 class="mb-0"><i class="bi bi-list-check me-2"></i>Detailed Permission Breakdown</h6></div>';
+            html += '<div class="card-body">';
+            html += `<div class="accordion" id="permsAccordion${role.role_id}">`;
+
+            // Access/View Permissions
+            if (perms.access_view && perms.access_view.length > 0) {
+              html += `<div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#access${role.role_id}">
+                    Access/View Permissions (${perms.access_view.length})
+                  </button>
+                </h2>
+                <div id="access${role.role_id}" class="accordion-collapse collapse" data-bs-parent="#permsAccordion${role.role_id}">
+                  <div class="accordion-body">
+                    <div class="permission-list">
+                      <ul class="list-unstyled">`;
+              perms.access_view.forEach(p => {
+                html += `<li>• ${p}</li>`;
+              });
+              html += `</ul></div></div></div></div>`;
+            }
+
+            // Administration Permissions
+            if (perms.administration && perms.administration.length > 0) {
+              html += `<div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#admin${role.role_id}">
+                    Administration Permissions (${perms.administration.length})
+                  </button>
+                </h2>
+                <div id="admin${role.role_id}" class="accordion-collapse collapse" data-bs-parent="#permsAccordion${role.role_id}">
+                  <div class="accordion-body">
+                    <div class="permission-list">
+                      <ul class="list-unstyled">`;
+              perms.administration.forEach(p => {
+                html += `<li>• ${p}</li>`;
+              });
+              html += `</ul></div></div></div></div>`;
+            }
+
+            // Content Management Permissions
+            if (perms.content_management && perms.content_management.length > 0) {
+              html += `<div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#content${role.role_id}">
+                    Content Management Permissions (${perms.content_management.length})
+                  </button>
+                </h2>
+                <div id="content${role.role_id}" class="accordion-collapse collapse" data-bs-parent="#permsAccordion${role.role_id}">
+                  <div class="accordion-body">
+                    <div class="permission-list">
+                      <ul class="list-unstyled">`;
+              perms.content_management.forEach(p => {
+                html += `<li>• ${p}</li>`;
+              });
+              html += `</ul></div></div></div></div>`;
+            }
+
+            html += '</div></div></div></div></div>';
+            html += '</div></div>';
+          });
+        }
+      }
+
+      // Security Analysis
+      if (data.security_analysis) {
+        const security = data.security_analysis;
+        html += '<div class="row mb-4">';
+        html += '<div class="col-12"><h3 class="h5 mb-3"><i class="bi bi-shield-exclamation me-2"></i>Security Analysis</h3>';
+
+        if (security.admin_users_count === 0) {
+          html += `<div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Security Notice:</strong> No users are currently assigned to administrative roles. Consider assigning appropriate users to the Administrator role for system management.
+          </div>`;
+        }
+
+        html += '<div class="row">';
+        html += `<div class="col-md-4">
+          <div class="card">
+            <div class="card-header bg-light"><h6 class="mb-0">Administrative Users</h6></div>
+            <div class="card-body text-center">
+              <h4 class="${security.admin_users_count > 0 ? 'text-success' : 'text-muted'}">${security.admin_users_count}</h4>
+              <small>${security.admin_users_count === 0 ? 'No admin users found' : 'Admin users'}</small>
+            </div>
+          </div>
+        </div>`;
+        html += `<div class="col-md-4">
+          <div class="card">
+            <div class="card-header bg-light"><h6 class="mb-0">Users with Multiple Roles</h6></div>
+            <div class="card-body text-center">
+              <h4 class="${security.multi_role_users_count > 0 ? 'text-info' : 'text-muted'}">${security.multi_role_users_count}</h4>
+              <small>${security.multi_role_users_count === 0 ? 'No multi-role users' : 'Multi-role users'}</small>
+            </div>
+          </div>
+        </div>`;
+        html += `<div class="col-md-4">
+          <div class="card">
+            <div class="card-header bg-light"><h6 class="mb-0">Blocked Users</h6></div>
+            <div class="card-body text-center">
+              <h4 class="${security.blocked_users_count > 0 ? 'text-danger' : 'text-success'}">${security.blocked_users_count}</h4>
+              <small>${security.blocked_users_count === 0 ? 'No blocked users' : 'Blocked users'}</small>
+            </div>
+          </div>
+        </div>`;
+        html += '</div></div></div>';
+      }
+
+      // Generate Mermaid Diagram
+      if (data.roles) {
+        html += generateMermaidDiagram(data.roles, data.security_analysis);
+      }
+
+      // Recommendations
+      html += `<div class="row">
+        <div class="col-12">
+          <div class="alert alert-info">
+            <h6><i class="bi bi-lightbulb me-2"></i>Recommendations</h6>
+            <ul class="mb-0">`;
+
+      if (data.security_analysis && data.security_analysis.admin_users_count === 0) {
+        html += '<li><strong>Assign Administrator:</strong> Consider assigning at least one user to the Administrator role for system management</li>';
+      }
+
+      const customRoles = data.roles ? data.roles.filter(r => !['anonymous', 'authenticated', 'administrator'].includes(r.role_id)) : [];
+      if (customRoles.length > 0) {
+        const hasHighPerms = customRoles.some(r => {
+          const adminPerms = r.permissions.administration || [];
+          return adminPerms.some(p => p.includes('bypass') || p.includes('administer nodes'));
+        });
+        if (hasHighPerms) {
+          html += '<li><strong>Review Custom Role Permissions:</strong> Some custom roles have extensive administrative permissions - ensure this is intentional</li>';
+        }
+      }
+
+      html += `<li><strong>User Activity:</strong> Monitor user login activity and consider implementing session management policies</li>
+              <li><strong>Role Documentation:</strong> Document the purpose and scope of custom roles for future reference</li>
+            </ul>
+          </div>
+        </div>
+      </div>`;
+
+      container.innerHTML = html;
+
+      // Initialize Mermaid after content is rendered
+      setTimeout(() => {
+        mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+        initializeDiagramControls();
+      }, 100);
+    }
+
+    function generateMermaidDiagram(roles, security) {
+      let html = '<div class="row mb-4">';
+      html += '<div class="col-12">';
+      html += '<h3 class="h5 mb-3"><i class="bi bi-diagram-3 me-2"></i>User Roles and Permissions Overview</h3>';
+      html += '<div class="diagram-section">';
+      html += '<div class="zoom-controls">';
+      html += '<button class="zoom-btn" onclick="zoomIn(\'userRolesDiagram\')">+</button>';
+      html += '<button class="zoom-btn" onclick="zoomOut(\'userRolesDiagram\')">−</button>';
+      html += '<button class="zoom-btn" onclick="resetZoom(\'userRolesDiagram\')" style="font-size: 16px;">⟲</button>';
+      html += '</div>';
+      html += '<div class="mermaid" id="userRolesDiagram">';
+      html += 'graph TD\n';
+      html += 'Users[User System] --> Anonymous[Anonymous User]\n';
+      html += 'Users --> Authenticated[Authenticated User]\n';
+
+      const systemRoles = ['anonymous', 'authenticated', 'administrator'];
+      const customRoles = roles.filter(r => !systemRoles.includes(r.role_id));
+
+      // Add custom roles
+      customRoles.forEach(role => {
+        const safeId = role.role_id.replace(/[^a-zA-Z0-9]/g, '_');
+        html += `Users --> ${safeId}[${role.label}]\n`;
+      });
+
+      html += 'Users --> Admin[Administrator]\n\n';
+
+      // Anonymous permissions
+      const anonRole = roles.find(r => r.role_id === 'anonymous');
+      if (anonRole && anonRole.permissions_count > 0) {
+        html += `Anonymous --> |can| AnonPerms[${anonRole.permissions_count} permissions]\n`;
+      }
+
+      // Authenticated permissions
+      const authRole = roles.find(r => r.role_id === 'authenticated');
+      if (authRole) {
+        html += `Authenticated --> |can| AuthPerms[${authRole.permissions_count} permissions]\n`;
+        html += `Authenticated -.-> AuthCount[${authRole.user_count} users assigned]\n`;
+      }
+
+      // Custom role permissions
+      customRoles.forEach(role => {
+        const safeId = role.role_id.replace(/[^a-zA-Z0-9]/g, '_');
+        html += `${safeId} --> |can| ${safeId}Perms[${role.permissions_count} permissions]\n`;
+        html += `${safeId} -.-> ${safeId}Count[${role.user_count} users assigned]\n`;
+      });
+
+      // Admin
+      const adminCount = security && security.admin_users_count ? security.admin_users_count : 0;
+      html += `Admin --> |has| AdminFull[Full Administrative Access]\n`;
+      html += `Admin -.-> AdminCount[${adminCount} users assigned]\n\n`;
+
+      // Styling
+      html += 'style Users fill:#0678BE,color:#fff\n';
+      html += 'style Anonymous fill:#CCCCCC,color:#000\n';
+      html += 'style Authenticated fill:#66B3E0,color:#000\n';
+      customRoles.forEach((role, idx) => {
+        const safeId = role.role_id.replace(/[^a-zA-Z0-9]/g, '_');
+        html += `style ${safeId} fill:#F59E0B,color:#000\n`;
+      });
+      html += 'style Admin fill:#DC2626,color:#fff\n';
+
+      html += '</div></div></div></div>';
+      return html;
+    }
+
+    // Initialize Mermaid
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      flowchart: {
+        useMaxWidth: false,
+        htmlLabels: true,
+        curve: 'basis'
+      },
+      themeVariables: {
+        fontSize: '16px'
+      }
+    });
+
+    // Zoom and pan functionality
+    const zoomLevels = {};
+    const panPositions = {};
+
+    function initializeDiagramControls() {
+      document.querySelectorAll('.diagram-section').forEach(section => {
+        const mermaidDiv = section.querySelector('.mermaid');
+        if (!mermaidDiv) return;
+
+        const diagramId = mermaidDiv.id;
+        zoomLevels[diagramId] = 1;
+        panPositions[diagramId] = { x: 0, y: 0 };
+
+        const svgElement = mermaidDiv.querySelector('svg');
+        if (svgElement) {
+          // Enable mouse wheel zoom
+          mermaidDiv.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            const currentZoom = zoomLevels[diagramId];
+            const newZoom = Math.max(0.5, Math.min(5, currentZoom + delta));
+            zoomLevels[diagramId] = newZoom;
+            applyTransform(diagramId);
+          });
+
+          // Enable drag to pan
+          let isDragging = false;
+          let startX, startY;
+
+          mermaidDiv.addEventListener('mousedown', function(e) {
+            if (e.target.closest('svg')) {
+              isDragging = true;
+              startX = e.clientX - panPositions[diagramId].x;
+              startY = e.clientY - panPositions[diagramId].y;
+              mermaidDiv.style.cursor = 'grabbing';
+            }
+          });
+
+          mermaidDiv.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+              panPositions[diagramId].x = e.clientX - startX;
+              panPositions[diagramId].y = e.clientY - startY;
+              applyTransform(diagramId);
+            }
+          });
+
+          mermaidDiv.addEventListener('mouseup', function() {
+            isDragging = false;
+            mermaidDiv.style.cursor = 'grab';
+          });
+
+          mermaidDiv.addEventListener('mouseleave', function() {
+            isDragging = false;
+            mermaidDiv.style.cursor = 'grab';
+          });
+        }
+      });
+    }
+
+    function applyTransform(diagramId) {
+      const mermaidDiv = document.getElementById(diagramId);
+      const svg = mermaidDiv.querySelector('svg');
+      if (svg) {
+        const zoom = zoomLevels[diagramId];
+        const pan = panPositions[diagramId];
+        svg.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
+      }
+    }
+
+    function zoomIn(diagramId) {
+      const currentZoom = zoomLevels[diagramId] || 1;
+      zoomLevels[diagramId] = Math.min(5, currentZoom + 0.2);
+      applyTransform(diagramId);
+    }
+
+    function zoomOut(diagramId) {
+      const currentZoom = zoomLevels[diagramId] || 1;
+      zoomLevels[diagramId] = Math.max(0.5, currentZoom - 0.2);
+      applyTransform(diagramId);
+    }
+
+    function resetZoom(diagramId) {
+      zoomLevels[diagramId] = 1;
+      panPositions[diagramId] = { x: 0, y: 0 };
+      applyTransform(diagramId);
+    }
+
+    // Render on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderUserRoles);
+    } else {
+      renderUserRoles();
+    }
+  </script>
+</body>
+</html>

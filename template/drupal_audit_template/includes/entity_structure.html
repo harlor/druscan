@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entity Structure</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-primary-dark: #0029CC;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .diagram-container {
+      position: relative;
+      margin: 20px 0;
+    }
+
+    .zoom-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      z-index: 1000;
+    }
+
+    .zoom-btn {
+      background: var(--droptica-primary);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 20px;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: background 0.2s;
+    }
+
+    .zoom-btn:hover {
+      background: var(--droptica-primary-dark);
+    }
+
+    .zoom-btn:active {
+      transform: scale(0.95);
+    }
+
+    .mermaid {
+      background-color: #fff;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 0;
+      text-align: center;
+      overflow: hidden;
+      cursor: grab;
+    }
+
+    .mermaid:active {
+      cursor: grabbing;
+    }
+
+    .mermaid svg {
+      max-width: 100%;
+      height: auto;
+      transition: transform 0.2s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="entity-system-structure">
+      <div class="card-body p-4">
+        <h2 class="mb-4">Entity System Structure</h2>
+        <p>Complete overview of the entity architecture including content types, taxonomy, media, and user fields. For visual representation, see the accompanying Mermaid.js diagram file.</p>
+
+        <div class="alert alert-info border-start border-4 border-info">
+          <i class="bi bi-diagram-3-fill me-2"></i>
+          <strong>Note:</strong> A separate HTML file with interactive Mermaid.js diagrams is generated for visual representation of entity relationships.
+        </div>
+
+        <div id="entity-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading entity structure information...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Initialize Mermaid
+    if (typeof mermaid !== 'undefined') {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'default',
+        securityLevel: 'loose',
+        flowchart: {
+          useMaxWidth: true,
+          htmlLabels: true
+        }
+      });
+    }
+
+    // Safe placeholder handling - will be replaced during audit generation
+    let ENTITY_DATA;
+    try {
+      ENTITY_DATA = __ENTITY_STRUCTURE_JSON_PLACEHOLDER__;
+    } catch (e) {
+      // Placeholder not replaced yet - leave loading spinner visible
+      ENTITY_DATA = null;
+    }
+
+    function renderEntityStructure() {
+      const container = document.getElementById('entity-content');
+
+      if (!ENTITY_DATA || typeof ENTITY_DATA !== 'object') {
+        // Keep loading spinner if data is not available
+        return;
+      }
+
+      const data = ENTITY_DATA;
+      let html = '';
+
+      // Entity Statistics Cards
+      html += '<div class="row mb-4">';
+      html += `<div class="col-md-3">
+        <div class="card text-center border-primary">
+          <div class="card-body">
+            <h4 class="text-primary">${data.statistics_content_types_count || 0}</h4>
+            <p class="mb-0">Content Types</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card text-center border-success">
+          <div class="card-body">
+            <h4 class="text-success">${data.statistics_total_nodes || 0}</h4>
+            <p class="mb-0">Total Content Items</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card text-center border-warning">
+          <div class="card-body">
+            <h4 class="text-warning">${data.statistics_taxonomy_vocabs_count || 0}</h4>
+            <p class="mb-0">Taxonomy Vocabularies</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card text-center border-info">
+          <div class="card-body">
+            <h4 class="text-info">${data.statistics_media_types_count || 0}</h4>
+            <p class="mb-0">Media Types</p>
+          </div>
+        </div>
+      </div>`;
+      html += '</div>';
+
+      // Entity Statistics Table
+      html += '<h3 class="mt-4 mb-3">Entity Statistics</h3>';
+      html += '<div class="table-responsive">';
+      html += '<table class="table table-hover table-primary">';
+      html += '<thead>';
+      html += '<tr>';
+      html += '<th>Entity Type</th>';
+      html += '<th>Bundle/Type</th>';
+      html += '<th>Total Count</th>';
+      html += '<th>Created in Last Year</th>';
+      html += '</tr>';
+      html += '</thead>';
+      html += '<tbody>';
+
+      // Content Types
+      if (data.content_types_with_counts && Array.isArray(data.content_types_with_counts)) {
+        data.content_types_with_counts.forEach(ct => {
+          html += '<tr>';
+          html += '<td>Node</td>';
+          html += `<td><strong>${ct.type || 'N/A'}</strong></td>`;
+          html += `<td>${ct.total || 0}</td>`;
+          html += `<td>${ct.last_year || 0}</td>`;
+          html += '</tr>';
+        });
+      }
+
+      // Taxonomy
+      if (data.taxonomy_with_counts && Array.isArray(data.taxonomy_with_counts)) {
+        data.taxonomy_with_counts.forEach(tax => {
+          html += '<tr>';
+          html += '<td>Taxonomy term</td>';
+          html += `<td><strong>${tax.vid || 'N/A'}</strong></td>`;
+          html += `<td>${tax.total || 0}</td>`;
+          html += `<td>${tax.last_year || 0}</td>`;
+          html += '</tr>';
+        });
+      }
+
+      // Media
+      if (data.media_with_counts && Array.isArray(data.media_with_counts)) {
+        data.media_with_counts.forEach(media => {
+          html += '<tr>';
+          html += '<td>Media</td>';
+          html += `<td><strong>${media.bundle || 'N/A'}</strong></td>`;
+          html += `<td>${media.total || 0}</td>`;
+          html += `<td>${media.last_year || 0}</td>`;
+          html += '</tr>';
+        });
+      }
+
+      // Users
+      if (data.users_statistics) {
+        html += '<tr>';
+        html += '<td>User</td>';
+        html += '<td>-</td>';
+        html += `<td>${data.users_statistics.total || 0}</td>`;
+        html += `<td>${data.users_statistics.last_year || 0}</td>`;
+        html += '</tr>';
+      }
+
+      html += '</tbody>';
+      html += '</table>';
+      html += '</div>';
+
+      // Content Types Details
+      if (data.full_analysis && data.full_analysis.entity_types && data.full_analysis.entity_types.node) {
+        html += '<h3 class="mt-5 mb-3">Content Types (Node)</h3>';
+        html += '<p class="text-muted">Detailed field configuration for each content type</p>';
+
+        data.full_analysis.entity_types.node.forEach(bundleData => {
+          const contentType = bundleData.bundle;
+          html += `<h4 class="h6 mt-4 mb-3 text-primary"><i class="bi bi-file-earmark-text me-2"></i>${contentType}</h4>`;
+
+          if (bundleData.fields && Object.keys(bundleData.fields).length > 0) {
+            html += '<div class="table-responsive">';
+            html += '<table class="table table-sm table-hover table-primary">';
+            html += '<thead>';
+            html += '<tr>';
+            html += '<th>Field Name</th>';
+            html += '<th>Label</th>';
+            html += '<th>Field Type</th>';
+            html += '<th>Required</th>';
+            html += '<th>Cardinality</th>';
+            html += '</tr>';
+            html += '</thead>';
+            html += '<tbody>';
+
+            Object.entries(bundleData.fields).forEach(([fieldName, fieldData]) => {
+              html += '<tr>';
+              html += `<td><code>${fieldName}</code></td>`;
+              html += `<td>${fieldData.label || 'N/A'}</td>`;
+              html += `<td>${fieldData.type || 'N/A'}</td>`;
+              const isRequired = fieldData.required || false;
+              html += `<td><span class="badge ${isRequired ? 'bg-danger' : 'bg-secondary'}">${isRequired ? 'Yes' : 'No'}</span></td>`;
+              html += `<td>${fieldData.cardinality === -1 ? 'Multiple' : 'Single'}</td>`;
+              html += '</tr>';
+            });
+
+            html += '</tbody>';
+            html += '</table>';
+            html += '</div>';
+          } else {
+            html += '<p class="text-muted">No custom fields configured for this content type.</p>';
+          }
+        });
+      }
+
+      // Taxonomy Vocabularies Details
+      if (data.full_analysis && data.full_analysis.entity_types && data.full_analysis.entity_types.taxonomy_term) {
+        html += '<h3 class="mt-5 mb-3">Taxonomy Vocabularies</h3>';
+
+        data.full_analysis.entity_types.taxonomy_term.forEach(vocabData => {
+          const vocabId = vocabData.bundle;
+          html += `<h4 class="h6 mt-4 mb-3 text-primary"><i class="bi bi-tags-fill me-2"></i>${vocabId}</h4>`;
+
+          if (vocabData.fields && Object.keys(vocabData.fields).length > 0) {
+            html += '<div class="table-responsive">';
+            html += '<table class="table table-sm table-hover table-primary">';
+            html += '<thead>';
+            html += '<tr>';
+            html += '<th>Field Name</th>';
+            html += '<th>Label</th>';
+            html += '<th>Field Type</th>';
+            html += '<th>Required</th>';
+            html += '<th>Cardinality</th>';
+            html += '</tr>';
+            html += '</thead>';
+            html += '<tbody>';
+
+            Object.entries(vocabData.fields).forEach(([fieldName, fieldData]) => {
+              html += '<tr>';
+              html += `<td><code>${fieldName}</code></td>`;
+              html += `<td>${fieldData.label || 'N/A'}</td>`;
+              html += `<td>${fieldData.type || 'N/A'}</td>`;
+              const isRequired = fieldData.required || false;
+              html += `<td><span class="badge ${isRequired ? 'bg-danger' : 'bg-secondary'}">${isRequired ? 'Yes' : 'No'}</span></td>`;
+              html += `<td>${fieldData.cardinality === -1 ? 'Multiple' : 'Single'}</td>`;
+              html += '</tr>';
+            });
+
+            html += '</tbody>';
+            html += '</table>';
+            html += '</div>';
+          } else {
+            html += '<p class="text-muted">No custom fields configured for this vocabulary.</p>';
+          }
+        });
+      }
+
+      // User Fields
+      if (data.full_analysis && data.full_analysis.entity_types && data.full_analysis.entity_types.user) {
+        const userData = data.full_analysis.entity_types.user[0]; // User is always a single bundle
+        if (userData && userData.fields && Object.keys(userData.fields).length > 0) {
+          html += '<h3 class="mt-5 mb-3">User Fields</h3>';
+          html += '<div class="table-responsive">';
+          html += '<table class="table table-sm table-hover table-primary">';
+          html += '<thead>';
+          html += '<tr>';
+          html += '<th>Field Name</th>';
+          html += '<th>Label</th>';
+          html += '<th>Field Type</th>';
+          html += '<th>Required</th>';
+          html += '<th>Cardinality</th>';
+          html += '</tr>';
+          html += '</thead>';
+          html += '<tbody>';
+
+          Object.entries(userData.fields).forEach(([fieldName, fieldData]) => {
+            html += '<tr>';
+            html += `<td><code>${fieldName}</code></td>`;
+            html += `<td>${fieldData.label || 'N/A'}</td>`;
+            html += `<td>${fieldData.type || 'N/A'}</td>`;
+            const isRequired = fieldData.required || false;
+            html += `<td><span class="badge ${isRequired ? 'bg-danger' : 'bg-secondary'}">${isRequired ? 'Yes' : 'No'}</span></td>`;
+            html += `<td>${fieldData.cardinality === -1 ? 'Multiple' : 'Single'}</td>`;
+            html += '</tr>';
+          });
+
+          html += '</tbody>';
+          html += '</table>';
+          html += '</div>';
+        }
+      }
+
+      // Media Types Details
+      if (data.full_analysis && data.full_analysis.entity_types && data.full_analysis.entity_types.media) {
+        html += '<h3 class="mt-5 mb-3">Media Types</h3>';
+
+        data.full_analysis.entity_types.media.forEach(mediaData => {
+          const mediaType = mediaData.bundle;
+          html += `<h4 class="h6 mt-4 mb-3 text-primary"><i class="bi bi-file-earmark-image me-2"></i>${mediaType}</h4>`;
+
+          if (mediaData.fields && Object.keys(mediaData.fields).length > 0) {
+            html += '<div class="table-responsive">';
+            html += '<table class="table table-sm table-hover table-primary">';
+            html += '<thead>';
+            html += '<tr>';
+            html += '<th>Field Name</th>';
+            html += '<th>Label</th>';
+            html += '<th>Field Type</th>';
+            html += '<th>Required</th>';
+            html += '<th>Cardinality</th>';
+            html += '</tr>';
+            html += '</thead>';
+            html += '<tbody>';
+
+            Object.entries(mediaData.fields).forEach(([fieldName, fieldData]) => {
+              html += '<tr>';
+              html += `<td><code>${fieldName}</code></td>`;
+              html += `<td>${fieldData.label || 'N/A'}</td>`;
+              html += `<td>${fieldData.type || 'N/A'}</td>`;
+              const isRequired = fieldData.required || false;
+              html += `<td><span class="badge ${isRequired ? 'bg-danger' : 'bg-secondary'}">${isRequired ? 'Yes' : 'No'}</span></td>`;
+              html += `<td>${fieldData.cardinality === -1 ? 'Multiple' : 'Single'}</td>`;
+              html += '</tr>';
+            });
+
+            html += '</tbody>';
+            html += '</table>';
+            html += '</div>';
+          } else {
+            html += '<p class="text-muted">No custom fields configured for this media type.</p>';
+          }
+        });
+      }
+
+      // Paragraph Types Details
+      if (data.full_analysis && data.full_analysis.entity_types && data.full_analysis.entity_types.paragraph) {
+        html += '<h3 class="mt-5 mb-3">Paragraph Types</h3>';
+
+        if (data.paragraph_types_list && data.paragraph_types_list.length > 0) {
+          html += '<div class="alert alert-info">';
+          html += `<strong>${data.paragraph_types_list.length} paragraph types configured</strong><br>`;
+          html += `<small>${data.paragraph_types_list.join(', ')}</small>`;
+          html += '</div>';
+        }
+
+        data.full_analysis.entity_types.paragraph.forEach(paraData => {
+          const paraType = paraData.bundle;
+          html += `<h4 class="h6 mt-4 mb-3 text-primary"><i class="bi bi-card-text me-2"></i>${paraType}</h4>`;
+
+          if (paraData.fields && Object.keys(paraData.fields).length > 0) {
+            html += '<div class="table-responsive">';
+            html += '<table class="table table-sm table-hover table-primary">';
+            html += '<thead>';
+            html += '<tr>';
+            html += '<th>Field Name</th>';
+            html += '<th>Label</th>';
+            html += '<th>Field Type</th>';
+            html += '<th>Required</th>';
+            html += '<th>Cardinality</th>';
+            html += '</tr>';
+            html += '</thead>';
+            html += '<tbody>';
+
+            Object.entries(paraData.fields).forEach(([fieldName, fieldData]) => {
+              html += '<tr>';
+              html += `<td><code>${fieldName}</code></td>`;
+              html += `<td>${fieldData.label || 'N/A'}</td>`;
+              html += `<td>${fieldData.type || 'N/A'}</td>`;
+              const isRequired = fieldData.required || false;
+              html += `<td><span class="badge ${isRequired ? 'bg-danger' : 'bg-secondary'}">${isRequired ? 'Yes' : 'No'}</span></td>`;
+              html += `<td>${fieldData.cardinality === -1 ? 'Multiple' : 'Single'}</td>`;
+              html += '</tr>';
+            });
+
+            html += '</tbody>';
+            html += '</table>';
+            html += '</div>';
+          } else {
+            html += '<p class="text-muted">No custom fields configured for this paragraph type.</p>';
+          }
+        });
+      }
+
+      // User Roles
+      if (data.user_roles) {
+        html += '<h3 class="mt-5 mb-3">User Roles</h3>';
+        html += '<ul class="list-unstyled">';
+
+        Object.entries(data.user_roles).forEach(([roleId, roleData]) => {
+          html += `<li class="mb-2"><i class="bi bi-person-fill text-primary me-2"></i><strong>${roleData.label || roleId}</strong></li>`;
+        });
+
+        html += '</ul>';
+      }
+
+      // Overall Statistics
+      if (data.full_analysis && data.full_analysis.overall_statistics) {
+        const stats = data.full_analysis.overall_statistics;
+        html += '<h3 class="mt-5 mb-3">Overall Statistics</h3>';
+        html += '<div class="row">';
+
+        Object.entries(stats).forEach(([key, value]) => {
+          html += '<div class="col-md-3 mb-3">';
+          html += '<div class="card">';
+          html += '<div class="card-body text-center">';
+          html += `<h5 class="card-title">${value}</h5>`;
+          html += `<p class="card-text text-muted">${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>`;
+          html += '</div>';
+          html += '</div>';
+          html += '</div>';
+        });
+
+        html += '</div>';
+      }
+
+      // Custom Entities
+      if (data.full_analysis && data.full_analysis.custom_entities && data.full_analysis.custom_entities.length > 0) {
+        html += '<h3 class="mt-5 mb-3"><i class="bi bi-gear-fill me-2"></i>Custom Entities</h3>';
+        html += '<div class="alert alert-warning">';
+        html += `<i class="bi bi-exclamation-triangle-fill me-2"></i><strong>${data.full_analysis.custom_entities.length} custom entity type(s) detected</strong>`;
+        html += '<p class="mb-0 mt-2 small">These entities are defined by custom modules and require special attention during upgrades.</p>';
+        html += '</div>';
+
+        data.full_analysis.custom_entities.forEach(entity => {
+          html += '<div class="card mb-4 border-warning">';
+          html += '<div class="card-header bg-warning bg-opacity-10">';
+          html += `<h4 class="h5 mb-0"><strong>${entity.label || entity.entity_id}</strong> <small class="text-muted">(<code>${entity.entity_id}</code>)</small></h4>`;
+          html += `<small class="text-muted">Module: <code>${entity.module}</code> | Class: <code>${entity.class_name}</code></small>`;
+          html += '</div>';
+          html += '<div class="card-body">';
+
+          // Entity Properties
+          html += '<div class="row mb-3">';
+          html += '<div class="col-md-6">';
+          html += '<strong>Base Table:</strong> ';
+          html += entity.base_table ? `<code>${entity.base_table}</code>` : '<span class="text-muted">N/A</span>';
+          html += '</div>';
+          html += '<div class="col-md-3">';
+          html += '<strong>Fieldable:</strong> ';
+          html += `<span class="badge ${entity.is_fieldable ? 'bg-success' : 'bg-secondary'}">${entity.is_fieldable ? 'Yes' : 'No'}</span>`;
+          html += '</div>';
+          html += '<div class="col-md-3">';
+          html += '<strong>Has Created Field:</strong> ';
+          html += `<span class="badge ${entity.has_created_field ? 'bg-success' : 'bg-secondary'}">${entity.has_created_field ? 'Yes' : 'No'}</span>`;
+          html += '</div>';
+          html += '</div>';
+
+          // Statistics
+          if (entity.statistics) {
+            html += '<h5 class="h6 mt-4 mb-3"><i class="bi bi-bar-chart-fill me-2"></i>Records Statistics</h5>';
+            html += '<div class="row">';
+            html += '<div class="col-md-4">';
+            html += '<div class="card text-center">';
+            html += '<div class="card-body">';
+            html += `<h4 class="text-primary">${entity.statistics.total || 0}</h4>`;
+            html += '<p class="mb-0 small">Total Records</p>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+            html += '<div class="col-md-4">';
+            html += '<div class="card text-center">';
+            html += '<div class="card-body">';
+            html += `<h4 class="text-success">${entity.statistics.last_year || 0}</h4>`;
+            html += '<p class="mb-0 small">Created Last Year</p>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+            html += '<div class="col-md-4">';
+            html += '<div class="card text-center">';
+            html += '<div class="card-body">';
+            html += `<h4 class="text-info">${entity.statistics.last_month || 0}</h4>`;
+            html += '<p class="mb-0 small">Created Last Month</p>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+          }
+
+          // Database Table Schema
+          if (entity.table_schema && entity.table_schema.length > 0) {
+            html += '<h5 class="h6 mt-4 mb-3"><i class="bi bi-table me-2"></i>Database Table Schema</h5>';
+            html += '<div class="table-responsive">';
+            html += '<table class="table table-sm table-hover">';
+            html += '<thead class="table-light">';
+            html += '<tr>';
+            html += '<th>Column Name</th>';
+            html += '<th>Data Type</th>';
+            html += '<th>Nullable</th>';
+            html += '<th>Key</th>';
+            html += '<th>Default</th>';
+            html += '<th>Extra</th>';
+            html += '</tr>';
+            html += '</thead>';
+            html += '<tbody>';
+
+            entity.table_schema.forEach(column => {
+              html += '<tr>';
+              html += `<td><code>${column.name}</code></td>`;
+              html += `<td><span class="badge bg-secondary">${column.type}</span></td>`;
+              html += `<td>${column.null === 'YES' ? '<span class="text-success">Yes</span>' : '<span class="text-danger">No</span>'}</td>`;
+              html += `<td>${column.key ? `<span class="badge bg-info">${column.key}</span>` : '-'}</td>`;
+              html += `<td>${column.default !== null ? `<code>${column.default}</code>` : '<span class="text-muted">NULL</span>'}</td>`;
+              html += `<td>${column.extra || '-'}</td>`;
+              html += '</tr>';
+            });
+
+            html += '</tbody>';
+            html += '</table>';
+            html += '</div>';
+          }
+
+          // Custom Fields
+          if (entity.custom_fields && entity.custom_fields.length > 0) {
+            html += '<h5 class="h6 mt-4 mb-3"><i class="bi bi-input-cursor-text me-2"></i>Custom Fields (Fieldable Entity)</h5>';
+            html += '<div class="table-responsive">';
+            html += '<table class="table table-sm table-hover">';
+            html += '<thead class="table-light">';
+            html += '<tr>';
+            html += '<th>Bundle</th>';
+            html += '<th>Field Name</th>';
+            html += '<th>Label</th>';
+            html += '<th>Field Type</th>';
+            html += '<th>Required</th>';
+            html += '<th>Cardinality</th>';
+            html += '</tr>';
+            html += '</thead>';
+            html += '<tbody>';
+
+            entity.custom_fields.forEach(field => {
+              html += '<tr>';
+              html += `<td><code>${field.bundle}</code></td>`;
+              html += `<td><code>${field.field_name}</code></td>`;
+              html += `<td>${field.label || 'N/A'}</td>`;
+              html += `<td><span class="badge bg-primary">${field.type}</span></td>`;
+              html += `<td><span class="badge ${field.required ? 'bg-danger' : 'bg-secondary'}">${field.required ? 'Yes' : 'No'}</span></td>`;
+              html += `<td>${field.cardinality === -1 ? '<span class="badge bg-info">Multiple</span>' : '<span class="badge bg-secondary">Single</span>'}</td>`;
+              html += '</tr>';
+            });
+
+            html += '</tbody>';
+            html += '</table>';
+            html += '</div>';
+          } else if (entity.is_fieldable) {
+            html += '<div class="alert alert-info mt-3">';
+            html += '<i class="bi bi-info-circle me-2"></i><small>This entity is fieldable but has no custom fields configured.</small>';
+            html += '</div>';
+          }
+
+          html += '</div>'; // card-body
+          html += '</div>'; // card
+        });
+      }
+
+      // Mermaid Diagram
+      if (data.full_analysis && data.full_analysis.mermaid_diagram) {
+        html += '<h3 class="mt-5 mb-3">Entity Relationship Diagram</h3>';
+        html += '<div class="alert alert-info">';
+        html += '<i class="bi bi-diagram-3 me-2"></i>';
+        html += '<strong>Interactive diagram showing relationships between entity types</strong><br>';
+        html += '<small>Use mouse wheel to zoom, drag to pan, or use the +/- buttons</small>';
+        html += '</div>';
+        html += '<div class="diagram-container">';
+        html += '<div class="zoom-controls">';
+        html += '<button class="zoom-btn" onclick="zoomInDiagram()">+</button>';
+        html += '<button class="zoom-btn" onclick="zoomOutDiagram()">−</button>';
+        html += '<button class="zoom-btn" onclick="resetZoomDiagram()" style="font-size: 16px;">⟲</button>';
+        html += '</div>';
+        html += '<div class="mermaid" id="entity-diagram">';
+        html += data.full_analysis.mermaid_diagram;
+        html += '</div>';
+        html += '</div>';
+      }
+
+      container.innerHTML = html;
+
+      // Initialize Mermaid if diagram exists
+      if (data.full_analysis && data.full_analysis.mermaid_diagram && typeof mermaid !== 'undefined') {
+        try {
+          mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+
+          // Setup zoom and pan functionality
+          setTimeout(() => {
+            setupDiagramInteraction();
+          }, 100);
+        } catch (e) {
+          console.error('Mermaid initialization error:', e);
+        }
+      }
+    }
+
+    // Diagram zoom and pan functionality
+    let diagramZoom = 1;
+    let diagramPan = { x: 0, y: 0 };
+    let isDragging = false;
+    let startX, startY;
+
+    function setupDiagramInteraction() {
+      const diagram = document.getElementById('entity-diagram');
+      if (!diagram) return;
+
+      const svg = diagram.querySelector('svg');
+      if (!svg) return;
+
+      // Mouse wheel zoom
+      diagram.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        diagramZoom = Math.max(0.5, Math.min(3, diagramZoom + delta));
+        applyDiagramTransform();
+      });
+
+      // Drag to pan
+      diagram.addEventListener('mousedown', (e) => {
+        if (e.target.closest('svg')) {
+          isDragging = true;
+          startX = e.clientX - diagramPan.x;
+          startY = e.clientY - diagramPan.y;
+        }
+      });
+
+      diagram.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+          diagramPan.x = e.clientX - startX;
+          diagramPan.y = e.clientY - startY;
+          applyDiagramTransform();
+        }
+      });
+
+      diagram.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+
+      diagram.addEventListener('mouseleave', () => {
+        isDragging = false;
+      });
+    }
+
+    function applyDiagramTransform() {
+      const diagram = document.getElementById('entity-diagram');
+      if (!diagram) return;
+
+      const svg = diagram.querySelector('svg');
+      if (svg) {
+        svg.style.transform = `translate(${diagramPan.x}px, ${diagramPan.y}px) scale(${diagramZoom})`;
+      }
+    }
+
+    function zoomInDiagram() {
+      diagramZoom = Math.min(3, diagramZoom + 0.2);
+      applyDiagramTransform();
+    }
+
+    function zoomOutDiagram() {
+      diagramZoom = Math.max(0.5, diagramZoom - 0.2);
+      applyDiagramTransform();
+    }
+
+    function resetZoomDiagram() {
+      diagramZoom = 1;
+      diagramPan = { x: 0, y: 0 };
+      applyDiagramTransform();
+    }
+
+    // Render on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderEntityStructure);
+    } else {
+      renderEntityStructure();
+    }
+  </script>
+</body>
+</html>

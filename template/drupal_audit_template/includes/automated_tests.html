@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automated Tests</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="automated-tests">
+      <div class="card-body p-4">
+        <h2 class="mb-4">Automated Tests</h2>
+        <p>Automated testing is a critical component of software quality assurance. This section analyzes the presence and configuration of automated tests in the Drupal project, including PHPUnit, Behat, Codeception, and other testing frameworks.</p>
+
+        <div id="automated-tests-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading automated tests information...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Safe placeholder handling - will be replaced during audit generation
+    let AUTOMATED_TESTS_DATA;
+    try {
+      AUTOMATED_TESTS_DATA = __AUTOMATED_TESTS_JSON_PLACEHOLDER__;
+    } catch (e) {
+      // Placeholder not replaced yet - leave loading spinner visible
+      AUTOMATED_TESTS_DATA = null;
+    }
+
+    function renderAutomatedTests() {
+      const container = document.getElementById('automated-tests-content');
+
+      if (!AUTOMATED_TESTS_DATA || typeof AUTOMATED_TESTS_DATA !== 'object') {
+        // Keep loading spinner if data is not available
+        return;
+      }
+
+      const data = AUTOMATED_TESTS_DATA.full_analysis || AUTOMATED_TESTS_DATA;
+      let html = '';
+
+      // Test Statistics Cards
+      html += '<div class="row mb-4">';
+      html += `<div class="col-md-3">
+        <div class="card text-center border-primary">
+          <div class="card-body">
+            <h4 class="text-primary">${data.statistics?.total_test_files || 0}</h4>
+            <p class="mb-0">Total Test Files</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card text-center border-success">
+          <div class="card-body">
+            <h4 class="text-success">${data.statistics?.phpunit_tests || 0}</h4>
+            <p class="mb-0">PHPUnit Tests</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card text-center border-warning">
+          <div class="card-body">
+            <h4 class="text-warning">${data.statistics?.behat_features || 0}</h4>
+            <p class="mb-0">Behat Features</p>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card text-center border-info">
+          <div class="card-body">
+            <h4 class="text-info">${data.statistics?.coverage_percent || 0}%</h4>
+            <p class="mb-0">Test Coverage</p>
+          </div>
+        </div>
+      </div>`;
+      html += '</div>';
+
+      html += '<div class="alert alert-info border-start border-4 border-info">';
+      html += '<i class="bi bi-info-circle-fill me-2"></i>';
+      html += '<strong>About Automated Tests:</strong> Automated tests verify that code works as expected and prevent regressions during development. Drupal supports multiple testing frameworks for different testing needs: unit tests, integration tests, functional tests, and behavior-driven development (BDD) tests.';
+      html += '</div>';
+
+      // Test Framework Configuration
+      html += '<h3 class="mt-4 mb-3">Test Framework Configuration</h3>';
+      html += '<p class="text-muted mb-3">Configuration files and testing packages installed in the project</p>';
+
+      html += '<div class="table-responsive">';
+      html += '<table class="table table-hover table-primary">';
+      html += '<thead><tr>';
+      html += '<th style="width: 25%;">Framework</th>';
+      html += '<th style="width: 25%;">Config File</th>';
+      html += '<th style="width: 25%;">Composer Package</th>';
+      html += '<th style="width: 25%;">Status</th>';
+      html += '</tr></thead>';
+      html += '<tbody>';
+
+      // PHPUnit
+      const phpunitConfigured = data.frameworks?.phpunit_configured || false;
+      html += '<tr>';
+      html += '<td><strong>PHPUnit</strong></td>';
+      html += '<td><code>phpunit.xml</code> or <code>phpunit.xml.dist</code></td>';
+      html += '<td><code>phpunit/phpunit</code></td>';
+      html += `<td><span class="badge ${phpunitConfigured ? 'bg-success' : 'bg-danger'}">`;
+      html += `<i class="bi ${phpunitConfigured ? 'bi-check-circle' : 'bi-x-circle'} me-1"></i>`;
+      html += `${phpunitConfigured ? 'Configured' : 'Not configured'}</span></td>`;
+      html += '</tr>';
+
+      // Behat
+      const behatConfigured = data.frameworks?.behat_configured || false;
+      html += '<tr>';
+      html += '<td><strong>Behat</strong></td>';
+      html += '<td><code>behat.yml</code> or <code>behat.yml.dist</code></td>';
+      html += '<td><code>behat/behat</code></td>';
+      html += `<td><span class="badge ${behatConfigured ? 'bg-success' : 'bg-danger'}">`;
+      html += `<i class="bi ${behatConfigured ? 'bi-check-circle' : 'bi-x-circle'} me-1"></i>`;
+      html += `${behatConfigured ? 'Configured' : 'Not configured'}</span></td>`;
+      html += '</tr>';
+
+      // Codeception
+      const codeceptionConfigured = data.frameworks?.codeception_configured || false;
+      html += '<tr>';
+      html += '<td><strong>Codeception</strong></td>';
+      html += '<td><code>codeception.yml</code> or <code>codeception.dist.yml</code></td>';
+      html += '<td><code>codeception/codeception</code></td>';
+      html += `<td><span class="badge ${codeceptionConfigured ? 'bg-success' : 'bg-danger'}">`;
+      html += `<i class="bi ${codeceptionConfigured ? 'bi-check-circle' : 'bi-x-circle'} me-1"></i>`;
+      html += `${codeceptionConfigured ? 'Configured' : 'Not configured'}</span></td>`;
+      html += '</tr>';
+
+      html += '</tbody></table>';
+      html += '</div>';
+
+      // Test Files Statistics
+      html += '<h3 class="mt-5 mb-3">Test Files Statistics</h3>';
+      html += '<p class="text-muted mb-3">Count and distribution of test files across the project</p>';
+
+      html += '<div class="row">';
+      html += `<div class="col-md-3">
+        <div class="card bg-light">
+          <div class="card-body text-center">
+            <h4 class="text-primary">${data.statistics?.phpunit_tests || 0}</h4>
+            <p class="mb-0 small text-muted">PHPUnit Tests</p>
+            <small class="text-muted">(*Test.php files)</small>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card bg-light">
+          <div class="card-body text-center">
+            <h4 class="text-success">${data.statistics?.behat_features || 0}</h4>
+            <p class="mb-0 small text-muted">Behat Features</p>
+            <small class="text-muted">(*.feature files)</small>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card bg-light">
+          <div class="card-body text-center">
+            <h4 class="text-info">${data.statistics?.codeception_tests || 0}</h4>
+            <p class="mb-0 small text-muted">Codeception Tests</p>
+            <small class="text-muted">(*Cept/*Cest files)</small>
+          </div>
+        </div>
+      </div>`;
+      html += `<div class="col-md-3">
+        <div class="card bg-light">
+          <div class="card-body text-center">
+            <h4 class="text-warning">${data.statistics?.modules_with_tests || 0}</h4>
+            <p class="mb-0 small text-muted">Modules with Tests</p>
+            <small class="text-muted">(out of ${data.statistics?.total_custom_modules || 0} modules)</small>
+          </div>
+        </div>
+      </div>`;
+      html += '</div>';
+
+      // PHPUnit Test Types Distribution
+      if (data.phpunit) {
+        html += '<h3 class="mt-5 mb-3">PHPUnit Test Types Distribution</h3>';
+        html += '<p class="text-muted mb-3">Breakdown of PHPUnit tests by type (Unit, Kernel, Functional, FunctionalJavascript)</p>';
+
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-hover table-primary">';
+        html += '<thead><tr>';
+        html += '<th>Test Type</th>';
+        html += '<th>Location</th>';
+        html += '<th>Count</th>';
+        html += '<th>Purpose</th>';
+        html += '</tr></thead>';
+        html += '<tbody>';
+
+        html += '<tr>';
+        html += '<td><strong>Unit Tests</strong></td>';
+        html += '<td><code>/tests/src/Unit/</code></td>';
+        html += `<td>${data.phpunit.unit_tests || 0}</td>`;
+        html += '<td>Test individual classes/methods in isolation (no database)</td>';
+        html += '</tr>';
+
+        html += '<tr>';
+        html += '<td><strong>Kernel Tests</strong></td>';
+        html += '<td><code>/tests/src/Kernel/</code></td>';
+        html += `<td>${data.phpunit.kernel_tests || 0}</td>`;
+        html += '<td>Test Drupal subsystems with minimal bootstrap (database required)</td>';
+        html += '</tr>';
+
+        html += '<tr>';
+        html += '<td><strong>Functional Tests</strong></td>';
+        html += '<td><code>/tests/src/Functional/</code></td>';
+        html += `<td>${data.phpunit.functional_tests || 0}</td>`;
+        html += '<td>Test complete workflows with full Drupal bootstrap</td>';
+        html += '</tr>';
+
+        html += '<tr>';
+        html += '<td><strong>FunctionalJavascript Tests</strong></td>';
+        html += '<td><code>/tests/src/FunctionalJavascript/</code></td>';
+        html += `<td>${data.phpunit.functional_js_tests || 0}</td>`;
+        html += '<td>Test JavaScript-heavy features with browser automation</td>';
+        html += '</tr>';
+
+        html += '</tbody></table>';
+        html += '</div>';
+      }
+
+      // Test Coverage by Custom Module
+      if (data.phpunit?.tests_in_custom_modules && data.phpunit.tests_in_custom_modules.length > 0) {
+        html += '<h3 class="mt-5 mb-3">Test Coverage by Custom Module</h3>';
+        html += '<p class="text-muted mb-3">Test files present in each custom module</p>';
+
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-hover table-primary">';
+        html += '<thead><tr>';
+        html += '<th>Module Name</th>';
+        html += '<th>Test Files Count</th>';
+        html += '<th>Test Types</th>';
+        html += '<th>Test Coverage</th>';
+        html += '</tr></thead>';
+        html += '<tbody>';
+
+        data.phpunit.tests_in_custom_modules.forEach(module => {
+          html += '<tr>';
+          html += `<td><code>${module.module}</code></td>`;
+          html += `<td>${module.total_tests}</td>`;
+          html += '<td>';
+          if (module.unit > 0) html += `<span class="badge bg-primary me-1">Unit: ${module.unit}</span>`;
+          if (module.kernel > 0) html += `<span class="badge bg-info me-1">Kernel: ${module.kernel}</span>`;
+          if (module.functional > 0) html += `<span class="badge bg-success me-1">Functional: ${module.functional}</span>`;
+          if (module.functional_js > 0) html += `<span class="badge bg-warning me-1">JS: ${module.functional_js}</span>`;
+          if (module.total_tests === 0) html += '<span class="text-muted">No tests</span>';
+          html += '</td>';
+
+          let coverageBadge = 'bg-danger';
+          let coverageText = 'No coverage';
+          let icon = 'bi-x-circle';
+
+          if (module.total_tests > 5) {
+            coverageBadge = 'bg-success';
+            coverageText = 'Good coverage';
+            icon = 'bi-check-circle';
+          } else if (module.total_tests > 0) {
+            coverageBadge = 'bg-warning';
+            coverageText = 'Moderate coverage';
+            icon = 'bi-exclamation-triangle';
+          }
+
+          html += `<td><span class="badge ${coverageBadge}"><i class="bi ${icon} me-1"></i>${coverageText}</span></td>`;
+          html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        html += '</div>';
+      }
+
+      // Modules without tests
+      if (data.coverage?.modules_without_tests && data.coverage.modules_without_tests.length > 0) {
+        html += '<div class="alert alert-warning mt-3">';
+        html += '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+        html += `<strong>Modules Without Tests (${data.coverage.modules_without_tests.length}):</strong> `;
+        html += data.coverage.modules_without_tests.map(m => `<code>${m}</code>`).join(', ');
+        html += '</div>';
+      }
+
+      // Composer Test Scripts
+      if (data.composer?.test_scripts && data.composer.test_scripts.length > 0) {
+        html += '<h3 class="mt-5 mb-3">Composer Test Scripts</h3>';
+        html += '<p class="text-muted mb-3">Test execution commands configured in composer.json</p>';
+
+        html += '<pre class="bg-light p-3 rounded"><code>"scripts": {\n';
+        data.composer.test_scripts.forEach((script, index) => {
+          const comma = index < data.composer.test_scripts.length - 1 ? ',' : '';
+          const command = Array.isArray(script.command) ? script.command.join(' && ') : script.command;
+          html += `  "${script.name}": "${command}"${comma}\n`;
+        });
+        html += '}</code></pre>';
+      }
+
+      // Composer Testing Packages
+      if (data.composer?.testing_packages && data.composer.testing_packages.length > 0) {
+        html += '<h3 class="mt-5 mb-3">Testing Packages (from composer.json)</h3>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-sm table-hover">';
+        html += '<thead><tr><th>Package</th><th>Version</th></tr></thead>';
+        html += '<tbody>';
+        data.composer.testing_packages.forEach(pkg => {
+          html += `<tr><td><code>${pkg.package}</code></td><td>${pkg.version}</td></tr>`;
+        });
+        html += '</tbody></table>';
+        html += '</div>';
+      }
+
+      html += '<div class="alert alert-info border-start border-4 border-info mt-3">';
+      html += '<i class="bi bi-terminal-fill me-2"></i>';
+      html += '<strong>Running Tests:</strong>';
+      html += '<ul class="mb-0 mt-2">';
+      html += '<li>All tests: <code>ddev composer test</code> or <code>ddev exec vendor/bin/phpunit</code></li>';
+      html += '<li>Specific test suite: <code>ddev exec vendor/bin/phpunit --testsuite [suite-name]</code></li>';
+      html += '<li>With coverage report: <code>ddev composer test:coverage</code></li>';
+      html += '<li>Single test file: <code>ddev exec vendor/bin/phpunit path/to/TestFile.php</code></li>';
+      html += '</ul>';
+      html += '</div>';
+
+      // Testing Best Practices Assessment
+      html += '<h3 class="mt-5 mb-3">Testing Best Practices Assessment</h3>';
+
+      html += '<h4 class="h6 mt-4 mb-3 text-success"><i class="bi bi-check-circle-fill me-2"></i>Strengths</h4>';
+      html += '<ul class="list-unstyled">';
+
+      if (phpunitConfigured) {
+        html += '<li class="mb-2"><span class="badge bg-success me-2">✓</span>PHPUnit is properly configured with phpunit.xml</li>';
+      }
+      if (data.statistics?.modules_with_tests > 0) {
+        html += `<li class="mb-2"><span class="badge bg-success me-2">✓</span>${data.statistics.modules_with_tests} custom modules have test coverage</li>`;
+      }
+      if (data.phpunit?.unit_tests > 0 || data.phpunit?.kernel_tests > 0 || data.phpunit?.functional_tests > 0) {
+        html += '<li class="mb-2"><span class="badge bg-success me-2">✓</span>Tests include multiple test types (Unit, Kernel, Functional)</li>';
+      }
+      if (data.composer?.test_scripts && data.composer.test_scripts.length > 0) {
+        html += '<li class="mb-2"><span class="badge bg-success me-2">✓</span>Composer scripts defined for easy test execution</li>';
+      }
+
+      html += '</ul>';
+
+      html += '<h4 class="h6 mt-4 mb-3 text-warning"><i class="bi bi-exclamation-triangle-fill me-2"></i>Areas for Improvement</h4>';
+      html += '<ul class="list-unstyled">';
+
+      if (data.coverage?.modules_without_tests && data.coverage.modules_without_tests.length > 0) {
+        html += `<li class="mb-2"><span class="badge bg-warning me-2">!</span>${data.coverage.modules_without_tests.length} custom modules lack any automated tests</li>`;
+      }
+      if (!data.phpunit?.functional_js_tests || data.phpunit.functional_js_tests === 0) {
+        html += '<li class="mb-2"><span class="badge bg-warning me-2">!</span>No FunctionalJavascript tests for JS-heavy features</li>';
+      }
+      if (!behatConfigured) {
+        html += '<li class="mb-2"><span class="badge bg-warning me-2">!</span>Behat not configured for behavior-driven development</li>';
+      }
+      if (data.statistics?.coverage_percent < 50) {
+        html += `<li class="mb-2"><span class="badge bg-warning me-2">!</span>Low test coverage: only ${data.statistics.coverage_percent}% of custom modules have tests</li>`;
+      }
+
+      html += '</ul>';
+
+      // Summary and Recommendations
+      html += '<h3 class="mt-5 mb-3">Summary and Recommendations</h3>';
+
+      html += '<div class="alert alert-success border-start border-4 border-success">';
+      html += '<i class="bi bi-check-circle-fill me-2"></i>';
+      html += '<strong>Current Testing Status:</strong>';
+      html += '<ul class="mb-0 mt-2">';
+      html += `<li>Total test files: ${data.statistics?.total_test_files || 0}</li>`;
+      html += `<li>Modules with tests: ${data.statistics?.modules_with_tests || 0} out of ${data.statistics?.total_custom_modules || 0} custom modules</li>`;
+
+      let primaryFramework = 'None';
+      if (phpunitConfigured) primaryFramework = 'PHPUnit';
+      else if (behatConfigured) primaryFramework = 'Behat';
+      else if (codeceptionConfigured) primaryFramework = 'Codeception';
+      html += `<li>Primary framework: ${primaryFramework}</li>`;
+
+      let coverageLevel = 'None';
+      const coveragePercent = data.statistics?.coverage_percent || 0;
+      if (coveragePercent >= 80) coverageLevel = 'Good';
+      else if (coveragePercent >= 50) coverageLevel = 'Moderate';
+      else if (coveragePercent > 0) coverageLevel = 'Poor';
+      html += `<li>Test coverage: ${coverageLevel} (${coveragePercent}%)</li>`;
+      html += '</ul>';
+      html += '</div>';
+
+      html += '<div class="alert alert-warning border-start border-4 border-warning mt-3">';
+      html += '<i class="bi bi-lightbulb-fill me-2"></i>';
+      html += '<strong>Recommendations:</strong>';
+      html += '<ul class="mb-0 mt-2">';
+      html += '<li>Add tests to modules without any coverage (priority: critical business logic)</li>';
+      html += '<li>Implement continuous integration (CI) to run tests automatically on commits</li>';
+      html += '<li>Configure test coverage reports to track and improve coverage percentage</li>';
+      html += '<li>Add FunctionalJavascript tests for JavaScript-heavy interactive features</li>';
+      html += '<li>Consider Behat for behavior-driven development and user acceptance testing</li>';
+      html += '<li>Document testing procedures in project README or TESTING.md file</li>';
+      html += '<li>Set up code quality gates requiring minimum test coverage for new code</li>';
+      html += '<li>Train development team on writing and maintaining automated tests</li>';
+      html += '</ul>';
+      html += '</div>';
+
+      html += '<div class="alert alert-info border-start border-4 border-info mt-3">';
+      html += '<i class="bi bi-book-fill me-2"></i>';
+      html += '<strong>Testing Resources:</strong>';
+      html += '<ul class="mb-0 mt-2">';
+      html += '<li><a href="https://www.drupal.org/docs/automated-testing" target="_blank" class="footer-link">Drupal Automated Testing Documentation</a></li>';
+      html += '<li><a href="https://phpunit.de/documentation.html" target="_blank" class="footer-link">PHPUnit Official Documentation</a></li>';
+      html += '<li><a href="https://docs.behat.org/" target="_blank" class="footer-link">Behat Documentation (BDD Framework)</a></li>';
+      html += '<li><a href="https://codeception.com/docs/01-Introduction" target="_blank" class="footer-link">Codeception Documentation</a></li>';
+      html += '</ul>';
+      html += '</div>';
+
+      container.innerHTML = html;
+    }
+
+    // Render on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderAutomatedTests);
+    } else {
+      renderAutomatedTests();
+    }
+  </script>
+</body>
+</html>

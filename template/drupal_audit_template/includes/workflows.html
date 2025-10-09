@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workflows</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="workflows">
+      <div class="card-body p-4">
+        <h2 class="mb-4">Workflows and Content Moderation</h2>
+        <p>Content workflow configuration including moderation states, transitions, and entity assignments. The Workflows module (core in Drupal 8.6+) provides a framework for managing content approval processes.</p>
+
+        <div class="alert alert-info border-start border-4 border-info">
+          <i class="bi bi-info-circle-fill me-2"></i>
+          <strong>About Workflows:</strong> The Workflows module provides the framework, while Content Moderation applies workflows to content entities (nodes, media, blocks). Workflows define states (Draft, Published, Archived) and allowed transitions between them.
+        </div>
+
+        <div id="workflows-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading workflows information...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Safe placeholder handling - will be replaced during audit generation
+    let WORKFLOWS_DATA;
+    try {
+      WORKFLOWS_DATA = __WORKFLOWS_JSON_PLACEHOLDER__;
+    } catch (e) {
+      // Placeholder not replaced yet - leave loading spinner visible
+      WORKFLOWS_DATA = null;
+    }
+
+    function renderWorkflows() {
+      const container = document.getElementById('workflows-content');
+
+      if (!WORKFLOWS_DATA || typeof WORKFLOWS_DATA !== 'object') {
+        // Keep loading spinner if data is not available
+        return;
+      }
+
+      // Handle nested structure (full_analysis wrapper)
+      const data = WORKFLOWS_DATA.full_analysis || WORKFLOWS_DATA;
+      let html = '';
+
+      // Workflows Statistics Cards
+      html += '<div class="row mb-4">';
+      html += '<div class="col-md-3">';
+      html += '<div class="card text-center border-primary">';
+      html += '<div class="card-body">';
+      html += `<h4 class="text-primary">${data.statistics?.total_workflows || 0}</h4>`;
+      html += '<p class="mb-0">Active Workflows</p>';
+      html += '</div></div></div>';
+
+      html += '<div class="col-md-3">';
+      html += '<div class="card text-center border-success">';
+      html += '<div class="card-body">';
+      html += `<h4 class="text-success">${data.statistics?.moderated_content_types || 0}</h4>`;
+      html += '<p class="mb-0">Moderated Content Types</p>';
+      html += '</div></div></div>';
+
+      html += '<div class="col-md-3">';
+      html += '<div class="card text-center border-warning">';
+      html += '<div class="card-body">';
+      html += `<h4 class="text-warning">${data.statistics?.total_states || 0}</h4>`;
+      html += '<p class="mb-0">Total States</p>';
+      html += '</div></div></div>';
+
+      html += '<div class="col-md-3">';
+      html += '<div class="card text-center border-info">';
+      html += '<div class="card-body">';
+      html += `<h4 class="text-info">${data.statistics?.total_transitions || 0}</h4>`;
+      html += '<p class="mb-0">Total Transitions</p>';
+      html += '</div></div></div>';
+      html += '</div>';
+
+      // Workflows Module Status
+      html += '<h3 class="mt-4 mb-3">Workflows Module Status</h3>';
+      html += '<ul class="list-unstyled">';
+
+      const workflowsEnabled = data.modules?.workflows_enabled;
+      html += '<li class="mb-2">';
+      html += '<i class="bi bi-gear-fill text-primary me-2"></i>';
+      html += '<strong>Workflows Module:</strong> ';
+      if (workflowsEnabled) {
+        html += '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Enabled</span>';
+      } else {
+        html += '<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Not enabled</span>';
+      }
+      html += '</li>';
+
+      const moderationEnabled = data.modules?.content_moderation_enabled;
+      html += '<li class="mb-2">';
+      html += '<i class="bi bi-gear-fill text-primary me-2"></i>';
+      html += '<strong>Content Moderation Module:</strong> ';
+      if (moderationEnabled) {
+        html += '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Enabled</span>';
+      } else {
+        html += '<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Not enabled</span>';
+      }
+      html += '</li>';
+      html += '</ul>';
+
+      // If workflows not enabled, show message and return
+      if (!workflowsEnabled) {
+        html += '<div class="alert alert-warning border-start border-4 border-warning mt-4">';
+        html += '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+        html += '<strong>Workflows Not Enabled:</strong> The Workflows module is not currently enabled on this site. Enable it to use content moderation features.';
+        html += '</div>';
+        container.innerHTML = html;
+        return;
+      }
+
+      // Configured Workflows Table
+      if (data.workflows && data.workflows.length > 0) {
+        html += '<h3 class="mt-4 mb-3">Configured Workflows</h3>';
+        html += '<p class="text-muted mb-3">All workflows configured in the system with their states and transitions</p>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-hover table-primary">';
+        html += '<thead><tr>';
+        html += '<th>Workflow ID</th>';
+        html += '<th>Label</th>';
+        html += '<th>Type</th>';
+        html += '<th>States Count</th>';
+        html += '<th>Transitions Count</th>';
+        html += '</tr></thead>';
+        html += '<tbody>';
+
+        data.workflows.forEach(workflow => {
+          html += '<tr>';
+          html += `<td><code>${workflow.id}</code></td>`;
+          html += `<td>${workflow.label}</td>`;
+          html += `<td>${workflow.type}</td>`;
+          html += `<td>${workflow.states_count}</td>`;
+          html += `<td>${workflow.transitions_count}</td>`;
+          html += '</tr>';
+        });
+
+        html += '</tbody></table></div>';
+
+        // Workflow Details for each workflow
+        data.workflows.forEach(workflow => {
+          html += `<h3 class="mt-5 mb-3">Workflow Details: ${workflow.label}</h3>`;
+          html += `<p class="text-muted mb-3">States and transitions configuration for the ${workflow.label} workflow</p>`;
+
+          // Workflow States
+          if (workflow.states && Object.keys(workflow.states).length > 0) {
+            html += '<h4 class="h6 mt-4 mb-3 text-primary"><i class="bi bi-circle-fill me-2"></i>Workflow States</h4>';
+            html += '<div class="table-responsive">';
+            html += '<table class="table table-sm table-hover table-primary">';
+            html += '<thead><tr>';
+            html += '<th>State ID</th>';
+            html += '<th>Label</th>';
+            html += '<th>Published Status</th>';
+            html += '<th>Default Revision</th>';
+            html += '</tr></thead>';
+            html += '<tbody>';
+
+            Object.entries(workflow.states).forEach(([stateId, state]) => {
+              html += '<tr>';
+              html += `<td><code>${state.id}</code></td>`;
+              html += `<td>${state.label}</td>`;
+
+              // Published status
+              html += '<td>';
+              if (state.published === true) {
+                html += '<span class="badge bg-success">Published</span>';
+              } else if (state.published === false) {
+                html += '<span class="badge bg-secondary">Unpublished</span>';
+              } else {
+                html += '<span class="badge bg-secondary">N/A</span>';
+              }
+              html += '</td>';
+
+              // Default revision
+              html += '<td>';
+              if (state.default_revision === true) {
+                html += '<span class="badge bg-info">Yes</span>';
+              } else if (state.default_revision === false) {
+                html += '<span class="badge bg-secondary">No</span>';
+              } else {
+                html += '<span class="badge bg-secondary">N/A</span>';
+              }
+              html += '</td>';
+              html += '</tr>';
+            });
+
+            html += '</tbody></table></div>';
+          }
+
+          // Workflow Transitions
+          if (workflow.transitions && Object.keys(workflow.transitions).length > 0) {
+            html += '<h4 class="h6 mt-4 mb-3 text-primary"><i class="bi bi-arrow-left-right me-2"></i>Workflow Transitions</h4>';
+            html += '<div class="table-responsive">';
+            html += '<table class="table table-sm table-hover table-primary">';
+            html += '<thead><tr>';
+            html += '<th>Transition ID</th>';
+            html += '<th>Label</th>';
+            html += '<th>From States</th>';
+            html += '<th>To State</th>';
+            html += '</tr></thead>';
+            html += '<tbody>';
+
+            Object.entries(workflow.transitions).forEach(([transitionId, transition]) => {
+              html += '<tr>';
+              html += `<td><code>${transition.id}</code></td>`;
+              html += `<td>${transition.label}</td>`;
+              html += `<td>${transition.from_states ? transition.from_states.join(', ') : 'N/A'}</td>`;
+              html += `<td>${transition.to_state}</td>`;
+              html += '</tr>';
+            });
+
+            html += '</tbody></table></div>';
+          }
+        });
+      } else {
+        html += '<div class="alert alert-info border-start border-4 border-info mt-4">';
+        html += '<i class="bi bi-info-circle-fill me-2"></i>';
+        html += '<strong>No Workflows:</strong> No workflows have been configured yet on this site.';
+        html += '</div>';
+      }
+
+      // Content Types Using Workflows
+      if (data.entity_assignments && data.entity_assignments.length > 0) {
+        html += '<h3 class="mt-5 mb-3">Content Types Using Workflows</h3>';
+        html += '<p class="text-muted mb-3">Mapping of content types and other entities to their assigned workflows</p>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-hover table-primary">';
+        html += '<thead><tr>';
+        html += '<th>Entity Type</th>';
+        html += '<th>Bundle</th>';
+        html += '<th>Workflow</th>';
+        html += '</tr></thead>';
+        html += '<tbody>';
+
+        data.entity_assignments.forEach(assignment => {
+          html += '<tr>';
+          html += `<td>${assignment.entity_type}</td>`;
+          html += `<td>${assignment.bundle}</td>`;
+          html += `<td><code>${assignment.workflow_id}</code></td>`;
+          html += '</tr>';
+        });
+
+        html += '</tbody></table></div>';
+      }
+
+      // Content by Moderation State
+      if (data.content_by_state && data.content_by_state.length > 0) {
+        html += '<h3 class="mt-5 mb-3">Content by Moderation State</h3>';
+        html += '<p class="text-muted mb-3">Current distribution of content across workflow states</p>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-hover table-primary">';
+        html += '<thead><tr>';
+        html += '<th>Workflow</th>';
+        html += '<th>Moderation State</th>';
+        html += '<th>Count</th>';
+        html += '</tr></thead>';
+        html += '<tbody>';
+
+        let draftCount = 0;
+        data.content_by_state.forEach(item => {
+          html += '<tr>';
+          html += `<td>${item.workflow_id}</td>`;
+          html += `<td>${item.state}</td>`;
+          html += `<td>${item.count}</td>`;
+          html += '</tr>';
+
+          if (item.state.toLowerCase() === 'draft') {
+            draftCount += item.count;
+          }
+        });
+
+        html += '</tbody></table></div>';
+
+        // Warning about draft content
+        if (draftCount > 0) {
+          html += '<div class="alert alert-warning border-start border-4 border-warning mt-4">';
+          html += '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+          html += `<strong>Content in Draft State:</strong> ${draftCount} items are currently in draft state. Review to identify content that may be ready for publication or needs attention.`;
+          html += '</div>';
+        }
+      }
+
+      // Summary and Recommendations
+      html += '<h3 class="mt-5 mb-3">Summary and Recommendations</h3>';
+
+      if (workflowsEnabled && data.workflows && data.workflows.length > 0) {
+        html += '<div class="alert alert-success border-start border-4 border-success">';
+        html += '<i class="bi bi-check-circle-fill me-2"></i>';
+        html += '<strong>Strengths:</strong>';
+        html += '<ul class="mb-0 mt-2">';
+        html += '<li>Workflows module is enabled and configured</li>';
+        html += `<li>${data.statistics.total_workflows} workflow(s) defined with ${data.statistics.total_states} total states</li>`;
+        if (data.entity_assignments && data.entity_assignments.length > 0) {
+          html += `<li>${data.entity_assignments.length} entity type(s) assigned to workflows</li>`;
+        }
+        html += '</ul></div>';
+      }
+
+      html += '<div class="alert alert-info border-start border-4 border-info mt-3">';
+      html += '<i class="bi bi-lightbulb-fill me-2"></i>';
+      html += '<strong>Recommendations:</strong>';
+      html += '<ul class="mb-0 mt-2">';
+
+      if (!workflowsEnabled) {
+        html += '<li>Consider enabling the Workflows module for content moderation capabilities</li>';
+      }
+
+      if (!moderationEnabled) {
+        html += '<li>Enable Content Moderation module to apply workflows to content types</li>';
+      }
+
+      if (data.content_by_state && data.content_by_state.some(item => item.state.toLowerCase() === 'draft')) {
+        html += '<li>Review and publish or archive draft content regularly</li>';
+      }
+
+      if (data.workflows && data.workflows.length > 0) {
+        html += '<li>Document workflow transitions for content editors</li>';
+        html += '<li>Consider setting up notifications for content state changes</li>';
+      }
+
+      if (!data.workflows || data.workflows.length === 0) {
+        html += '<li>Create workflows to manage content approval processes</li>';
+      }
+
+      html += '</ul></div>';
+
+      container.innerHTML = html;
+    }
+
+    // Render on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderWorkflows);
+    } else {
+      renderWorkflows();
+    }
+  </script>
+</body>
+</html>

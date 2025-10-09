@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu Structure</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+  <!-- Mermaid.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+  <style>
+    :root {
+      --droptica-primary: #0039FF;
+      --droptica-success: #10B981;
+      --droptica-warning: #F59E0B;
+      --droptica-danger: #DC2626;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--droptica-primary);
+      border-bottom: 2px solid var(--droptica-primary);
+      padding-bottom: 10px;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Mermaid Diagram Styles */
+    .diagram-section {
+      margin-top: 30px;
+      position: relative;
+    }
+
+    .mermaid {
+      text-align: center;
+      min-height: 400px;
+      cursor: grab;
+      overflow: hidden;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 20px;
+      background-color: #fafafa;
+    }
+
+    .mermaid:active {
+      cursor: grabbing;
+    }
+
+    .zoom-controls {
+      position: absolute;
+      top: 10px;
+      right: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      z-index: 1000;
+    }
+
+    .zoom-btn {
+      background: var(--droptica-primary);
+      color: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 20px;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: background 0.2s;
+    }
+
+    .zoom-btn:hover {
+      background: var(--droptica-primary-dark, #0029CC);
+    }
+
+    .zoom-btn:active {
+      transform: scale(0.95);
+    }
+
+    .mermaid svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Print styles */
+    @media print {
+      .zoom-controls {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <section class="card shadow-sm mb-4" id="menu-structure">
+      <div class="card-body p-4">
+        <h2 class="mb-4">Menu Structure</h2>
+        <p>Analysis of the site's navigation menu structure and organization.</p>
+
+        <div id="menu-content">
+          <div class="text-center text-muted my-5">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading menu structure information...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <!-- Bootstrap JS Bundle (includes Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Safe placeholder handling - will be replaced during audit generation
+    let MENU_DATA;
+    try {
+      MENU_DATA = __MENU_STRUCTURE_JSON_PLACEHOLDER__;
+    } catch (e) {
+      // Placeholder not replaced yet - leave loading spinner visible
+      MENU_DATA = null;
+    }
+
+    function renderMenuStructure() {
+      const container = document.getElementById('menu-content');
+
+      if (!MENU_DATA || typeof MENU_DATA !== 'object') {
+        // Keep loading spinner if data is not available
+        return;
+      }
+
+      const data = MENU_DATA;
+      let html = '';
+
+      // Menu Statistics Cards
+      if (data.statistics) {
+        const stats = data.statistics;
+        html += '<div class="row mb-4">';
+
+        html += '<div class="col-md-3">';
+        html += '<div class="card text-center border-primary">';
+        html += '<div class="card-body">';
+        html += `<h4 class="text-primary">${stats.total_menus || 0}</h4>`;
+        html += '<p class="mb-0">Total Menus</p>';
+        html += '</div></div></div>';
+
+        html += '<div class="col-md-3">';
+        html += '<div class="card text-center border-success">';
+        html += '<div class="card-body">';
+        html += `<h4 class="text-success">${stats.total_menu_items || 0}</h4>`;
+        html += '<p class="mb-0">Total Menu Items</p>';
+        html += '</div></div></div>';
+
+        html += '<div class="col-md-3">';
+        html += '<div class="card text-center border-warning">';
+        html += '<div class="card-body">';
+        html += `<h4 class="text-warning">${stats.main_menu_items || 0}</h4>`;
+        html += '<p class="mb-0">Main Menu Items</p>';
+        html += '</div></div></div>';
+
+        html += '<div class="col-md-3">';
+        html += '<div class="card text-center border-info">';
+        html += '<div class="card-body">';
+        html += `<h4 class="text-info">${stats.max_depth || 0}</h4>`;
+        html += '<p class="mb-0">Maximum Depth</p>';
+        html += '</div></div></div>';
+
+        html += '</div>';
+      }
+
+      // Menu Overview Table
+      if (data.all_menus && data.all_menus.length > 0) {
+        html += '<h3 class="mt-4 mb-3">Menu Overview</h3>';
+        html += '<div class="table-responsive">';
+        html += '<table class="table table-hover table-primary">';
+        html += '<thead><tr>';
+        html += '<th>Menu Name</th>';
+        html += '<th>Machine Name</th>';
+        html += '<th>Items Count</th>';
+        html += '<th>Description</th>';
+        html += '</tr></thead><tbody>';
+
+        data.all_menus.forEach(menu => {
+          html += '<tr>';
+          html += `<td>${menu.label || 'N/A'}</td>`;
+          html += `<td><code>${menu.id || 'N/A'}</code></td>`;
+          html += `<td>${menu.items_count || 0}</td>`;
+          html += `<td>${menu.description || '-'}</td>`;
+          html += '</tr>';
+        });
+
+        html += '</tbody></table></div>';
+      }
+
+      // Main Menu Tree
+      if (data.main_menu_tree && data.main_menu_tree.length > 0) {
+        html += '<h3 class="mt-4 mb-3">Main Navigation Structure</h3>';
+        html += '<div class="bg-light p-3 rounded">';
+        html += renderMenuTree(data.main_menu_tree);
+        html += '</div>';
+      }
+
+      // Mermaid Diagram
+      if (data.mermaid_diagram) {
+        html += '<h3 class="mt-5 mb-3">Menu Structure Visualization</h3>';
+        html += '<p class="text-muted mb-3">Interactive diagram showing the main navigation menu hierarchy</p>';
+
+        html += '<div class="alert alert-info border-start border-4 border-info">';
+        html += '<i class="bi bi-mouse-fill me-2"></i>';
+        html += '<strong>💡 Interactive Diagram:</strong> Use mouse wheel to zoom in/out, click and drag to pan. Use the +/- buttons to zoom, or Reset (⟲) to return to original view.';
+        html += '</div>';
+
+        html += '<div class="diagram-section">';
+        html += '<div class="zoom-controls">';
+        html += '<button class="zoom-btn" onclick="zoomIn(\'menu-diagram\')">+</button>';
+        html += '<button class="zoom-btn" onclick="zoomOut(\'menu-diagram\')">−</button>';
+        html += '<button class="zoom-btn" onclick="resetZoom(\'menu-diagram\')" style="font-size: 16px;">⟲</button>';
+        html += '</div>';
+        html += `<div class="mermaid" id="menu-diagram">${data.mermaid_diagram}</div>`;
+        html += '</div>';
+      }
+
+      container.innerHTML = html;
+
+      // Initialize Mermaid
+      if (typeof mermaid !== 'undefined' && data.mermaid_diagram) {
+        setTimeout(() => {
+          mermaid.initialize({
+            startOnLoad: false,
+            theme: 'default',
+            flowchart: {
+              useMaxWidth: false,
+              htmlLabels: true,
+              curve: 'basis'
+            },
+            themeVariables: {
+              fontSize: '16px'
+            }
+          });
+          mermaid.run({ nodes: document.querySelectorAll('.mermaid') });
+          initializeZoomPan();
+        }, 100);
+      }
+    }
+
+    function renderMenuTree(items, level = 0) {
+      let html = '<ul class="list-unstyled" style="margin-left: ' + (level * 20) + 'px;">';
+
+      items.forEach(item => {
+        const icon = level === 0 ? 'bi-list-ul' : 'bi-chevron-right';
+        html += `<li class="mb-2"><i class="bi ${icon} text-primary me-2"></i>`;
+        html += `<strong>${item.title || 'Untitled'}</strong>`;
+
+        if (item.url) {
+          html += ` <small class="text-muted">(${item.url})</small>`;
+        }
+
+        if (item.enabled === false) {
+          html += ' <span class="badge bg-secondary">Disabled</span>';
+        }
+
+        if (item.children && item.children.length > 0) {
+          html += renderMenuTree(item.children, level + 1);
+        }
+
+        html += '</li>';
+      });
+
+      html += '</ul>';
+      return html;
+    }
+
+    function initializeZoomPan() {
+      const zoomLevels = {};
+      const panPositions = {};
+
+      document.querySelectorAll('.diagram-section').forEach(section => {
+        const mermaidDiv = section.querySelector('.mermaid');
+        if (!mermaidDiv) return;
+
+        const diagramId = mermaidDiv.id;
+        zoomLevels[diagramId] = 1;
+        panPositions[diagramId] = { x: 0, y: 0 };
+
+        const svgElement = mermaidDiv.querySelector('svg');
+        if (svgElement) {
+          // Enable mouse wheel zoom
+          mermaidDiv.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            const currentZoom = zoomLevels[diagramId];
+            const newZoom = Math.max(0.5, Math.min(5, currentZoom + delta));
+            zoomLevels[diagramId] = newZoom;
+            applyTransform(diagramId);
+          });
+
+          // Enable drag to pan
+          let isDragging = false;
+          let startX, startY;
+
+          mermaidDiv.addEventListener('mousedown', function(e) {
+            if (e.target.closest('svg')) {
+              isDragging = true;
+              startX = e.clientX - panPositions[diagramId].x;
+              startY = e.clientY - panPositions[diagramId].y;
+              mermaidDiv.style.cursor = 'grabbing';
+            }
+          });
+
+          mermaidDiv.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+              panPositions[diagramId].x = e.clientX - startX;
+              panPositions[diagramId].y = e.clientY - startY;
+              applyTransform(diagramId);
+            }
+          });
+
+          mermaidDiv.addEventListener('mouseup', function() {
+            isDragging = false;
+            mermaidDiv.style.cursor = 'grab';
+          });
+
+          mermaidDiv.addEventListener('mouseleave', function() {
+            isDragging = false;
+            mermaidDiv.style.cursor = 'grab';
+          });
+        }
+      });
+
+      window.applyTransform = function(diagramId) {
+        const mermaidDiv = document.getElementById(diagramId);
+        const svg = mermaidDiv.querySelector('svg');
+        if (svg) {
+          const zoom = zoomLevels[diagramId];
+          const pan = panPositions[diagramId];
+          svg.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
+        }
+      };
+
+      window.zoomIn = function(diagramId) {
+        const currentZoom = zoomLevels[diagramId] || 1;
+        zoomLevels[diagramId] = Math.min(5, currentZoom + 0.2);
+        applyTransform(diagramId);
+      };
+
+      window.zoomOut = function(diagramId) {
+        const currentZoom = zoomLevels[diagramId] || 1;
+        zoomLevels[diagramId] = Math.max(0.5, currentZoom - 0.2);
+        applyTransform(diagramId);
+      };
+
+      window.resetZoom = function(diagramId) {
+        zoomLevels[diagramId] = 1;
+        panPositions[diagramId] = { x: 0, y: 0 };
+        applyTransform(diagramId);
+      };
+    }
+
+    // Render on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderMenuStructure);
+    } else {
+      renderMenuStructure();
+    }
+  </script>
+</body>
+</html>
