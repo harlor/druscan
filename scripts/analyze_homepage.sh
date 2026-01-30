@@ -13,14 +13,14 @@ fi
 # Function: Get homepage configuration
 # ============================================
 get_homepage_config() {
-    ddev drush config:get system.site page.front --format=json 2>/dev/null || echo "{}"
+    doc drush config:get system.site page.front --format=json 2>/dev/null || echo "{}"
 }
 
 # ============================================
 # Function: Detect homepage type and details
 # ============================================
 get_homepage_type() {
-    ddev drush eval "
+    doc drush eval "
         \$config = \\Drupal::config('system.site');
         \$front_page = \$config->get('page.front');
 
@@ -188,7 +188,7 @@ get_homepage_type() {
 # Function: Get blocks placed on homepage
 # ============================================
 get_homepage_blocks() {
-    ddev drush eval "
+    doc drush eval "
         \$theme = \\Drupal::config('system.theme')->get('default');
         \$blocks = \\Drupal::entityTypeManager()->getStorage('block')->loadByProperties(['theme' => \$theme]);
 
@@ -246,7 +246,7 @@ get_homepage_blocks() {
 # Function: Get Page Manager status
 # ============================================
 get_page_manager_status() {
-    ddev drush eval "
+    doc drush eval "
         \$result = [
             'module_enabled' => false,
             'pages' => [],
@@ -284,7 +284,7 @@ get_page_manager_status() {
 # Function: Get Layout Builder info
 # ============================================
 get_layout_builder_info() {
-    ddev drush eval "
+    doc drush eval "
         \$result = [
             'module_enabled' => false,
             'homepage_uses_layout_builder' => false,
@@ -324,7 +324,7 @@ get_layout_builder_info() {
 # Function: Get homepage metadata
 # ============================================
 get_homepage_metadata() {
-    ddev drush eval "
+    doc drush eval "
         \$config = \\Drupal::config('system.site');
 
         \$result = [
@@ -359,7 +359,7 @@ get_homepage_metadata() {
 # Function: Check installed page builder modules
 # ============================================
 get_page_builder_modules() {
-    ddev drush eval "
+    doc drush eval "
         \$modules_to_check = [
             'layout_builder' => 'Layout Builder',
             'page_manager' => 'Page Manager',
@@ -385,7 +385,7 @@ get_page_builder_modules() {
 # Function: Get statistics
 # ============================================
 get_statistics() {
-    ddev drush eval "
+    doc drush eval "
         \$front_page = \\Drupal::config('system.site')->get('page.front') ?: '/node';
 
         // Determine type for statistics

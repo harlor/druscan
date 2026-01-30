@@ -32,7 +32,7 @@ result='{
 }'
 
 # Get list of Drupal packages from composer.json (direct dependencies)
-composer_json_packages=$(ddev exec cat composer.json 2>/dev/null | jq -r '.require // {} | to_entries[] | select(.key | startswith("drupal/")) | .key' 2>/dev/null || echo "")
+composer_json_packages=$(doc exec cat composer.json 2>/dev/null | jq -r '.require // {} | to_entries[] | select(.key | startswith("drupal/")) | .key' 2>/dev/null || echo "")
 
 if [ -z "$composer_json_packages" ]; then
     echo '{"error": "Could not read composer.json or no Drupal packages found"}'
@@ -52,7 +52,7 @@ result=$(echo "$result" | jq --arg total "$total_composer_json" '.summary.total_
 # This includes packages installed as dependencies of profiles like Droopler, Open Intranet, etc.
 composer_lock_packages=""
 if [ -f "composer.lock" ]; then
-    composer_lock_packages=$(ddev exec cat composer.lock 2>/dev/null | jq -r '.packages[]? | select(.name | startswith("drupal/")) | .name' 2>/dev/null || echo "")
+    composer_lock_packages=$(doc exec cat composer.lock 2>/dev/null | jq -r '.packages[]? | select(.name | startswith("drupal/")) | .name' 2>/dev/null || echo "")
 
     if [ -n "$composer_lock_packages" ]; then
         total_lock=$(echo "$composer_lock_packages" | wc -l | tr -d ' ')

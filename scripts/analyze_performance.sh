@@ -150,19 +150,19 @@ analyze_cache_config() {
     fi
 
     # Get page cache max age
-    page_cache_max_age=$(ddev drush config:get system.performance cache.page.max_age --format=json 2>/dev/null | jq -r '.["cache.page.max_age"] // 0' || echo "0")
+    page_cache_max_age=$(doc drush config:get system.performance cache.page.max_age --format=json 2>/dev/null | jq -r '.["cache.page.max_age"] // 0' || echo "0")
 
     # Check core cache modules
-    render_cache_enabled=$(ddev drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "page_cache") | .value.status' || echo "disabled")
-    dynamic_page_cache_enabled=$(ddev drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "dynamic_page_cache") | .value.status' || echo "disabled")
+    render_cache_enabled=$(doc drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "page_cache") | .value.status' || echo "disabled")
+    dynamic_page_cache_enabled=$(doc drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "dynamic_page_cache") | .value.status' || echo "disabled")
 
     # Get cache bins
     local cache_bins
-    cache_bins=$(ddev drush php-eval "echo json_encode(array_keys(\Drupal::service('cache_bins_manager')->getBins()));" 2>/dev/null || echo "[]")
+    cache_bins=$(doc drush php-eval "echo json_encode(array_keys(\Drupal::service('cache_bins_manager')->getBins()));" 2>/dev/null || echo "[]")
 
     # Check Varnish/Purge modules
     local varnish_module
-    varnish_module=$(ddev drush pm:list --format=json 2>/dev/null | jq 'to_entries[] | select(.key | test("varnish|purge")) | {name: .key, status: .value.status}' | jq -s '.' || echo "[]")
+    varnish_module=$(doc drush pm:list --format=json 2>/dev/null | jq 'to_entries[] | select(.key | test("varnish|purge")) | {name: .key, status: .value.status}' | jq -s '.' || echo "[]")
 
     # Build recommendations array
     local recommendations=()
@@ -200,21 +200,21 @@ analyze_database_indexes() {
     log INFO "Analyzing database indexes..."
     # Check indexes on main tables
     local node_indexes
-    node_indexes=$(ddev drush sql-query "SHOW INDEX FROM node_field_data" --format=json 2>/dev/null || echo "[]")
+    node_indexes=$(doc drush sql-query "SHOW INDEX FROM node_field_data" --format=json 2>/dev/null || echo "[]")
 
     local users_indexes
-    users_indexes=$(ddev drush sql-query "SHOW INDEX FROM users_field_data" --format=json 2>/dev/null || echo "[]")
+    users_indexes=$(doc drush sql-query "SHOW INDEX FROM users_field_data" --format=json 2>/dev/null || echo "[]")
 
     local taxonomy_indexes
-    taxonomy_indexes=$(ddev drush sql-query "SHOW INDEX FROM taxonomy_term_field_data" --format=json 2>/dev/null || echo "[]")
+    taxonomy_indexes=$(doc drush sql-query "SHOW INDEX FROM taxonomy_term_field_data" --format=json 2>/dev/null || echo "[]")
 
     # Find tables without primary keys (BAD!)
     local tables_without_pk
-    tables_without_pk=$(ddev drush sql-query "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME NOT IN (SELECT TABLE_NAME FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_TYPE = 'PRIMARY KEY' AND TABLE_SCHEMA = DATABASE())" --format=json 2>/dev/null || echo "[]")
+    tables_without_pk=$(doc drush sql-query "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME NOT IN (SELECT TABLE_NAME FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_TYPE = 'PRIMARY KEY' AND TABLE_SCHEMA = DATABASE())" --format=json 2>/dev/null || echo "[]")
 
     # Get largest tables (potential bottlenecks)
     local largest_tables
-    largest_tables=$(ddev drush sql-query "SELECT TABLE_NAME, ROUND((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024, 2) AS 'size_mb', TABLE_ROWS FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() ORDER BY (DATA_LENGTH + INDEX_LENGTH) DESC LIMIT 20" --format=json 2>/dev/null || echo "[]")
+    largest_tables=$(doc drush sql-query "SELECT TABLE_NAME, ROUND((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024, 2) AS 'size_mb', TABLE_ROWS FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() ORDER BY (DATA_LENGTH + INDEX_LENGTH) DESC LIMIT 20" --format=json 2>/dev/null || echo "[]")
 
     # Count indexes per table
     local node_indexes_count
@@ -256,31 +256,31 @@ EOF
 analyze_php_settings() {
     log INFO "Analyzing PHP settings (from DDEV)..."
     local php_version
-    php_version=$(ddev exec php -r 'echo PHP_VERSION;' 2>/dev/null || echo "unknown")
+    php_version=$(doc exec php -r 'echo PHP_VERSION;' 2>/dev/null || echo "unknown")
 
     local memory_limit
-    memory_limit=$(ddev exec php -r 'echo ini_get("memory_limit");' 2>/dev/null || echo "unknown")
+    memory_limit=$(doc exec php -r 'echo ini_get("memory_limit");' 2>/dev/null || echo "unknown")
 
     local max_execution_time
-    max_execution_time=$(ddev exec php -r 'echo ini_get("max_execution_time");' 2>/dev/null || echo "unknown")
+    max_execution_time=$(doc exec php -r 'echo ini_get("max_execution_time");' 2>/dev/null || echo "unknown")
 
     local opcache_enabled
-    opcache_enabled=$(ddev exec php -r 'echo extension_loaded("opcache") ? "true" : "false";' 2>/dev/null || echo "false")
+    opcache_enabled=$(doc exec php -r 'echo extension_loaded("opcache") ? "true" : "false";' 2>/dev/null || echo "false")
 
     local opcache_memory
-    opcache_memory=$(ddev exec php -r 'echo ini_get("opcache.memory_consumption");' 2>/dev/null || echo "unknown")
+    opcache_memory=$(doc exec php -r 'echo ini_get("opcache.memory_consumption");' 2>/dev/null || echo "unknown")
 
     local opcache_max_files
-    opcache_max_files=$(ddev exec php -r 'echo ini_get("opcache.max_accelerated_files");' 2>/dev/null || echo "unknown")
+    opcache_max_files=$(doc exec php -r 'echo ini_get("opcache.max_accelerated_files");' 2>/dev/null || echo "unknown")
 
     local opcache_validate_timestamps
-    opcache_validate_timestamps=$(ddev exec php -r 'echo ini_get("opcache.validate_timestamps");' 2>/dev/null || echo "unknown")
+    opcache_validate_timestamps=$(doc exec php -r 'echo ini_get("opcache.validate_timestamps");' 2>/dev/null || echo "unknown")
 
     local post_max_size
-    post_max_size=$(ddev exec php -r 'echo ini_get("post_max_size");' 2>/dev/null || echo "unknown")
+    post_max_size=$(doc exec php -r 'echo ini_get("post_max_size");' 2>/dev/null || echo "unknown")
 
     local upload_max_filesize
-    upload_max_filesize=$(ddev exec php -r 'echo ini_get("upload_max_filesize");' 2>/dev/null || echo "unknown")
+    upload_max_filesize=$(doc exec php -r 'echo ini_get("upload_max_filesize");' 2>/dev/null || echo "unknown")
 
     # Build recommendations array
     local recommendations=()
@@ -320,7 +320,7 @@ analyze_performance_modules() {
     # Get all installed modules
     local all_modules
     log INFO "  → Fetching module list from Drush..."
-    all_modules=$(ddev drush pm:list --format=json 2>/dev/null || echo "{}")
+    all_modules=$(doc drush pm:list --format=json 2>/dev/null || echo "{}")
     log INFO "  → Module list fetched, analyzing..."
 
     local cache_results=()
@@ -559,10 +559,10 @@ EOF
 analyze_aggregation() {
     log INFO "Analyzing CSS/JS aggregation..."
     local css_preprocess
-    css_preprocess=$(ddev drush config:get system.performance css.preprocess --format=json 2>/dev/null | jq -r '.["css.preprocess"]' || echo "unknown")
+    css_preprocess=$(doc drush config:get system.performance css.preprocess --format=json 2>/dev/null | jq -r '.["css.preprocess"]' || echo "unknown")
 
     local js_preprocess
-    js_preprocess=$(ddev drush config:get system.performance js.preprocess --format=json 2>/dev/null | jq -r '.["js.preprocess"]' || echo "unknown")
+    js_preprocess=$(doc drush config:get system.performance js.preprocess --format=json 2>/dev/null | jq -r '.["js.preprocess"]' || echo "unknown")
 
     # Count CSS/JS files in custom themes
     local custom_css_files
@@ -609,24 +609,24 @@ analyze_image_optimization() {
     log INFO "Analyzing image optimization..."
     # Check responsive image module (Drupal core)
     local responsive_image
-    responsive_image=$(ddev drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "responsive_image") | .value.status' || echo "not_installed")
+    responsive_image=$(doc drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "responsive_image") | .value.status' || echo "not_installed")
 
     # Count image styles
     local image_styles_count
-    image_styles_count=$(ddev drush config:status --state=Active 2>/dev/null | grep 'image.style.' | wc -l | tr -d ' ')
+    image_styles_count=$(doc drush config:status --state=Active 2>/dev/null | grep 'image.style.' | wc -l | tr -d ' ')
 
     # Check image optimization modules
     local webp_module
-    webp_module=$(ddev drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "webp") | .value.status' || echo "not_installed")
+    webp_module=$(doc drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "webp") | .value.status' || echo "not_installed")
 
     local imageapi_optimize
-    imageapi_optimize=$(ddev drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "imageapi_optimize") | .value.status' || echo "not_installed")
+    imageapi_optimize=$(doc drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "imageapi_optimize") | .value.status' || echo "not_installed")
 
     local blazy_module
-    blazy_module=$(ddev drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "blazy") | .value.status' || echo "not_installed")
+    blazy_module=$(doc drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "blazy") | .value.status' || echo "not_installed")
 
     local lazy_module
-    lazy_module=$(ddev drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "lazy") | .value.status' || echo "not_installed")
+    lazy_module=$(doc drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "lazy") | .value.status' || echo "not_installed")
 
     # Count images in files directory (with timeout to avoid long waits)
     log INFO "  → Counting images in files directory (timeout: 30s)..."

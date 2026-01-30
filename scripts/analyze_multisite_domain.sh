@@ -11,20 +11,20 @@ RESULT='{}'
 # ============================================
 
 # Check if Domain module is installed and enabled
-DOMAIN_MODULE_STATUS=$(ddev drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "domain") | .value.status' || echo "not_installed")
+DOMAIN_MODULE_STATUS=$(doc drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "domain") | .value.status' || echo "not_installed")
 
 # Check for Domain Access module
-DOMAIN_ACCESS_STATUS=$(ddev drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "domain_access") | .value.status' || echo "not_installed")
+DOMAIN_ACCESS_STATUS=$(doc drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "domain_access") | .value.status' || echo "not_installed")
 
 # Check for other Domain-related modules
-DOMAIN_RELATED_MODULES=$(ddev drush pm:list --format=json 2>/dev/null | jq '[to_entries[] | select(.key | startswith("domain")) | {module: .key, name: .value.name, status: .value.status, version: .value.version}]' || echo "[]")
+DOMAIN_RELATED_MODULES=$(doc drush pm:list --format=json 2>/dev/null | jq '[to_entries[] | select(.key | startswith("domain")) | {module: .key, name: .value.name, status: .value.status, version: .value.version}]' || echo "[]")
 
 # Count domain records in database (if Domain module is active)
 if [ "$DOMAIN_MODULE_STATUS" = "enabled" ]; then
-    DOMAIN_COUNT=$(ddev drush sql-query "SELECT COUNT(*) FROM domain;" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' ' || echo "0")
+    DOMAIN_COUNT=$(doc drush sql-query "SELECT COUNT(*) FROM domain;" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' ' || echo "0")
 
     # Get domain records
-    DOMAIN_RECORDS=$(ddev drush php-eval "
+    DOMAIN_RECORDS=$(doc drush php-eval "
 if (\\Drupal::moduleHandler()->moduleExists('domain')) {
   \$domains = \\Drupal::entityTypeManager()->getStorage('domain')->loadMultiple();
   \$domain_data = [];

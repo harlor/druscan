@@ -17,12 +17,12 @@ RESULT='{}'
 # ============================================
 
 # Check if backup_migrate module is installed
-BACKUP_MIGRATE_STATUS=$(ddev drush pm:list --format=json 2>/dev/null | jq -r '.backup_migrate.status // "not_installed"')
+BACKUP_MIGRATE_STATUS=$(doc drush pm:list --format=json 2>/dev/null | jq -r '.backup_migrate.status // "not_installed"')
 
 BACKUP_MIGRATE_INFO='{}'
 if [ "$BACKUP_MIGRATE_STATUS" != "not_installed" ]; then
     # Module is installed, get detailed information
-    MODULE_INFO=$(ddev drush pm:list --format=json 2>/dev/null | jq '.backup_migrate // {}')
+    MODULE_INFO=$(doc drush pm:list --format=json 2>/dev/null | jq '.backup_migrate // {}')
 
     # Get version
     VERSION=$(echo "$MODULE_INFO" | jq -r '.version // "unknown"')
@@ -30,19 +30,19 @@ if [ "$BACKUP_MIGRATE_STATUS" != "not_installed" ]; then
     # Get configuration if module is enabled
     if [ "$BACKUP_MIGRATE_STATUS" == "enabled" ]; then
         # List all backup_migrate config objects
-        CONFIG_LIST=$(ddev drush config-list 2>/dev/null | grep "backup_migrate" || echo "")
+        CONFIG_LIST=$(doc drush config-list 2>/dev/null | grep "backup_migrate" || echo "")
 
         # Try to get main settings
-        MAIN_CONFIG=$(ddev drush config:get backup_migrate.settings --format=json 2>/dev/null || echo '{}')
+        MAIN_CONFIG=$(doc drush config:get backup_migrate.settings --format=json 2>/dev/null || echo '{}')
 
         # Get backup sources configuration
-        SOURCES_CONFIG=$(ddev drush config-list 2>/dev/null | grep "backup_migrate.backup_migrate_source" || echo "")
+        SOURCES_CONFIG=$(doc drush config-list 2>/dev/null | grep "backup_migrate.backup_migrate_source" || echo "")
 
         # Get backup destinations configuration
-        DESTINATIONS_CONFIG=$(ddev drush config-list 2>/dev/null | grep "backup_migrate.backup_migrate_destination" || echo "")
+        DESTINATIONS_CONFIG=$(doc drush config-list 2>/dev/null | grep "backup_migrate.backup_migrate_destination" || echo "")
 
         # Get backup schedules if any
-        SCHEDULES_CONFIG=$(ddev drush config-list 2>/dev/null | grep "backup_migrate.backup_migrate_schedule" || echo "")
+        SCHEDULES_CONFIG=$(doc drush config-list 2>/dev/null | grep "backup_migrate.backup_migrate_schedule" || echo "")
 
         # Count configured destinations
         DESTINATIONS_COUNT=$(echo "$DESTINATIONS_CONFIG" | grep -c "backup_migrate.backup_migrate_destination" || echo "0")
@@ -155,7 +155,7 @@ RESULT=$(echo "$RESULT" | jq --argjson ddev "$DDEV_SNAPSHOTS" '. + {ddev_snapsho
 # 4. Private Files Path (for backup storage)
 # ============================================
 
-PRIVATE_PATH=$(ddev drush php-eval "echo \Drupal::service('file_system')->realpath('private://') ?: 'not_configured';" 2>/dev/null || echo "not_configured")
+PRIVATE_PATH=$(doc drush php-eval "echo \Drupal::service('file_system')->realpath('private://') ?: 'not_configured';" 2>/dev/null || echo "not_configured")
 
 PRIVATE_PATH_INFO=$(jq -n \
     --arg path "$PRIVATE_PATH" \
@@ -223,7 +223,7 @@ BACKUP_MODULES=(
 
 OTHER_MODULES='{}'
 for module in "${BACKUP_MODULES[@]}"; do
-    STATUS=$(ddev drush pm:list --format=json 2>/dev/null | jq -r ".[\"$module\"].status // \"not_installed\"")
+    STATUS=$(doc drush pm:list --format=json 2>/dev/null | jq -r ".[\"$module\"].status // \"not_installed\"")
     OTHER_MODULES=$(echo "$OTHER_MODULES" | jq --arg mod "$module" --arg status "$STATUS" '. + {($mod): $status}')
 done
 
@@ -234,7 +234,7 @@ RESULT=$(echo "$RESULT" | jq --argjson modules "$OTHER_MODULES" '. + {other_back
 # ============================================
 
 # Test if drush sql-dump works (don't actually create backup, just test)
-SQL_DUMP_AVAILABLE=$(ddev drush help sql-dump 2>/dev/null && echo "available" || echo "not_available")
+SQL_DUMP_AVAILABLE=$(doc drush help sql-dump 2>/dev/null && echo "available" || echo "not_available")
 
 DB_BACKUP_INFO=$(jq -n \
     --arg available "$SQL_DUMP_AVAILABLE" \

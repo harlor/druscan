@@ -12,14 +12,14 @@ SECTION="${1:-all}"
 
 check_module_enabled() {
     local module_name="$1"
-    local status=$(ddev drush pm:list --format=json 2>/dev/null | jq -r "to_entries[] | select(.key == \"$module_name\") | .value.status" || echo "not_installed")
+    local status=$(doc drush pm:list --format=json 2>/dev/null | jq -r "to_entries[] | select(.key == \"$module_name\") | .value.status" || echo "not_installed")
     # Convert to lowercase for consistent comparison
     echo "$status" | tr '[:upper:]' '[:lower:]'
 }
 
 get_module_info() {
     local module_name="$1"
-    ddev drush pm:list --format=json 2>/dev/null | jq -r "to_entries[] | select(.key == \"$module_name\") | .value"
+    doc drush pm:list --format=json 2>/dev/null | jq -r "to_entries[] | select(.key == \"$module_name\") | .value"
 }
 
 # ============================================
@@ -72,10 +72,10 @@ analyze_metatags() {
     fi
 
     # Get metatag defaults configuration
-    local metatag_defaults=$(ddev drush config:get metatag.metatag_defaults.global --format=json 2>/dev/null || echo '{}')
+    local metatag_defaults=$(doc drush config:get metatag.metatag_defaults.global --format=json 2>/dev/null || echo '{}')
 
     # Get configured entity types
-    local entity_configs=$(ddev drush config:status --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key | startswith("metatag.metatag_defaults.")) | .key' | sed 's/metatag.metatag_defaults.//' || echo "")
+    local entity_configs=$(doc drush config:status --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key | startswith("metatag.metatag_defaults.")) | .key' | sed 's/metatag.metatag_defaults.//' || echo "")
 
     # Count metatag configurations
     local config_count=$(echo "$entity_configs" | grep -c "^" || echo "0")
@@ -111,21 +111,21 @@ analyze_url_aliases() {
     local pathauto_status=$(check_module_enabled "pathauto")
 
     # Count total URL aliases
-    local total_aliases=$(ddev drush sql-query "SELECT COUNT(*) FROM path_alias;" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' ' || echo "0")
+    local total_aliases=$(doc drush sql-query "SELECT COUNT(*) FROM path_alias;" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' ' || echo "0")
 
     # Sample aliases (first 10)
-    local sample_aliases=$(ddev drush sql-query "SELECT path, alias FROM path_alias LIMIT 10;" --format=json 2>/dev/null || echo '[]')
+    local sample_aliases=$(doc drush sql-query "SELECT path, alias FROM path_alias LIMIT 10;" --format=json 2>/dev/null || echo '[]')
 
     if [[ "$pathauto_status" == "enabled" ]]; then
         # Get pathauto patterns
-        local patterns=$(ddev drush config:status --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key | startswith("pathauto.pattern.")) | .key' | sed 's/pathauto.pattern.//' || echo "")
+        local patterns=$(doc drush config:status --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key | startswith("pathauto.pattern.")) | .key' | sed 's/pathauto.pattern.//' || echo "")
         local patterns_count=$(echo "$patterns" | grep -c "^" || echo "0")
 
         # Get pattern details
         local pattern_details=()
         while IFS= read -r pattern_id; do
             if [[ -n "$pattern_id" ]]; then
-                local pattern_config=$(ddev drush config:get "pathauto.pattern.$pattern_id" --format=json 2>/dev/null || echo '{}')
+                local pattern_config=$(doc drush config:get "pathauto.pattern.$pattern_id" --format=json 2>/dev/null || echo '{}')
                 pattern_details+=("$pattern_config")
             fi
         done <<< "$patterns"
@@ -167,10 +167,10 @@ analyze_sitemap() {
 
     if [[ "$simple_sitemap_status" == "enabled" ]]; then
         sitemap_type="simple_sitemap"
-        sitemap_config=$(ddev drush config:get simple_sitemap.settings --format=json 2>/dev/null || echo '{}')
+        sitemap_config=$(doc drush config:get simple_sitemap.settings --format=json 2>/dev/null || echo '{}')
 
         # Get sitemap variants
-        local variants=$(ddev drush config:status --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key | startswith("simple_sitemap.variant.")) | .key' | sed 's/simple_sitemap.variant.//' || echo "")
+        local variants=$(doc drush config:status --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key | startswith("simple_sitemap.variant.")) | .key' | sed 's/simple_sitemap.variant.//' || echo "")
         local variants_count=$(echo "$variants" | grep -c "^" || echo "0")
 
         cat <<EOF
@@ -184,7 +184,7 @@ analyze_sitemap() {
 EOF
     elif [[ "$xmlsitemap_status" == "enabled" ]]; then
         sitemap_type="xmlsitemap"
-        sitemap_config=$(ddev drush config:get xmlsitemap.settings --format=json 2>/dev/null || echo '{}')
+        sitemap_config=$(doc drush config:get xmlsitemap.settings --format=json 2>/dev/null || echo '{}')
 
         cat <<EOF
 {
@@ -291,7 +291,7 @@ analyze_redirects() {
     local global_redirect_status=$(check_module_enabled "global_redirect")
 
     if [[ "$redirect_status" == "enabled" ]]; then
-        local redirect_count=$(ddev drush sql-query "SELECT COUNT(*) FROM redirect;" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' ' || echo "0")
+        local redirect_count=$(doc drush sql-query "SELECT COUNT(*) FROM redirect;" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' ' || echo "0")
 
         cat <<EOF
 {

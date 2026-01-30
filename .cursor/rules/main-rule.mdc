@@ -111,29 +111,29 @@ The audit system uses **two main files**:
 
 ```bash
 # Simple text output
-"system_information|php_version|text|ddev exec php -v"
+"system_information|php_version|text|doc exec php -v"
 
 # JSON output
-"system_information|drush_status|json|ddev drush status --format=json"
+"system_information|drush_status|json|doc drush status --format=json"
 
 # Using jq with DOCROOT variable
 "drupal_modules|custom_count|text|find \${DOCROOT}/modules/custom -name '*.info.yml' 2>/dev/null | wc -l | tr -d ' '"
 
 # SQL query with escaping
-"entity_structure|content_types|json|ddev drush sql-query \"SELECT type, COUNT(*) FROM node_field_data GROUP BY type\" --format=json"
+"entity_structure|content_types|json|doc drush sql-query \"SELECT type, COUNT(*) FROM node_field_data GROUP BY type\" --format=json"
 
 # Fallback for optional features
-"hacked_check|status|text|ddev drush hacked:list-projects 2>/dev/null || echo 'Hacked module not installed'"
+"hacked_check|status|text|doc drush hacked:list-projects 2>/dev/null || echo 'Hacked module not installed'"
 ```
 
 ### Common Mistakes
 
 ```bash
 # ❌ WRONG - Missing quotes
-drupal_modules|enabled|json|ddev drush pm:list --format=json
+drupal_modules|enabled|json|doc drush pm:list --format=json
 
 # ❌ WRONG - Not escaping inner quotes
-"entity_structure|types|json|ddev drush sql-query "SELECT * FROM node""
+"entity_structure|types|json|doc drush sql-query "SELECT * FROM node""
 
 # ❌ WRONG - Hardcoded path (use DOCROOT variable)
 "custom_modules|list|text|ls -1 web/modules/custom/"
@@ -197,10 +197,10 @@ Move logic to `./scripts/` when:
 
 ```bash
 # ❌ UNOPTIMIZED - Returns all fields (100+ lines per module)
-"drupal_modules|enabled|json|ddev drush pm:list --status=enabled --format=json"
+"drupal_modules|enabled|json|doc drush pm:list --status=enabled --format=json"
 
 # ✅ OPTIMIZED - Returns only essential fields
-"drupal_modules|enabled_core|json|ddev drush pm:list --status=enabled --format=json 2>/dev/null | jq 'to_entries | map(select(.value.package == \"Core\")) | map({key: .key, value: {name: .value.name, version: .value.version, package: .value.package, type: .value.type}}) | from_entries'"
+"drupal_modules|enabled_core|json|doc drush pm:list --status=enabled --format=json 2>/dev/null | jq 'to_entries | map(select(.value.package == \"Core\")) | map({key: .key, value: {name: .value.name, version: .value.version, package: .value.package, type: .value.type}}) | from_entries'"
 ```
 
 ### What to KEEP vs REMOVE
@@ -276,7 +276,7 @@ COMMANDS=(
     # ============================================
     # Section: System Information
     # ============================================
-    "system_information|php_version|text|ddev exec php -v"
+    "system_information|php_version|text|doc exec php -v"
 
     # ============================================
     # Section: Drupal Modules

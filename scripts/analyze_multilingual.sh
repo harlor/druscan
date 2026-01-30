@@ -34,26 +34,26 @@ RESULT='{
 echo "Checking if Language module is enabled..." >&2
 
 # Check if Language module is enabled (foundation for multilingual)
-LANGUAGE_ENABLED=$(ddev drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "language") | select(.value.status == "Enabled") | .key' || echo "")
+LANGUAGE_ENABLED=$(doc drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "language") | select(.value.status == "Enabled") | .key' || echo "")
 
 if [ -n "$LANGUAGE_ENABLED" ]; then
     RESULT=$(echo "$RESULT" | jq '.multilingual_enabled = true | .modules.language = true')
     echo "Language module is enabled. Checking other translation modules..." >&2
 
     # Check Content Translation module
-    CONTENT_TRANSLATION=$(ddev drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "content_translation") | select(.value.status == "Enabled") | .key' || echo "")
+    CONTENT_TRANSLATION=$(doc drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "content_translation") | select(.value.status == "Enabled") | .key' || echo "")
     if [ -n "$CONTENT_TRANSLATION" ]; then
         RESULT=$(echo "$RESULT" | jq '.modules.content_translation = true')
     fi
 
     # Check Interface Translation module
-    INTERFACE_TRANSLATION=$(ddev drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "locale") | select(.value.status == "Enabled") | .key' || echo "")
+    INTERFACE_TRANSLATION=$(doc drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "locale") | select(.value.status == "Enabled") | .key' || echo "")
     if [ -n "$INTERFACE_TRANSLATION" ]; then
         RESULT=$(echo "$RESULT" | jq '.modules.interface_translation = true')
     fi
 
     # Check Config Translation module
-    CONFIG_TRANSLATION=$(ddev drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "config_translation") | select(.value.status == "Enabled") | .key' || echo "")
+    CONFIG_TRANSLATION=$(doc drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == "config_translation") | select(.value.status == "Enabled") | .key' || echo "")
     if [ -n "$CONFIG_TRANSLATION" ]; then
         RESULT=$(echo "$RESULT" | jq '.modules.config_translation = true')
     fi
@@ -61,7 +61,7 @@ if [ -n "$LANGUAGE_ENABLED" ]; then
     echo "Fetching installed languages..." >&2
 
     # Get list of installed languages
-    LANGUAGES_DATA=$(ddev drush php-eval "
+    LANGUAGES_DATA=$(doc drush php-eval "
 \$language_manager = \Drupal::languageManager();
 \$languages = \$language_manager->getLanguages();
 \$default_language = \$language_manager->getDefaultLanguage();
@@ -94,7 +94,7 @@ echo json_encode([
     echo "Analyzing translatable content types..." >&2
 
     # Get translatable content types and their translation settings
-    TRANSLATABLE_TYPES=$(ddev drush php-eval "
+    TRANSLATABLE_TYPES=$(doc drush php-eval "
 \$node_types = \Drupal::entityTypeManager()->getStorage('node_type')->loadMultiple();
 \$translatable_types = [];
 
@@ -128,7 +128,7 @@ echo json_encode(\$translatable_types);
 " 2>/dev/null || echo "[]")
 
     # Get total count of translated nodes (excluding default language)
-    TRANSLATED_NODES=$(ddev drush php-eval "
+    TRANSLATED_NODES=$(doc drush php-eval "
 \$db = \Drupal::database();
 \$default_langcode = \Drupal::languageManager()->getDefaultLanguage()->getId();
 \$query = \$db->query(\"
@@ -146,7 +146,7 @@ if ! [[ "$TRANSLATED_NODES" =~ ^[0-9]+$ ]]; then
 fi
 
     # Get languages that have content
-    LANGS_WITH_CONTENT=$(ddev drush php-eval "
+    LANGS_WITH_CONTENT=$(doc drush php-eval "
 \$db = \Drupal::database();
 \$query = \$db->query(\"
   SELECT langcode, COUNT(*) as count
@@ -177,7 +177,7 @@ echo json_encode(\$results);
     echo "Checking for contrib multilingual modules..." >&2
 
     # Check for popular contrib multilingual modules
-    CONTRIB_MODULES=$(ddev drush pm:list --status=enabled --format=json 2>/dev/null | jq '[
+    CONTRIB_MODULES=$(doc drush pm:list --status=enabled --format=json 2>/dev/null | jq '[
         to_entries[] |
         select(
             .key == "lingotek" or

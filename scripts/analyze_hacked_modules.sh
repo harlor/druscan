@@ -7,13 +7,13 @@ INSTALLED_TEMP=false
 WAS_ENABLED=false
 
 # Check if module exists and is enabled
-MODULE_INFO=$(ddev drush pm:list --format=json 2>/dev/null | jq -r '.hacked.status // "not_found"')
+MODULE_INFO=$(doc drush pm:list --format=json 2>/dev/null | jq -r '.hacked.status // "not_found"')
 
 if [ "$MODULE_INFO" = "not_found" ]; then
     # Module doesn't exist - clone it
     echo "Installing Hacked module temporarily..." >&2
-    ddev exec "git clone --depth 1 --branch 3.0.x https://git.drupalcode.org/project/hacked.git $TEMP_DIR/hacked" >/dev/null 2>&1
-    ddev drush cr >/dev/null 2>&1
+    doc exec "git clone --depth 1 --branch 3.0.x https://git.drupalcode.org/project/hacked.git $TEMP_DIR/hacked" >/dev/null 2>&1
+    doc drush cr >/dev/null 2>&1
     INSTALLED_TEMP=true
 elif [ "$MODULE_INFO" = "Enabled" ]; then
     # Module already enabled - don't touch it
@@ -22,15 +22,15 @@ fi
 
 # Enable module if not already enabled
 if [ "$WAS_ENABLED" = false ]; then
-    ddev drush en hacked -y >/dev/null 2>&1
+    doc drush en hacked -y >/dev/null 2>&1
 fi
 
 # Run scan
 echo "Scanning modules (30-60 seconds)..." >&2
-SCAN_OUTPUT=$(ddev drush hacked:list-projects 2>&1)
+SCAN_OUTPUT=$(doc drush hacked:list-projects 2>&1)
 
 # Get patches from composer.json
-PATCHES=$(ddev exec cat composer.json 2>/dev/null | jq -c '.extra.patches // {}')
+PATCHES=$(doc exec cat composer.json 2>/dev/null | jq -c '.extra.patches // {}')
 
 # Parse results and generate JSON
 if echo "$SCAN_OUTPUT" | grep -q "Extension type module-uninstalled is unknown"; then
@@ -76,10 +76,10 @@ fi
 # Cleanup - uninstall only if we installed/enabled it
 if [ "$WAS_ENABLED" = false ]; then
     echo "Cleaning up..." >&2
-    ddev drush pm:uninstall hacked -y >/dev/null 2>&1
+    doc drush pm:uninstall hacked -y >/dev/null 2>&1
 fi
 
 if [ "$INSTALLED_TEMP" = true ]; then
-    ddev exec rm -rf "$TEMP_DIR" >/dev/null 2>&1
-    ddev drush cr >/dev/null 2>&1
+    doc exec rm -rf "$TEMP_DIR" >/dev/null 2>&1
+    doc drush cr >/dev/null 2>&1
 fi

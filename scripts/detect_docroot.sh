@@ -6,7 +6,7 @@
 #
 # Example usage in other scripts:
 #   source ./scripts/detect_docroot.sh
-#   ddev exec ls -la $DOCROOT/modules/custom
+#   doc exec ls -la $DOCROOT/modules/custom
 
 detect_docroot() {
     # Check common document root directories in order of preference
@@ -15,14 +15,14 @@ detect_docroot() {
 
     for root in "${possible_roots[@]}"; do
         # Check if directory exists and contains index.php
-        if ddev exec test -f "$root/index.php" 2>/dev/null; then
+        if doc exec test -f "$root/index.php" 2>/dev/null; then
             echo "$root"
             return 0
         fi
     done
 
     # Check if index.php is in the root directory (no subdirectory)
-    if ddev exec test -f "index.php" 2>/dev/null; then
+    if doc exec test -f "index.php" 2>/dev/null; then
         echo "."
         return 0
     fi

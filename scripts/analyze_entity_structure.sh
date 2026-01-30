@@ -20,7 +20,7 @@ RESULT='{
 # Function to get all entity types
 get_entity_types() {
     # Get entity types using Drush
-    ENTITY_TYPES=$(ddev drush eval "
+    ENTITY_TYPES=$(doc drush eval "
         \$entity_type_manager = \\Drupal::entityTypeManager();
         \$definitions = \$entity_type_manager->getDefinitions();
         \$types = [];
@@ -44,7 +44,7 @@ get_entity_types() {
 get_bundles() {
     local entity_type="$1"
 
-    BUNDLES=$(ddev drush eval "
+    BUNDLES=$(doc drush eval "
         \$entity_type = '$entity_type';
         \$bundle_info = \\Drupal::service('entity_type.bundle.info')->getBundleInfo(\$entity_type);
         echo json_encode(\$bundle_info);
@@ -58,7 +58,7 @@ get_fields() {
     local entity_type="$1"
     local bundle="$2"
 
-    FIELDS=$(ddev drush eval "
+    FIELDS=$(doc drush eval "
         \$entity_type = '$entity_type';
         \$bundle = '$bundle';
         \$field_definitions = \\Drupal::service('entity_field.manager')->getFieldDefinitions(\$entity_type, \$bundle);
@@ -90,35 +90,35 @@ get_entity_statistics() {
     # Different queries based on entity type
     case "$entity_type" in
         node)
-            TOTAL=$(ddev drush sql-query "SELECT COUNT(*) FROM node_field_data WHERE type='$bundle'" 2>/dev/null | head -1)
-            LAST_YEAR=$(ddev drush sql-query "SELECT COUNT(*) FROM node_field_data WHERE type='$bundle' AND created > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 YEAR))" 2>/dev/null | head -1)
-            LAST_MONTH=$(ddev drush sql-query "SELECT COUNT(*) FROM node_field_data WHERE type='$bundle' AND created > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 MONTH))" 2>/dev/null | head -1)
+            TOTAL=$(doc drush sql-query "SELECT COUNT(*) FROM node_field_data WHERE type='$bundle'" 2>/dev/null | head -1)
+            LAST_YEAR=$(doc drush sql-query "SELECT COUNT(*) FROM node_field_data WHERE type='$bundle' AND created > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 YEAR))" 2>/dev/null | head -1)
+            LAST_MONTH=$(doc drush sql-query "SELECT COUNT(*) FROM node_field_data WHERE type='$bundle' AND created > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 MONTH))" 2>/dev/null | head -1)
             ;;
         taxonomy_term)
-            TOTAL=$(ddev drush sql-query "SELECT COUNT(*) FROM taxonomy_term_field_data WHERE vid='$bundle'" 2>/dev/null | head -1)
+            TOTAL=$(doc drush sql-query "SELECT COUNT(*) FROM taxonomy_term_field_data WHERE vid='$bundle'" 2>/dev/null | head -1)
             LAST_YEAR="0"
             LAST_MONTH="0"
             ;;
         user)
-            TOTAL=$(ddev drush sql-query "SELECT COUNT(*) FROM users_field_data" 2>/dev/null | head -1)
-            LAST_YEAR=$(ddev drush sql-query "SELECT COUNT(*) FROM users_field_data WHERE created > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 YEAR))" 2>/dev/null | head -1)
-            LAST_MONTH=$(ddev drush sql-query "SELECT COUNT(*) FROM users_field_data WHERE created > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 MONTH))" 2>/dev/null | head -1)
+            TOTAL=$(doc drush sql-query "SELECT COUNT(*) FROM users_field_data" 2>/dev/null | head -1)
+            LAST_YEAR=$(doc drush sql-query "SELECT COUNT(*) FROM users_field_data WHERE created > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 YEAR))" 2>/dev/null | head -1)
+            LAST_MONTH=$(doc drush sql-query "SELECT COUNT(*) FROM users_field_data WHERE created > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 MONTH))" 2>/dev/null | head -1)
             ;;
         media)
-            TOTAL=$(ddev drush sql-query "SELECT COUNT(*) FROM media_field_data WHERE bundle='$bundle'" 2>/dev/null | head -1)
-            LAST_YEAR=$(ddev drush sql-query "SELECT COUNT(*) FROM media_field_data WHERE bundle='$bundle' AND created > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 YEAR))" 2>/dev/null | head -1)
-            LAST_MONTH=$(ddev drush sql-query "SELECT COUNT(*) FROM media_field_data WHERE bundle='$bundle' AND created > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 MONTH))" 2>/dev/null | head -1)
+            TOTAL=$(doc drush sql-query "SELECT COUNT(*) FROM media_field_data WHERE bundle='$bundle'" 2>/dev/null | head -1)
+            LAST_YEAR=$(doc drush sql-query "SELECT COUNT(*) FROM media_field_data WHERE bundle='$bundle' AND created > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 YEAR))" 2>/dev/null | head -1)
+            LAST_MONTH=$(doc drush sql-query "SELECT COUNT(*) FROM media_field_data WHERE bundle='$bundle' AND created > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 MONTH))" 2>/dev/null | head -1)
             ;;
         paragraph)
-            TOTAL=$(ddev drush sql-query "SELECT COUNT(*) FROM paragraphs_item_field_data WHERE type='$bundle'" 2>/dev/null | head -1)
+            TOTAL=$(doc drush sql-query "SELECT COUNT(*) FROM paragraphs_item_field_data WHERE type='$bundle'" 2>/dev/null | head -1)
             LAST_YEAR="0"
             LAST_MONTH="0"
             ;;
         canvas_page)
             # Canvas entities don't have bundles, so ignore bundle parameter
-            TOTAL=$(ddev drush sql-query "SELECT COUNT(*) FROM canvas_page" 2>/dev/null | head -1)
-            LAST_YEAR=$(ddev drush sql-query "SELECT COUNT(*) FROM canvas_page WHERE created > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 YEAR))" 2>/dev/null | head -1)
-            LAST_MONTH=$(ddev drush sql-query "SELECT COUNT(*) FROM canvas_page WHERE created > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 MONTH))" 2>/dev/null | head -1)
+            TOTAL=$(doc drush sql-query "SELECT COUNT(*) FROM canvas_page" 2>/dev/null | head -1)
+            LAST_YEAR=$(doc drush sql-query "SELECT COUNT(*) FROM canvas_page WHERE created > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 YEAR))" 2>/dev/null | head -1)
+            LAST_MONTH=$(doc drush sql-query "SELECT COUNT(*) FROM canvas_page WHERE created > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 MONTH))" 2>/dev/null | head -1)
             ;;
         *)
             TOTAL="0"
@@ -145,7 +145,7 @@ get_custom_entity_details() {
     local entity_id="$1"
 
     # Get comprehensive entity information via Drush
-    ENTITY_INFO=$(ddev drush eval "
+    ENTITY_INFO=$(doc drush eval "
         \$entity_id = '$entity_id';
         try {
             \$entity_type = \\Drupal::entityTypeManager()->getDefinition(\$entity_id);
@@ -315,14 +315,14 @@ generate_mermaid_diagram() {
     MERMAID="${MERMAID}    Entities --> Paragraph[Paragraphs]\n"
 
     # Check if Canvas module is enabled
-    CANVAS_CHECK=$(ddev drush eval "echo \Drupal::moduleHandler()->moduleExists('canvas') ? '1' : '0';" 2>/dev/null)
+    CANVAS_CHECK=$(doc drush eval "echo \Drupal::moduleHandler()->moduleExists('canvas') ? '1' : '0';" 2>/dev/null)
     if [ "$CANVAS_CHECK" = "1" ]; then
         MERMAID="${MERMAID}    Entities --> Canvas[Canvas Pages]\n"
     fi
     MERMAID="${MERMAID}\n"
 
     # Get content types and add to diagram
-    CONTENT_TYPES=$(ddev drush eval "echo json_encode(array_keys(\Drupal::service('entity_type.bundle.info')->getBundleInfo('node')));" 2>/dev/null)
+    CONTENT_TYPES=$(doc drush eval "echo json_encode(array_keys(\Drupal::service('entity_type.bundle.info')->getBundleInfo('node')));" 2>/dev/null)
     if [ -n "$CONTENT_TYPES" ] && [ "$CONTENT_TYPES" != "[]" ]; then
         MERMAID="${MERMAID}    %% Content Types\n"
         TYPES_ARRAY=$(echo "$CONTENT_TYPES" | jq -r '.[]' 2>/dev/null)
@@ -336,7 +336,7 @@ generate_mermaid_diagram() {
     fi
 
     # Get taxonomies
-    TAXONOMIES=$(ddev drush eval "echo json_encode(array_keys(\Drupal::service('entity_type.bundle.info')->getBundleInfo('taxonomy_term')));" 2>/dev/null)
+    TAXONOMIES=$(doc drush eval "echo json_encode(array_keys(\Drupal::service('entity_type.bundle.info')->getBundleInfo('taxonomy_term')));" 2>/dev/null)
     if [ -n "$TAXONOMIES" ] && [ "$TAXONOMIES" != "[]" ]; then
         MERMAID="${MERMAID}    %% Taxonomy Vocabularies\n"
         VOCABS_ARRAY=$(echo "$TAXONOMIES" | jq -r '.[]' 2>/dev/null)
@@ -378,7 +378,7 @@ main() {
     FINAL_DATA='{}'
 
     # Check if Canvas module is enabled and add canvas_page entity
-    CANVAS_ENABLED=$(ddev drush eval "echo \Drupal::moduleHandler()->moduleExists('canvas') ? '1' : '0';" 2>/dev/null)
+    CANVAS_ENABLED=$(doc drush eval "echo \Drupal::moduleHandler()->moduleExists('canvas') ? '1' : '0';" 2>/dev/null)
     if [ "$CANVAS_ENABLED" = "1" ]; then
         echo "Canvas module detected - adding canvas_page entity" >&2
         MAIN_ENTITIES+=("canvas_page")
@@ -436,15 +436,15 @@ main() {
     FINAL_DATA=$(echo "$FINAL_DATA" | jq --arg diagram "$MERMAID" '.mermaid_diagram = $diagram')
 
     # Calculate overall statistics
-    TOTAL_NODES=$(ddev drush sql-query "SELECT COUNT(*) FROM node_field_data" 2>/dev/null | head -1 | tr -d '[:space:]')
-    TOTAL_TERMS=$(ddev drush sql-query "SELECT COUNT(*) FROM taxonomy_term_field_data" 2>/dev/null | head -1 | tr -d '[:space:]')
-    TOTAL_USERS=$(ddev drush sql-query "SELECT COUNT(*) FROM users_field_data" 2>/dev/null | head -1 | tr -d '[:space:]')
-    TOTAL_MEDIA=$(ddev drush sql-query "SELECT COUNT(*) FROM media_field_data" 2>/dev/null | head -1 | tr -d '[:space:]')
+    TOTAL_NODES=$(doc drush sql-query "SELECT COUNT(*) FROM node_field_data" 2>/dev/null | head -1 | tr -d '[:space:]')
+    TOTAL_TERMS=$(doc drush sql-query "SELECT COUNT(*) FROM taxonomy_term_field_data" 2>/dev/null | head -1 | tr -d '[:space:]')
+    TOTAL_USERS=$(doc drush sql-query "SELECT COUNT(*) FROM users_field_data" 2>/dev/null | head -1 | tr -d '[:space:]')
+    TOTAL_MEDIA=$(doc drush sql-query "SELECT COUNT(*) FROM media_field_data" 2>/dev/null | head -1 | tr -d '[:space:]')
 
     # Check Canvas entities if module is enabled
     TOTAL_CANVAS="0"
     if [ "$CANVAS_ENABLED" = "1" ]; then
-        TOTAL_CANVAS=$(ddev drush sql-query "SELECT COUNT(*) FROM canvas_page" 2>/dev/null | head -1 | tr -d '[:space:]')
+        TOTAL_CANVAS=$(doc drush sql-query "SELECT COUNT(*) FROM canvas_page" 2>/dev/null | head -1 | tr -d '[:space:]')
     fi
 
     OVERALL_STATS=$(jq -n \

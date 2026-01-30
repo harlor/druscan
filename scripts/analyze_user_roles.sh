@@ -11,19 +11,19 @@ RESULT='{}'
 # ============================================
 
 # Total users (excluding anonymous uid=0)
-TOTAL_USERS=$(ddev drush sql-query "SELECT COUNT(*) FROM users_field_data WHERE uid > 0;" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' ' || echo "0")
+TOTAL_USERS=$(doc drush sql-query "SELECT COUNT(*) FROM users_field_data WHERE uid > 0;" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' ' || echo "0")
 
 # Active users
-ACTIVE_USERS=$(ddev drush sql-query "SELECT COUNT(*) FROM users_field_data WHERE uid > 0 AND status = 1;" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' ' || echo "0")
+ACTIVE_USERS=$(doc drush sql-query "SELECT COUNT(*) FROM users_field_data WHERE uid > 0 AND status = 1;" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' ' || echo "0")
 
 # Blocked users
-BLOCKED_USERS=$(ddev drush sql-query "SELECT COUNT(*) FROM users_field_data WHERE uid > 0 AND status = 0;" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' ' || echo "0")
+BLOCKED_USERS=$(doc drush sql-query "SELECT COUNT(*) FROM users_field_data WHERE uid > 0 AND status = 0;" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' ' || echo "0")
 
 # Users who logged in last 30 days
-ACTIVE_LAST_30=$(ddev drush sql-query "SELECT COUNT(*) FROM users_field_data WHERE uid > 0 AND login > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 30 DAY));" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' ' || echo "0")
+ACTIVE_LAST_30=$(doc drush sql-query "SELECT COUNT(*) FROM users_field_data WHERE uid > 0 AND login > UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 30 DAY));" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' ' || echo "0")
 
 # Registration activity (last 12 months)
-REGISTRATIONS_12M=$(ddev drush php-eval "
+REGISTRATIONS_12M=$(doc drush php-eval "
 \$db = \Drupal::database();
 \$query = \$db->query(\"
   SELECT
@@ -63,7 +63,7 @@ RESULT=$(echo "$RESULT" | jq --argjson stats "$USER_STATS" '. + {user_statistics
 # ROLES ANALYSIS
 # ============================================
 
-ROLES_ANALYSIS=$(ddev drush php-eval "
+ROLES_ANALYSIS=$(doc drush php-eval "
 \$roles_storage = \Drupal::entityTypeManager()->getStorage('user_role');
 \$roles = \$roles_storage->loadMultiple();
 \$roles_data = [];
@@ -154,7 +154,7 @@ RESULT=$(echo "$RESULT" | jq --argjson roles "$ROLES_ANALYSIS" '. + {roles: $rol
 # ============================================
 
 # Admin users
-ADMIN_USERS=$(ddev drush php-eval "
+ADMIN_USERS=$(doc drush php-eval "
 \$users = \Drupal::entityTypeManager()
   ->getStorage('user')
   ->loadByProperties(['roles' => 'administrator']);
@@ -174,7 +174,7 @@ echo json_encode(\$admin_data);
 " 2>/dev/null || echo "[]")
 
 # Users with multiple roles
-MULTI_ROLE_USERS=$(ddev drush php-eval "
+MULTI_ROLE_USERS=$(doc drush php-eval "
 \$db = \Drupal::database();
 \$query = \$db->query(\"
   SELECT u.uid, u.name, u.mail, GROUP_CONCAT(ur.roles_target_id) as roles, COUNT(ur.roles_target_id) as role_count
@@ -201,7 +201,7 @@ echo json_encode(\$results);
 " 2>/dev/null || echo "[]")
 
 # Blocked users with roles
-BLOCKED_WITH_ROLES=$(ddev drush php-eval "
+BLOCKED_WITH_ROLES=$(doc drush php-eval "
 \$db = \Drupal::database();
 \$query = \$db->query(\"
   SELECT u.uid, u.name, u.mail, GROUP_CONCAT(ur.roles_target_id) as roles
@@ -245,7 +245,7 @@ RESULT=$(echo "$RESULT" | jq --argjson security "$SECURITY_ANALYSIS" '. + {secur
 # SUMMARY STATISTICS
 # ============================================
 
-SUMMARY=$(ddev drush php-eval "
+SUMMARY=$(doc drush php-eval "
 \$roles = \Drupal::entityTypeManager()->getStorage('user_role')->loadMultiple();
 \$total_roles = count(\$roles);
 \$system_roles = ['anonymous', 'authenticated', 'administrator'];

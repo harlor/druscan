@@ -15,7 +15,7 @@ fi
 # Function to export logs to file and analyze
 export_and_analyze_logs() {
     # Get site name from DDEV project
-    SITE_NAME=$(ddev exec printenv DDEV_SITENAME 2>/dev/null || echo "unknown")
+    SITE_NAME=$(doc exec printenv DDEV_SITENAME 2>/dev/null || echo "unknown")
     TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)
     LOG_FILE="./tmp/${SITE_NAME}_${TIMESTAMP}_dblog.txt"
 
@@ -23,7 +23,7 @@ export_and_analyze_logs() {
     mkdir -p ./tmp
 
     # Export last 5000 error logs with decoded variables
-    ddev drush php-eval "
+    doc drush php-eval "
 \$database = \Drupal::database();
 \$query = \$database->select('watchdog', 'w')
   ->fields('w', ['wid', 'message', 'variables', 'type', 'severity', 'timestamp', 'hostname', 'location'])

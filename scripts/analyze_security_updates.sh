@@ -6,14 +6,14 @@ DOCROOT=${DOCROOT:-web}
 
 # Get composer audit results (accept both exit codes - 0 = no issues, 1 = issues found)
 # Save to file inside container to avoid ddev output contamination
-ddev exec bash -c 'composer audit --format=json > /tmp/audit.json 2>&1 || true' > /dev/null 2>&1
-AUDIT_JSON=$(ddev exec cat /tmp/audit.json 2>/dev/null || echo '{"advisories":{}}')
+doc exec bash -c 'composer audit --format=json > /tmp/audit.json 2>&1 || true' > /dev/null 2>&1
+AUDIT_JSON=$(doc exec cat /tmp/audit.json 2>/dev/null || echo '{"advisories":{}}')
 
 # Get list of enabled modules
-ENABLED_JSON=$(ddev drush pm:list --status=enabled --format=json 2>/dev/null || echo '{}')
+ENABLED_JSON=$(doc drush pm:list --status=enabled --format=json 2>/dev/null || echo '{}')
 
 # Get list of disabled modules for cleanup recommendations
-DISABLED_JSON=$(ddev drush pm:list --status=disabled --format=json 2>/dev/null || echo '{}')
+DISABLED_JSON=$(doc drush pm:list --status=disabled --format=json 2>/dev/null || echo '{}')
 
 # Process with jq
 echo "$AUDIT_JSON" | jq --argjson enabled "$ENABLED_JSON" --argjson disabled "$DISABLED_JSON" '

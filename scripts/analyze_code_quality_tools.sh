@@ -87,7 +87,7 @@ check_composer_package() {
     
     IFS=',' read -ra PKG_ARRAY <<< "$packages"
     for pkg in "${PKG_ARRAY[@]}"; do
-        if ddev composer show "$pkg" &>/dev/null; then
+        if doc composer show "$pkg" &>/dev/null; then
             echo "true"
             return
         fi
@@ -168,7 +168,7 @@ done
 # Get list of relevant composer packages
 COMPOSER_PACKAGES="[]"
 if command -v ddev &>/dev/null; then
-    COMPOSER_PACKAGES=$(ddev composer show --format=json 2>/dev/null | jq '[.installed[] | select(.name | test("phpstan|psalm|phpcs|phpmd|php-cs-fixer|phan|rector|phpunit|grumphp|phpmetrics|codeception|behat|infection|phpcpd|phploc|parallel-lint|phpcompat|deptrac|coder|drupal.*dev")) | {name: .name, version: .version, description: .description}] // []' 2>/dev/null || echo "[]")
+    COMPOSER_PACKAGES=$(doc composer show --format=json 2>/dev/null | jq '[.installed[] | select(.name | test("phpstan|psalm|phpcs|phpmd|php-cs-fixer|phan|rector|phpunit|grumphp|phpmetrics|codeception|behat|infection|phpcpd|phploc|parallel-lint|phpcompat|deptrac|coder|drupal.*dev")) | {name: .name, version: .version, description: .description}] // []' 2>/dev/null || echo "[]")
 fi
 
 # Build final result

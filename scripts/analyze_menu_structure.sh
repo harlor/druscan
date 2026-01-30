@@ -16,7 +16,7 @@ OPERATION="${1:-all_menus}"
 # Function: Get all menus list
 # ============================================
 get_all_menus() {
-    ddev drush eval "
+    doc drush eval "
         \$menus = \\Drupal::entityTypeManager()->getStorage('menu')->loadMultiple();
         \$result = [];
         foreach (\$menus as \$menu_id => \$menu) {
@@ -39,7 +39,7 @@ get_all_menus() {
 # Function: Get main menu tree structure
 # ============================================
 get_main_menu_tree() {
-    ddev drush eval "
+    doc drush eval "
         function build_menu_tree(\$items, \$depth = 0, \$max_depth = 5) {
             if (\$depth > \$max_depth) return [];
 
@@ -213,7 +213,7 @@ EOF
 # Function: Get menu statistics
 # ============================================
 get_menu_statistics() {
-    ddev drush eval "
+    doc drush eval "
         \$menus = \\Drupal::entityTypeManager()->getStorage('menu')->loadMultiple();
         \$menu_tree_service = \\Drupal::menuTree();
 

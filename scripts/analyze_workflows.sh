@@ -10,10 +10,10 @@ if [ -z "$DOCROOT" ]; then
 fi
 
 # Check if Workflows module is enabled
-WORKFLOWS_ENABLED=$(ddev drush eval "echo \Drupal::moduleHandler()->moduleExists('workflows') ? '1' : '0';" 2>/dev/null)
+WORKFLOWS_ENABLED=$(doc drush eval "echo \Drupal::moduleHandler()->moduleExists('workflows') ? '1' : '0';" 2>/dev/null)
 
 # Check if Content Moderation module is enabled
-CONTENT_MODERATION_ENABLED=$(ddev drush eval "echo \Drupal::moduleHandler()->moduleExists('content_moderation') ? '1' : '0';" 2>/dev/null)
+CONTENT_MODERATION_ENABLED=$(doc drush eval "echo \Drupal::moduleHandler()->moduleExists('content_moderation') ? '1' : '0';" 2>/dev/null)
 
 # Initialize result object
 RESULT='{
@@ -47,7 +47,7 @@ fi
 # Get all workflows with detailed information
 echo "Collecting workflows data..." >&2
 
-WORKFLOWS_DATA=$(ddev drush eval "
+WORKFLOWS_DATA=$(doc drush eval "
 \$workflow_storage = \Drupal::entityTypeManager()->getStorage('workflow');
 \$workflows = \$workflow_storage->loadMultiple();
 \$result = [];
@@ -129,7 +129,7 @@ echo "Collecting entity assignments..." >&2
 
 ENTITY_ASSIGNMENTS="[]"
 if [ "$CONTENT_MODERATION_ENABLED" = "1" ]; then
-    ENTITY_ASSIGNMENTS=$(ddev drush eval "
+    ENTITY_ASSIGNMENTS=$(doc drush eval "
     \$workflow_storage = \Drupal::entityTypeManager()->getStorage('workflow');
     \$workflows = \$workflow_storage->loadMultiple();
     \$assignments = [];
@@ -169,11 +169,11 @@ echo "Collecting content by state..." >&2
 CONTENT_BY_STATE="[]"
 if [ "$CONTENT_MODERATION_ENABLED" = "1" ]; then
     # Check if content_moderation_state table exists
-    TABLE_EXISTS=$(ddev drush sql-query "SHOW TABLES LIKE 'content_moderation_state_field_data'" 2>/dev/null | grep -c "content_moderation_state_field_data" || echo "0")
+    TABLE_EXISTS=$(doc drush sql-query "SHOW TABLES LIKE 'content_moderation_state_field_data'" 2>/dev/null | grep -c "content_moderation_state_field_data" || echo "0")
 
     if [ "$TABLE_EXISTS" = "1" ]; then
         # Use drush eval to get data in JSON format since sql-query doesn't support --format=json
-        CONTENT_BY_STATE=$(ddev drush eval "
+        CONTENT_BY_STATE=$(doc drush eval "
         \$database = \Drupal::database();
         \$query = \$database->query('
             SELECT

@@ -49,7 +49,7 @@ RESULT='{
 echo "Collecting cron status..." >&2
 
 # Get last cron run information
-CRON_STATUS=$(ddev drush eval "
+CRON_STATUS=$(doc drush eval "
 \$cron_last = \Drupal::state()->get('system.cron_last');
 if (\$cron_last) {
   \$seconds_ago = time() - \$cron_last;
@@ -86,7 +86,7 @@ RESULT=$(echo "$RESULT" | jq --argjson status "$CRON_STATUS" '.status = $status'
 echo "Checking Ultimate Cron module..." >&2
 
 # Check if Ultimate Cron is enabled
-ULTIMATE_CRON_ENABLED=$(ddev drush eval "echo \Drupal::moduleHandler()->moduleExists('ultimate_cron') ? '1' : '0';" 2>/dev/null)
+ULTIMATE_CRON_ENABLED=$(doc drush eval "echo \Drupal::moduleHandler()->moduleExists('ultimate_cron') ? '1' : '0';" 2>/dev/null)
 
 RESULT=$(echo "$RESULT" | jq --argjson uc_enabled "$ULTIMATE_CRON_ENABLED" '.modules.ultimate_cron_enabled = ($uc_enabled == 1)')
 
@@ -153,7 +153,7 @@ RESULT=$(echo "$RESULT" | jq \
 echo "Analyzing queue workers..." >&2
 
 # Get all queue workers
-QUEUE_WORKERS=$(ddev drush eval "
+QUEUE_WORKERS=$(doc drush eval "
 \$queue_manager = \Drupal::service('plugin.manager.queue_worker');
 \$workers = \$queue_manager->getDefinitions();
 
@@ -208,7 +208,7 @@ RESULT=$(echo "$RESULT" | jq \
 if [ "$ULTIMATE_CRON_ENABLED" = "1" ]; then
     echo "Collecting Ultimate Cron jobs..." >&2
 
-    UC_JOBS=$(ddev drush eval "
+    UC_JOBS=$(doc drush eval "
     if (\Drupal::moduleHandler()->moduleExists('ultimate_cron')) {
       \$jobs = \Drupal::entityTypeManager()->getStorage('ultimate_cron_job')->loadMultiple();
       \$jobs_data = [];
@@ -242,7 +242,7 @@ if [ "$ULTIMATE_CRON_ENABLED" = "1" ]; then
     echo "Collecting Ultimate Cron last runs..." >&2
 
     # Get last runs from database
-    UC_LAST_RUNS=$(ddev drush sql-query "
+    UC_LAST_RUNS=$(doc drush sql-query "
     SELECT name, start_time, end_time, duration, status, msg
     FROM ultimate_cron_log
     WHERE start_time > 0
@@ -266,7 +266,7 @@ fi
 echo "Collecting cron errors..." >&2
 
 # Get recent cron errors from watchdog
-CRON_ERRORS=$(ddev drush watchdog:show --type=cron --count=10 --format=json 2>/dev/null || echo "[]")
+CRON_ERRORS=$(doc drush watchdog:show --type=cron --count=10 --format=json 2>/dev/null || echo "[]")
 
 if [ -z "$CRON_ERRORS" ] || [ "$CRON_ERRORS" = "null" ]; then
     CRON_ERRORS="[]"

@@ -13,7 +13,7 @@ fi
 # Function: Get all views with detailed information
 # ============================================
 get_all_views() {
-    ddev drush eval "
+    doc drush eval "
         \$view_storage = \\Drupal::entityTypeManager()->getStorage('view');
         \$views = \$view_storage->loadMultiple();
 
@@ -150,7 +150,7 @@ get_all_views() {
 # Function: Get views statistics only
 # ============================================
 get_views_statistics() {
-    ddev drush eval "
+    doc drush eval "
         \$view_storage = \\Drupal::entityTypeManager()->getStorage('view');
         \$views = \$view_storage->loadMultiple();
 
@@ -196,7 +196,7 @@ get_views_statistics() {
 # Function: Get list of views with routes only
 # ============================================
 get_views_with_routes() {
-    ddev drush eval "
+    doc drush eval "
         \$view_storage = \\Drupal::entityTypeManager()->getStorage('view');
         \$views = \$view_storage->loadMultiple();
 
@@ -233,7 +233,7 @@ get_views_with_routes() {
 # Function: Get list of views with blocks only
 # ============================================
 get_views_with_blocks() {
-    ddev drush eval "
+    doc drush eval "
         \$view_storage = \\Drupal::entityTypeManager()->getStorage('view');
         \$views = \$view_storage->loadMultiple();
 

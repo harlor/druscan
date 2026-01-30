@@ -7,14 +7,14 @@ COMMAND=$1
 
 case "$COMMAND" in
     content_types_count)
-        ddev drush eval "
+        doc drush eval "
         \$types = \Drupal::entityTypeManager()->getStorage('node_type')->loadMultiple();
         echo count(\$types);
         " 2>/dev/null || echo "0"
         ;;
 
     content_types_with_counts)
-        ddev drush eval "
+        doc drush eval "
         \$query = \Drupal::database()->query('
             SELECT
                 type,
@@ -29,14 +29,14 @@ case "$COMMAND" in
         ;;
 
     taxonomy_vocabs_count)
-        ddev drush eval "
+        doc drush eval "
         \$vocabs = \Drupal::entityTypeManager()->getStorage('taxonomy_vocabulary')->loadMultiple();
         echo count(\$vocabs);
         " 2>/dev/null || echo "0"
         ;;
 
     taxonomy_with_counts)
-        ddev drush eval "
+        doc drush eval "
         \$query = \Drupal::database()->query('
             SELECT
                 vid,
@@ -49,14 +49,14 @@ case "$COMMAND" in
         ;;
 
     media_types_count)
-        ddev drush eval "
+        doc drush eval "
         \$types = \Drupal::entityTypeManager()->getStorage('media_type')->loadMultiple();
         echo count(\$types);
         " 2>/dev/null || echo "0"
         ;;
 
     media_with_counts)
-        ddev drush eval "
+        doc drush eval "
         \$query = \Drupal::database()->query('
             SELECT
                 bundle,
@@ -71,7 +71,7 @@ case "$COMMAND" in
         ;;
 
     users_statistics)
-        ddev drush eval "
+        doc drush eval "
         \$query = \Drupal::database()->query('
             SELECT
                 COUNT(*) as total,
@@ -84,7 +84,7 @@ case "$COMMAND" in
         ;;
 
     user_roles)
-        ddev drush eval "
+        doc drush eval "
         \$roles = \Drupal::entityTypeManager()->getStorage('user_role')->loadMultiple();
         \$result = [];
         foreach (\$roles as \$rid => \$role) {
@@ -98,8 +98,8 @@ case "$COMMAND" in
         ;;
 
     canvas_statistics)
-        if ddev drush eval "echo \Drupal::moduleHandler()->moduleExists('canvas') ? '1' : '0';" 2>/dev/null | grep -q "1"; then
-            ddev drush eval "
+        if doc drush eval "echo \Drupal::moduleHandler()->moduleExists('canvas') ? '1' : '0';" 2>/dev/null | grep -q "1"; then
+            doc drush eval "
             \$query = \Drupal::database()->query('SELECT COUNT(*) as total FROM canvas_page');
             \$result = \$query->fetch(\PDO::FETCH_ASSOC);
             echo json_encode(\$result);

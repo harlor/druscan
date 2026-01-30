@@ -2,7 +2,7 @@
 # Get taxonomy vocabularies with total term counts
 # Returns: JSON array
 
-ddev drush eval "
+doc drush eval "
 \$query = \Drupal::database()->query('
     SELECT
         vid,

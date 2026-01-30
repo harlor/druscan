@@ -2,7 +2,7 @@
 # Get media types with total counts, last year, and last month statistics
 # Returns: JSON array
 
-ddev drush eval "
+doc drush eval "
 \$query = \Drupal::database()->query('
     SELECT
         bundle,

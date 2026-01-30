@@ -218,19 +218,19 @@ cd "$SITE_PATH" || {
 }
 
 # Check if DDEV is accessible (project may be running under different path)
-log INFO "Checking DDEV availability"
-if ddev describe >/dev/null 2>&1 || ddev exec pwd >/dev/null 2>&1; then
-    log INFO "DDEV is accessible"
-else
-    log INFO "DDEV not running, attempting to start..."
-    if ddev start >/dev/null 2>&1; then
-        log INFO "DDEV started successfully"
-    else
-        log WARN "Could not start DDEV automatically"
-        log WARN "Project may be registered under different path or already running"
-        log INFO "Continuing with audit (commands may fail if DDEV is not accessible)"
-    fi
-fi
+# log INFO "Checking DDEV availability"
+# if ddev describe >/dev/null 2>&1 || doc exec pwd >/dev/null 2>&1; then
+#     log INFO "DDEV is accessible"
+# else
+#     log INFO "DDEV not running, attempting to start..."
+#     if ddev start >/dev/null 2>&1; then
+#         log INFO "DDEV started successfully"
+#     else
+#         log WARN "Could not start DDEV automatically"
+#         log WARN "Project may be registered under different path or already running"
+#         log INFO "Continuing with audit (commands may fail if DDEV is not accessible)"
+#     fi
+# fi
 
 # Get basic audit metadata
 log INFO "Collecting audit metadata"
@@ -238,7 +238,7 @@ AUDIT_DATE=$(date '+%Y-%m-%d')
 AUDIT_SITE_NAME="${SITE_NAME}"
 
 # Try to get Drupal version from DDEV
-DRUPAL_VERSION=$(ddev drush status --fields=drupal-version --format=string 2>/dev/null || echo "Unknown")
+DRUPAL_VERSION=$(doc drush status --fields=drupal-version --format=string 2>/dev/null || echo "Unknown")
 
 # Get system username as auditor (can be overridden with AUDITOR env var)
 AUDIT_BY="${AUDITOR:-$(whoami)}"

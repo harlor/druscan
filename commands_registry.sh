@@ -7,25 +7,25 @@ COMMANDS=(
     # ============================================
     # Section: System Information
     # ============================================
-    "system_information|drush_status|json|ddev drush status --format=json"
-    "system_information|php_version|text|ddev exec php -v"
-    "system_information|drupal_version|text|ddev drush core:status --field=drupal-version"
+    "system_information|drush_status|json|doc drush status --format=json"
+    "system_information|php_version|text|doc exec php -v"
+    "system_information|drupal_version|text|doc drush core:status --field=drupal-version"
 
     # ============================================
     # Section: Drupal Modules
     # ============================================
-    "drupal_modules|statistics_total|text|ddev drush pm:list --format=json 2>/dev/null | jq '. | length'"
-    "drupal_modules|statistics_enabled|text|ddev drush pm:list --status=enabled --format=json 2>/dev/null | jq '. | length'"
-    "drupal_modules|statistics_disabled|text|ddev drush pm:list --status=disabled --format=json 2>/dev/null | jq '. | length'"
+    "drupal_modules|statistics_total|text|doc drush pm:list --format=json 2>/dev/null | jq '. | length'"
+    "drupal_modules|statistics_enabled|text|doc drush pm:list --status=enabled --format=json 2>/dev/null | jq '. | length'"
+    "drupal_modules|statistics_disabled|text|doc drush pm:list --status=disabled --format=json 2>/dev/null | jq '. | length'"
     "drupal_modules|statistics_custom|text|find \${DOCROOT}/modules/custom -name '*.info.yml' 2>/dev/null | wc -l | tr -d ' '"
     "drupal_modules|statistics_contrib|text|find \${DOCROOT}/modules/contrib -name '*.info.yml' 2>/dev/null | wc -l | tr -d ' '"
-    "drupal_modules|enabled_modules_core|json|ddev drush pm:list --status=enabled --format=json 2>/dev/null | jq 'to_entries | map(select(.value.package == \"Core\")) | map({key: .key, value: {name: .value.name, version: .value.version, package: .value.package, type: .value.type}}) | from_entries'"
-    "drupal_modules|enabled_modules_contrib|json|ddev drush pm:list --status=enabled --format=json 2>/dev/null | jq 'to_entries | map(select(.value.path | contains(\"/contrib/\"))) | map({key: .key, value: {name: .value.name, version: .value.version, package: .value.package, type: .value.type}}) | from_entries'"
-    "drupal_modules|enabled_modules_custom|json|ddev drush pm:list --status=enabled --format=json 2>/dev/null | jq 'to_entries | map(select(.value.path | contains(\"/custom/\"))) | map({key: .key, value: {name: .value.name, version: .value.version, package: .value.package, type: .value.type}}) | from_entries'"
-    "drupal_modules|composer_drupal_core|json|ddev composer show drupal/core --format=json 2>/dev/null | jq '{name: .name, version: .versions[0], php_requirement: (.requires.php // \"unknown\")}'"
-    "drupal_modules|composer_direct_dependencies|json|ddev composer show --direct 'drupal/*' --format=json 2>/dev/null | jq '[.installed[] | {name: .name, version: .version, description: .description}]'"
-    "drupal_modules|patches_count|text|ddev exec cat composer.json 2>/dev/null | jq -r '.extra.patches // {} | [.[]] | flatten | length' 2>/dev/null || echo '0'"
-    "drupal_modules|patches_list|json|ddev exec cat composer.json 2>/dev/null | jq -c '.extra.patches // {}' 2>/dev/null || echo '{}'"
+    "drupal_modules|enabled_modules_core|json|doc drush pm:list --status=enabled --format=json 2>/dev/null | jq 'to_entries | map(select(.value.package == \"Core\")) | map({key: .key, value: {name: .value.name, version: .value.version, package: .value.package, type: .value.type}}) | from_entries'"
+    "drupal_modules|enabled_modules_contrib|json|doc drush pm:list --status=enabled --format=json 2>/dev/null | jq 'to_entries | map(select(.value.path | contains(\"/contrib/\"))) | map({key: .key, value: {name: .value.name, version: .value.version, package: .value.package, type: .value.type}}) | from_entries'"
+    "drupal_modules|enabled_modules_custom|json|doc drush pm:list --status=enabled --format=json 2>/dev/null | jq 'to_entries | map(select(.value.path | contains(\"/custom/\"))) | map({key: .key, value: {name: .value.name, version: .value.version, package: .value.package, type: .value.type}}) | from_entries'"
+    "drupal_modules|composer_drupal_core|json|doc composer show drupal/core --format=json 2>/dev/null | jq '{name: .name, version: .versions[0], php_requirement: (.requires.php // \"unknown\")}'"
+    "drupal_modules|composer_direct_dependencies|json|doc composer show --direct 'drupal/*' --format=json 2>/dev/null | jq '[.installed[] | {name: .name, version: .version, description: .description}]'"
+    "drupal_modules|patches_count|text|doc exec cat composer.json 2>/dev/null | jq -r '.extra.patches // {} | [.[]] | flatten | length' 2>/dev/null || echo '0'"
+    "drupal_modules|patches_list|json|doc exec cat composer.json 2>/dev/null | jq -c '.extra.patches // {}' 2>/dev/null || echo '{}'"
     "drupal_modules|custom_modules|json|bash \${BASE_DIR}/scripts/analyze_custom_modules.sh"
 
     # ============================================
@@ -33,9 +33,9 @@ COMMANDS=(
     # Critical: Shows which vulnerabilities affect ENABLED vs DISABLED modules
     # ============================================
     "updates_check|security_analysis|json|bash \${BASE_DIR}/scripts/analyze_security_updates.sh"
-    "updates_check|composer_validate|text|ddev composer validate 2>&1"
-    "updates_check|outdated_drupal_packages|json|ddev composer outdated 'drupal/*' --format=json 2>/dev/null || echo '{}'"
-    "updates_check|outdated_all_packages_count|text|ddev composer outdated --format=json 2>/dev/null | jq '.installed | length' 2>/dev/null || echo '0'"
+    "updates_check|composer_validate|text|doc composer validate 2>&1"
+    "updates_check|outdated_drupal_packages|json|doc composer outdated 'drupal/*' --format=json 2>/dev/null || echo '{}'"
+    "updates_check|outdated_all_packages_count|text|doc composer outdated --format=json 2>/dev/null | jq '.installed | length' 2>/dev/null || echo '0'"
 
     # ============================================
     # Section: Hacked Module Check
@@ -57,15 +57,15 @@ COMMANDS=(
     # Analyzes installed themes (core/contrib/custom)
     # Shows default theme, admin theme, and custom theme details
     # ============================================
-    "drupal_themes|statistics_total|text|ddev drush pm:list --type=theme --format=json 2>/dev/null | jq '. | length'"
-    "drupal_themes|statistics_enabled|text|ddev drush pm:list --type=theme --status=enabled --format=json 2>/dev/null | jq '. | length'"
+    "drupal_themes|statistics_total|text|doc drush pm:list --type=theme --format=json 2>/dev/null | jq '. | length'"
+    "drupal_themes|statistics_enabled|text|doc drush pm:list --type=theme --status=enabled --format=json 2>/dev/null | jq '. | length'"
     "drupal_themes|statistics_core|text|find \${DOCROOT}/core/themes -maxdepth 1 -name '*.info.yml' 2>/dev/null | wc -l | tr -d ' '"
     "drupal_themes|statistics_contrib|text|find \${DOCROOT}/themes/contrib -name '*.info.yml' 2>/dev/null | wc -l | tr -d ' '"
     "drupal_themes|statistics_custom|text|find \${DOCROOT}/themes/custom -name '*.info.yml' 2>/dev/null | wc -l | tr -d ' '"
-    "drupal_themes|default_theme|json|ddev drush config:get system.theme --format=json 2>/dev/null | jq '{default: .default, admin: .admin}'"
-    "drupal_themes|all_themes|json|ddev drush pm:list --type=theme --format=json 2>/dev/null | jq 'to_entries | map({key: .key, value: {name: .value.name, version: .value.version, status: .value.status, path: .value.path}}) | from_entries'"
-    "drupal_themes|core_themes|json|ddev drush pm:list --type=theme --format=json 2>/dev/null | jq 'to_entries | map(select(.value.path | startswith(\"core/themes/\"))) | map({key: .key, value: {name: .value.name, version: .value.version, status: .value.status}}) | from_entries'"
-    "drupal_themes|contrib_themes|json|ddev drush pm:list --type=theme --format=json 2>/dev/null | jq 'to_entries | map(select(.value.path | startswith(\"themes/contrib/\"))) | map({key: .key, value: {name: .value.name, version: .value.version, status: .value.status}}) | from_entries'"
+    "drupal_themes|default_theme|json|doc drush config:get system.theme --format=json 2>/dev/null | jq '{default: .default, admin: .admin}'"
+    "drupal_themes|all_themes|json|doc drush pm:list --type=theme --format=json 2>/dev/null | jq 'to_entries | map({key: .key, value: {name: .value.name, version: .value.version, status: .value.status, path: .value.path}}) | from_entries'"
+    "drupal_themes|core_themes|json|doc drush pm:list --type=theme --format=json 2>/dev/null | jq 'to_entries | map(select(.value.path | startswith(\"core/themes/\"))) | map({key: .key, value: {name: .value.name, version: .value.version, status: .value.status}}) | from_entries'"
+    "drupal_themes|contrib_themes|json|doc drush pm:list --type=theme --format=json 2>/dev/null | jq 'to_entries | map(select(.value.path | startswith(\"themes/contrib/\"))) | map({key: .key, value: {name: .value.name, version: .value.version, status: .value.status}}) | from_entries'"
     "drupal_themes|custom_themes|json|bash \${BASE_DIR}/scripts/analyze_custom_themes.sh"
 
     # ============================================
@@ -80,34 +80,34 @@ COMMANDS=(
 
     # Overall entity statistics
     "entity_structure|statistics_content_types_count|text|bash \${BASE_DIR}/scripts/get_entity_data.sh content_types_count"
-    "entity_structure|statistics_total_nodes|text|ddev drush sql-query \"SELECT COUNT(*) FROM node_field_data\" 2>/dev/null | head -1 | tr -d ' '"
+    "entity_structure|statistics_total_nodes|text|doc drush sql-query \"SELECT COUNT(*) FROM node_field_data\" 2>/dev/null | head -1 | tr -d ' '"
     "entity_structure|statistics_taxonomy_vocabs_count|text|bash \${BASE_DIR}/scripts/get_entity_data.sh taxonomy_vocabs_count"
-    "entity_structure|statistics_total_terms|text|ddev drush sql-query \"SELECT COUNT(*) FROM taxonomy_term_field_data\" 2>/dev/null | head -1 | tr -d ' '"
-    "entity_structure|statistics_total_users|text|ddev drush sql-query \"SELECT COUNT(*) FROM users_field_data\" 2>/dev/null | head -1 | tr -d ' '"
+    "entity_structure|statistics_total_terms|text|doc drush sql-query \"SELECT COUNT(*) FROM taxonomy_term_field_data\" 2>/dev/null | head -1 | tr -d ' '"
+    "entity_structure|statistics_total_users|text|doc drush sql-query \"SELECT COUNT(*) FROM users_field_data\" 2>/dev/null | head -1 | tr -d ' '"
     "entity_structure|statistics_media_types_count|text|bash \${BASE_DIR}/scripts/get_entity_data.sh media_types_count"
-    "entity_structure|statistics_total_media|text|ddev drush sql-query \"SELECT COUNT(*) FROM media_field_data\" 2>/dev/null | head -1 | tr -d ' '"
+    "entity_structure|statistics_total_media|text|doc drush sql-query \"SELECT COUNT(*) FROM media_field_data\" 2>/dev/null | head -1 | tr -d ' '"
 
     # Content types with detailed statistics
-    "entity_structure|content_types_list|json|ddev drush eval \"echo json_encode(array_keys(\\Drupal::service('entity_type.bundle.info')->getBundleInfo('node')));\" 2>/dev/null"
+    "entity_structure|content_types_list|json|doc drush eval \"echo json_encode(array_keys(\\Drupal::service('entity_type.bundle.info')->getBundleInfo('node')));\" 2>/dev/null"
     "entity_structure|content_types_with_counts|json|bash \${BASE_DIR}/scripts/get_entity_data.sh content_types_with_counts"
 
     # Taxonomy vocabularies with statistics
-    "entity_structure|taxonomy_vocabs_list|json|ddev drush eval \"echo json_encode(array_keys(\\Drupal::service('entity_type.bundle.info')->getBundleInfo('taxonomy_term')));\" 2>/dev/null"
+    "entity_structure|taxonomy_vocabs_list|json|doc drush eval \"echo json_encode(array_keys(\\Drupal::service('entity_type.bundle.info')->getBundleInfo('taxonomy_term')));\" 2>/dev/null"
     "entity_structure|taxonomy_with_counts|json|bash \${BASE_DIR}/scripts/get_entity_data.sh taxonomy_with_counts"
 
     # Media types with statistics
-    "entity_structure|media_types_list|json|ddev drush eval \"echo json_encode(array_keys(\\Drupal::service('entity_type.bundle.info')->getBundleInfo('media')));\" 2>/dev/null || echo '[]'"
+    "entity_structure|media_types_list|json|doc drush eval \"echo json_encode(array_keys(\\Drupal::service('entity_type.bundle.info')->getBundleInfo('media')));\" 2>/dev/null || echo '[]'"
     "entity_structure|media_with_counts|json|bash \${BASE_DIR}/scripts/get_entity_data.sh media_with_counts"
 
     # Paragraph types (if paragraphs module is enabled)
-    "entity_structure|paragraph_types_list|json|ddev drush eval \"if (\\Drupal::moduleHandler()->moduleExists('paragraphs')) { echo json_encode(array_keys(\\Drupal::service('entity_type.bundle.info')->getBundleInfo('paragraph'))); } else { echo '[]'; }\" 2>/dev/null"
+    "entity_structure|paragraph_types_list|json|doc drush eval \"if (\\Drupal::moduleHandler()->moduleExists('paragraphs')) { echo json_encode(array_keys(\\Drupal::service('entity_type.bundle.info')->getBundleInfo('paragraph'))); } else { echo '[]'; }\" 2>/dev/null"
 
     # User statistics and roles
     "entity_structure|users_statistics|json|bash \${BASE_DIR}/scripts/get_entity_data.sh users_statistics"
     "entity_structure|user_roles|json|bash \${BASE_DIR}/scripts/get_entity_data.sh user_roles"
 
     # Canvas entity statistics (if canvas module is enabled)
-    "entity_structure|canvas_enabled|text|ddev drush eval \"echo \\Drupal::moduleHandler()->moduleExists('canvas') ? '1' : '0';\" 2>/dev/null"
+    "entity_structure|canvas_enabled|text|doc drush eval \"echo \\Drupal::moduleHandler()->moduleExists('canvas') ? '1' : '0';\" 2>/dev/null"
     "entity_structure|canvas_statistics|json|bash \${BASE_DIR}/scripts/get_entity_data.sh canvas_statistics"
 
     # Comprehensive entity structure analysis (uses helper script)
@@ -163,7 +163,7 @@ COMMANDS=(
     # - Statistics (implementations count, queue workers, jobs)
     # ============================================
     "cron_jobs|full_analysis|json|bash \${BASE_DIR}/scripts/analyze_cron.sh"
-    "cron_jobs|requirements|text|ddev drush core:requirements --severity=1 2>/dev/null | grep -i cron || echo 'No critical cron-related requirements issues'"
+    "cron_jobs|requirements|text|doc drush core:requirements --severity=1 2>/dev/null | grep -i cron || echo 'No critical cron-related requirements issues'"
 
     # ============================================
     # Section: External Integrations
@@ -211,11 +211,11 @@ COMMANDS=(
     # - Exports detailed logs to tmp/ directory for analysis
     # Note: Only works with Drupal 8+ (uses watchdog table)
     # ============================================
-    "database_logs|watchdog_table_exists|text|ddev drush sql-query \"SHOW TABLES LIKE 'watchdog';\" 2>/dev/null | grep -q 'watchdog' && echo '1' || echo '0'"
-    "database_logs|total_entries|text|ddev drush sql-query \"SELECT COUNT(*) FROM watchdog;\" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' '"
-    "database_logs|entries_by_severity|json|ddev drush php-eval \"\\\$db = \\Drupal::database(); \\\$query = \\\$db->query('SELECT severity, COUNT(*) as count FROM {watchdog} GROUP BY severity ORDER BY severity'); \\\$results = []; \\\$sev_names = ['0-Emergency', '1-Alert', '2-Critical', '3-Error', '4-Warning', '5-Notice', '6-Info', '7-Debug']; foreach (\\\$query as \\\$row) { \\\$results[] = ['severity' => \\\$sev_names[\\\$row->severity] ?? \\\$row->severity . '-Unknown', 'count' => (int)\\\$row->count]; } echo json_encode(\\\$results);\" 2>/dev/null"
-    "database_logs|error_count|text|ddev drush sql-query \"SELECT COUNT(*) FROM watchdog WHERE severity <= 3;\" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' '"
-    "database_logs|errors_by_type|json|ddev drush php-eval \"\\\$db = \\Drupal::database(); \\\$query = \\\$db->query('SELECT type, COUNT(*) as count FROM {watchdog} WHERE severity <= 3 GROUP BY type ORDER BY count DESC LIMIT 20'); \\\$results = []; foreach (\\\$query as \\\$row) { \\\$results[] = ['type' => \\\$row->type, 'count' => (int)\\\$row->count]; } echo json_encode(\\\$results);\" 2>/dev/null"
+    "database_logs|watchdog_table_exists|text|doc drush sql-query \"SHOW TABLES LIKE 'watchdog';\" 2>/dev/null | grep -q 'watchdog' && echo '1' || echo '0'"
+    "database_logs|total_entries|text|doc drush sql-query \"SELECT COUNT(*) FROM watchdog;\" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' '"
+    "database_logs|entries_by_severity|json|doc drush php-eval \"\\\$db = \\Drupal::database(); \\\$query = \\\$db->query('SELECT severity, COUNT(*) as count FROM {watchdog} GROUP BY severity ORDER BY severity'); \\\$results = []; \\\$sev_names = ['0-Emergency', '1-Alert', '2-Critical', '3-Error', '4-Warning', '5-Notice', '6-Info', '7-Debug']; foreach (\\\$query as \\\$row) { \\\$results[] = ['severity' => \\\$sev_names[\\\$row->severity] ?? \\\$row->severity . '-Unknown', 'count' => (int)\\\$row->count]; } echo json_encode(\\\$results);\" 2>/dev/null"
+    "database_logs|error_count|text|doc drush sql-query \"SELECT COUNT(*) FROM watchdog WHERE severity <= 3;\" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' '"
+    "database_logs|errors_by_type|json|doc drush php-eval \"\\\$db = \\Drupal::database(); \\\$query = \\\$db->query('SELECT type, COUNT(*) as count FROM {watchdog} WHERE severity <= 3 GROUP BY type ORDER BY count DESC LIMIT 20'); \\\$results = []; foreach (\\\$query as \\\$row) { \\\$results[] = ['type' => \\\$row->type, 'count' => (int)\\\$row->count]; } echo json_encode(\\\$results);\" 2>/dev/null"
     "database_logs|detailed_analysis|json|bash \${BASE_DIR}/scripts/analyze_database_logs.sh full_analysis"
 
     # ============================================
@@ -245,10 +245,10 @@ COMMANDS=(
     # - Security analysis (admin users, multi-role users, blocked users)
     # - Summary statistics (roles count, custom vs system)
     # ============================================
-    "user_roles|statistics_total_users|text|ddev drush sql-query \"SELECT COUNT(*) FROM users_field_data WHERE uid > 0;\" 2>/dev/null | grep -E '^[0-9]+\$' | head -1 | tr -d ' '"
-    "user_roles|statistics_active_users|text|ddev drush sql-query \"SELECT COUNT(*) FROM users_field_data WHERE uid > 0 AND status = 1;\" 2>/dev/null | grep -E '^[0-9]+\$' | head -1 | tr -d ' '"
-    "user_roles|statistics_blocked_users|text|ddev drush sql-query \"SELECT COUNT(*) FROM users_field_data WHERE uid > 0 AND status = 0;\" 2>/dev/null | grep -E '^[0-9]+\$' | head -1 | tr -d ' '"
-    "user_roles|statistics_total_roles|text|ddev drush role:list --format=json 2>/dev/null | jq '. | length'"
+    "user_roles|statistics_total_users|text|doc drush sql-query \"SELECT COUNT(*) FROM users_field_data WHERE uid > 0;\" 2>/dev/null | grep -E '^[0-9]+\$' | head -1 | tr -d ' '"
+    "user_roles|statistics_active_users|text|doc drush sql-query \"SELECT COUNT(*) FROM users_field_data WHERE uid > 0 AND status = 1;\" 2>/dev/null | grep -E '^[0-9]+\$' | head -1 | tr -d ' '"
+    "user_roles|statistics_blocked_users|text|doc drush sql-query \"SELECT COUNT(*) FROM users_field_data WHERE uid > 0 AND status = 0;\" 2>/dev/null | grep -E '^[0-9]+\$' | head -1 | tr -d ' '"
+    "user_roles|statistics_total_roles|text|doc drush role:list --format=json 2>/dev/null | jq '. | length'"
     "user_roles|full_analysis|json|bash \${BASE_DIR}/scripts/analyze_user_roles.sh"
 
     # ============================================
@@ -263,7 +263,7 @@ COMMANDS=(
     # - Summary: single vs multi-domain vs multisite setup
     # ============================================
     "multisite_domain|full_analysis|json|bash \${BASE_DIR}/scripts/analyze_multisite_domain.sh"
-    "multisite_domain|domain_module_check|text|ddev drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == \"domain\") | .value.status' || echo 'not_installed'"
+    "multisite_domain|domain_module_check|text|doc drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == \"domain\") | .value.status' || echo 'not_installed'"
     "multisite_domain|sites_directory_check|text|[ -d \${DOCROOT}/sites ] && echo '1' || echo '0'"
     "multisite_domain|sites_php_exists|text|[ -f \${DOCROOT}/sites/sites.php ] && echo '1' || echo '0'"
 
@@ -281,9 +281,9 @@ COMMANDS=(
     # Note: Requires Language module to be enabled
     # ============================================
     "multilingual|full_analysis|json|bash \${BASE_DIR}/scripts/analyze_multilingual.sh"
-    "multilingual|language_module_status|text|ddev drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == \"language\") | .value.status' || echo 'not_enabled'"
-    "multilingual|installed_languages_count|text|ddev drush eval \"echo count(\\Drupal::languageManager()->getLanguages());\" 2>/dev/null || echo '1'"
-    "multilingual|default_language|text|ddev drush eval \"echo \\Drupal::languageManager()->getDefaultLanguage()->getId();\" 2>/dev/null || echo 'en'"
+    "multilingual|language_module_status|text|doc drush pm:list --format=json 2>/dev/null | jq -r 'to_entries[] | select(.key == \"language\") | .value.status' || echo 'not_enabled'"
+    "multilingual|installed_languages_count|text|doc drush eval \"echo count(\\Drupal::languageManager()->getLanguages());\" 2>/dev/null || echo '1'"
+    "multilingual|default_language|text|doc drush eval \"echo \\Drupal::languageManager()->getDefaultLanguage()->getId();\" 2>/dev/null || echo 'en'"
 
     # ============================================
     # Section: Composer and Codebase Synchronization
@@ -298,9 +298,9 @@ COMMANDS=(
     # Helps detect: manual FTP uploads, git commits of contrib code, incomplete deployments
     # ============================================
     "composer_codebase_sync|full_analysis|json|bash \${BASE_DIR}/scripts/analyze_composer_codebase_sync.sh"
-    "composer_codebase_sync|composer_validate|text|ddev composer validate --no-check-publish 2>&1 | head -20"
+    "composer_codebase_sync|composer_validate|text|doc composer validate --no-check-publish 2>&1 | head -20"
     "composer_codebase_sync|composer_lock_exists|text|[ -f composer.lock ] && echo '1' || echo '0'"
-    "composer_codebase_sync|composer_outdated_count|text|ddev composer outdated 'drupal/*' --format=json 2>/dev/null | jq '.installed | length' 2>/dev/null || echo '0'"
+    "composer_codebase_sync|composer_outdated_count|text|doc composer outdated 'drupal/*' --format=json 2>/dev/null | jq '.installed | length' 2>/dev/null || echo '0'"
 
     # ============================================
     # Section: Performance Analysis

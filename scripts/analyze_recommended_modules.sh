@@ -12,10 +12,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODULE_REGISTRY=$(bash "${SCRIPT_DIR}/recommended_modules_registry.sh")
 
 # Get ALL module statuses once at the beginning (avoid multiple drush calls)
-ALL_MODULES_STATUS=$(ddev drush pm:list --format=json 2>/dev/null || echo '{}')
+ALL_MODULES_STATUS=$(doc drush pm:list --format=json 2>/dev/null || echo '{}')
 
 # Get list of composer packages (to check if module is added to composer.json)
-COMPOSER_PACKAGES=$(ddev composer show --direct --format=json 2>/dev/null | jq -r '.installed[].name' | grep '^drupal/' || echo "")
+COMPOSER_PACKAGES=$(doc composer show --direct --format=json 2>/dev/null | jq -r '.installed[].name' | grep '^drupal/' || echo "")
 
 # Analyze specific module set
 analyze_module_set() {

@@ -9,7 +9,7 @@ MODE="${1:-full_analysis}"
 
 # Function to safely execute drush commands
 safe_drush() {
-    ddev drush "$@" 2>/dev/null || echo "{}"
+    doc drush "$@" 2>/dev/null || echo "{}"
 }
 
 # Function to get config directory path (resolved from settings.php via drush)
@@ -61,7 +61,7 @@ check_config_directory() {
 
 # Function to check config sync status (differences)
 check_config_sync_status() {
-    local status_output=$(ddev drush config:status --format=json 2>/dev/null || echo '{}')
+    local status_output=$(doc drush config:status --format=json 2>/dev/null || echo '{}')
 
     # Clean and validate the JSON output (remove trailing commas if any)
     status_output=$(echo "$status_output" | sed 's/,\s*}/}/g' | sed 's/,\s*]/]/g')
@@ -89,10 +89,10 @@ analyze_config_split() {
     fi
 
     # Get all config split configurations
-    local splits=$(ddev drush config:get --format=json config_split.config_split 2>/dev/null | jq -c '.' || echo '{}')
+    local splits=$(doc drush config:get --format=json config_split.config_split 2>/dev/null | jq -c '.' || echo '{}')
 
     # Get list of split entities
-    local split_list=$(ddev drush eval "if (\Drupal::moduleHandler()->moduleExists('config_split')) { \$splits = \Drupal::entityTypeManager()->getStorage('config_split_entity')->loadMultiple(); \$result = []; foreach (\$splits as \$split) { \$result[] = ['id' => \$split->id(), 'label' => \$split->label(), 'status' => \$split->get('status'), 'folder' => \$split->get('folder')]; } echo json_encode(\$result); } else { echo '[]'; }" 2>/dev/null || echo '[]')
+    local split_list=$(doc drush eval "if (\Drupal::moduleHandler()->moduleExists('config_split')) { \$splits = \Drupal::entityTypeManager()->getStorage('config_split_entity')->loadMultiple(); \$result = []; foreach (\$splits as \$split) { \$result[] = ['id' => \$split->id(), 'label' => \$split->label(), 'status' => \$split->get('status'), 'folder' => \$split->get('folder')]; } echo json_encode(\$result); } else { echo '[]'; }" 2>/dev/null || echo '[]')
 
     echo "{\"installed\": true, \"status\": \"enabled\", \"splits\": $split_list}"
 }
@@ -107,7 +107,7 @@ analyze_config_ignore() {
     fi
 
     # Get ignored configuration patterns
-    local ignored_configs=$(ddev drush config:get config_ignore.settings ignored_config_entities --format=json 2>/dev/null | jq -c '.ignored_config_entities // []' || echo '[]')
+    local ignored_configs=$(doc drush config:get config_ignore.settings ignored_config_entities --format=json 2>/dev/null | jq -c '.ignored_config_entities // []' || echo '[]')
 
     echo "{\"installed\": true, \"status\": \"enabled\", \"ignored_configs\": $ignored_configs}"
 }
@@ -124,7 +124,7 @@ analyze_config_readonly() {
     fi
 
     # Check if config is locked
-    local is_locked=$(ddev drush eval "echo \Drupal::config('config_readonly.settings')->get('enabled') ? '1' : '0';" 2>/dev/null || echo "0")
+    local is_locked=$(doc drush eval "echo \Drupal::config('config_readonly.settings')->get('enabled') ? '1' : '0';" 2>/dev/null || echo "0")
 
     echo "{\"installed\": true, \"status\": \"enabled\", \"locked\": $([ "$is_locked" = "1" ] && echo "true" || echo "false")}"
 }
@@ -155,7 +155,7 @@ check_features() {
     # Get count of features if module is enabled
     local features_count=0
     if [ "$module_status" = "Enabled" ]; then
-        features_count=$(ddev drush features:list --format=json 2>/dev/null | jq 'length' 2>/dev/null || echo "0")
+        features_count=$(doc drush features:list --format=json 2>/dev/null | jq 'length' 2>/dev/null || echo "0")
     fi
 
     echo "{\"installed\": $([ "$module_status" != "not_installed" ] && echo "true" || echo "false"), \"status\": \"$module_status\", \"warning\": $warning, \"message\": \"$message\", \"features_count\": $features_count}"
@@ -184,13 +184,13 @@ get_config_statistics() {
     local yml_count=$(find "$config_dir" -name "*.yml" -type f 2>/dev/null | wc -l | tr -d ' ')
 
     # Get active config count from database
-    local db_config_count=$(ddev drush sql-query "SELECT COUNT(*) FROM config" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' ')
+    local db_config_count=$(doc drush sql-query "SELECT COUNT(*) FROM config" 2>/dev/null | grep -E '^[0-9]+$' | head -1 | tr -d ' ')
     if [ -z "$db_config_count" ]; then
         db_config_count="0"
     fi
 
     # Get config status differences count
-    local status_output=$(ddev drush config:status --format=json 2>/dev/null || echo '{}')
+    local status_output=$(doc drush config:status --format=json 2>/dev/null || echo '{}')
     status_output=$(echo "$status_output" | sed 's/,\s*}/}/g' | sed 's/,\s*]/]/g')
     local diffs=$(echo "$status_output" | jq 'length' 2>/dev/null || echo "0")
 

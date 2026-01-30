@@ -80,7 +80,7 @@ RESULT='{
 echo "Collecting integration-related modules..." >&2
 
 # Get modules with API/REST/Integration keywords
-INTEGRATION_MODULES=$(ddev drush eval "
+INTEGRATION_MODULES=$(doc drush eval "
 \$module_list = \Drupal::service('extension.list.module');
 \$keywords = ['api', 'rest', 'json', 'oauth', 'soap', 'webservice', 'webhook', 'integration', 'external', 'http'];
 
@@ -118,7 +118,7 @@ RESULT=$(echo "$RESULT" | jq \
 echo "Checking REST module..." >&2
 
 # Check if REST module is enabled
-REST_ENABLED=$(ddev drush eval "echo \Drupal::moduleHandler()->moduleExists('rest') ? '1' : '0';" 2>/dev/null)
+REST_ENABLED=$(doc drush eval "echo \Drupal::moduleHandler()->moduleExists('rest') ? '1' : '0';" 2>/dev/null)
 
 RESULT=$(echo "$RESULT" | jq \
     --argjson rest "$REST_ENABLED" \
@@ -128,7 +128,7 @@ RESULT=$(echo "$RESULT" | jq \
 if [ "$REST_ENABLED" = "1" ]; then
     echo "Collecting REST resources..." >&2
 
-    REST_RESOURCES=$(ddev drush eval "
+    REST_RESOURCES=$(doc drush eval "
     \$config_factory = \Drupal::configFactory();
     \$config_names = \$config_factory->listAll('rest.resource.');
     \$resources = [];
@@ -160,7 +160,7 @@ fi
 echo "Checking JSON:API module..." >&2
 
 # Check if JSON:API module is enabled
-JSONAPI_ENABLED=$(ddev drush eval "echo \Drupal::moduleHandler()->moduleExists('jsonapi') ? '1' : '0';" 2>/dev/null)
+JSONAPI_ENABLED=$(doc drush eval "echo \Drupal::moduleHandler()->moduleExists('jsonapi') ? '1' : '0';" 2>/dev/null)
 
 RESULT=$(echo "$RESULT" | jq \
     --argjson jsonapi "$JSONAPI_ENABLED" \
@@ -170,7 +170,7 @@ RESULT=$(echo "$RESULT" | jq \
 if [ "$JSONAPI_ENABLED" = "1" ]; then
     echo "Collecting JSON:API endpoints..." >&2
 
-    JSONAPI_ENDPOINTS=$(ddev drush eval "
+    JSONAPI_ENDPOINTS=$(doc drush eval "
     \$endpoints = [];
 
     // Get content types
@@ -231,7 +231,7 @@ fi
 echo "Collecting OAuth/Authentication modules..." >&2
 
 # Get OAuth/Auth modules
-OAUTH_MODULES=$(ddev drush pm:list --status=enabled --format=json 2>/dev/null | jq '[to_entries[] | select(.key | test("oauth|saml|ldap|openid|sso"; "i")) | {machine_name: .key, name: .value.name, status: .value.status}]' || echo "[]")
+OAUTH_MODULES=$(doc drush pm:list --status=enabled --format=json 2>/dev/null | jq '[to_entries[] | select(.key | test("oauth|saml|ldap|openid|sso"; "i")) | {machine_name: .key, name: .value.name, status: .value.status}]' || echo "[]")
 
 if [ -z "$OAUTH_MODULES" ] || [ "$OAUTH_MODULES" = "null" ]; then
     OAUTH_MODULES="[]"
@@ -244,7 +244,7 @@ RESULT=$(echo "$RESULT" | jq \
 echo "Collecting webhook modules..." >&2
 
 # Get webhook modules
-WEBHOOK_MODULES=$(ddev drush pm:list --status=enabled --format=json 2>/dev/null | jq '[to_entries[] | select(.key | test("webhook"; "i")) | {machine_name: .key, name: .value.name, status: .value.status}]' || echo "[]")
+WEBHOOK_MODULES=$(doc drush pm:list --status=enabled --format=json 2>/dev/null | jq '[to_entries[] | select(.key | test("webhook"; "i")) | {machine_name: .key, name: .value.name, status: .value.status}]' || echo "[]")
 
 if [ -z "$WEBHOOK_MODULES" ] || [ "$WEBHOOK_MODULES" = "null" ]; then
     WEBHOOK_MODULES="[]"
@@ -280,7 +280,7 @@ RESULT=$(echo "$RESULT" | jq --argjson routes "$WEBHOOK_ROUTES" '.webhooks.route
 echo "Collecting queue workers..." >&2
 
 # Get all queue workers (integration points)
-QUEUE_WORKERS=$(ddev drush eval "
+QUEUE_WORKERS=$(doc drush eval "
 \$queue_manager = \Drupal::service('plugin.manager.queue_worker');
 \$workers = \$queue_manager->getDefinitions();
 \$result = [];
@@ -371,7 +371,7 @@ RESULT=$(echo "$RESULT" | jq \
 echo "Collecting payment gateway modules..." >&2
 
 # Get payment/commerce modules
-PAYMENT_MODULES=$(ddev drush pm:list --status=enabled --format=json 2>/dev/null | jq '[to_entries[] | select(.key | test("commerce|payment|stripe|paypal|authorize"; "i")) | {machine_name: .key, name: .value.name, package: .value.package}]' || echo "[]")
+PAYMENT_MODULES=$(doc drush pm:list --status=enabled --format=json 2>/dev/null | jq '[to_entries[] | select(.key | test("commerce|payment|stripe|paypal|authorize"; "i")) | {machine_name: .key, name: .value.name, package: .value.package}]' || echo "[]")
 
 if [ -z "$PAYMENT_MODULES" ] || [ "$PAYMENT_MODULES" = "null" ]; then
     PAYMENT_MODULES="[]"
@@ -382,7 +382,7 @@ RESULT=$(echo "$RESULT" | jq --argjson payment "$PAYMENT_MODULES" '.payment_gate
 echo "Collecting email service modules..." >&2
 
 # Get email-related modules
-EMAIL_MODULES=$(ddev drush pm:list --status=enabled --format=json 2>/dev/null | jq '[to_entries[] | select(.key | test("smtp|mail|sendgrid|mailchimp|postmark"; "i")) | {machine_name: .key, name: .value.name, package: .value.package}]' || echo "[]")
+EMAIL_MODULES=$(doc drush pm:list --status=enabled --format=json 2>/dev/null | jq '[to_entries[] | select(.key | test("smtp|mail|sendgrid|mailchimp|postmark"; "i")) | {machine_name: .key, name: .value.name, package: .value.package}]' || echo "[]")
 
 if [ -z "$EMAIL_MODULES" ] || [ "$EMAIL_MODULES" = "null" ]; then
     EMAIL_MODULES="[]"
@@ -393,7 +393,7 @@ RESULT=$(echo "$RESULT" | jq --argjson email "$EMAIL_MODULES" '.email_services.m
 echo "Collecting social media modules..." >&2
 
 # Get social media modules
-SOCIAL_MODULES=$(ddev drush pm:list --status=enabled --format=json 2>/dev/null | jq '[to_entries[] | select(.key | test("social|facebook|twitter|linkedin|instagram"; "i")) | {machine_name: .key, name: .value.name, package: .value.package}]' || echo "[]")
+SOCIAL_MODULES=$(doc drush pm:list --status=enabled --format=json 2>/dev/null | jq '[to_entries[] | select(.key | test("social|facebook|twitter|linkedin|instagram"; "i")) | {machine_name: .key, name: .value.name, package: .value.package}]' || echo "[]")
 
 if [ -z "$SOCIAL_MODULES" ] || [ "$SOCIAL_MODULES" = "null" ]; then
     SOCIAL_MODULES="[]"
@@ -404,7 +404,7 @@ RESULT=$(echo "$RESULT" | jq --argjson social "$SOCIAL_MODULES" '.social_media.m
 echo "Collecting analytics modules..." >&2
 
 # Get analytics modules
-ANALYTICS_MODULES=$(ddev drush pm:list --status=enabled --format=json 2>/dev/null | jq '[to_entries[] | select(.key | test("google.*analytics|gtm|matomo|piwik|tracking"; "i")) | {machine_name: .key, name: .value.name, package: .value.package}]' || echo "[]")
+ANALYTICS_MODULES=$(doc drush pm:list --status=enabled --format=json 2>/dev/null | jq '[to_entries[] | select(.key | test("google.*analytics|gtm|matomo|piwik|tracking"; "i")) | {machine_name: .key, name: .value.name, package: .value.package}]' || echo "[]")
 
 if [ -z "$ANALYTICS_MODULES" ] || [ "$ANALYTICS_MODULES" = "null" ]; then
     ANALYTICS_MODULES="[]"
@@ -415,7 +415,7 @@ RESULT=$(echo "$RESULT" | jq --argjson analytics "$ANALYTICS_MODULES" '.analytic
 echo "Collecting search service modules..." >&2
 
 # Get search-related modules
-SEARCH_MODULES=$(ddev drush pm:list --status=enabled --format=json 2>/dev/null | jq '[to_entries[] | select(.key | test("search.*api|solr|elasticsearch|algolia"; "i")) | {machine_name: .key, name: .value.name, package: .value.package}]' || echo "[]")
+SEARCH_MODULES=$(doc drush pm:list --status=enabled --format=json 2>/dev/null | jq '[to_entries[] | select(.key | test("search.*api|solr|elasticsearch|algolia"; "i")) | {machine_name: .key, name: .value.name, package: .value.package}]' || echo "[]")
 
 if [ -z "$SEARCH_MODULES" ] || [ "$SEARCH_MODULES" = "null" ]; then
     SEARCH_MODULES="[]"
@@ -426,7 +426,7 @@ RESULT=$(echo "$RESULT" | jq --argjson search "$SEARCH_MODULES" '.search_service
 echo "Collecting external storage modules..." >&2
 
 # Get external storage modules
-STORAGE_MODULES=$(ddev drush pm:list --status=enabled --format=json 2>/dev/null | jq '[to_entries[] | select(.key | test("s3|azure|cdn|cloudflare|akamai"; "i")) | {machine_name: .key, name: .value.name, package: .value.package}]' || echo "[]")
+STORAGE_MODULES=$(doc drush pm:list --status=enabled --format=json 2>/dev/null | jq '[to_entries[] | select(.key | test("s3|azure|cdn|cloudflare|akamai"; "i")) | {machine_name: .key, name: .value.name, package: .value.package}]' || echo "[]")
 
 if [ -z "$STORAGE_MODULES" ] || [ "$STORAGE_MODULES" = "null" ]; then
     STORAGE_MODULES="[]"
